@@ -1,0 +1,10 @@
+{
+    "type": "application",
+    "license": "MIT",
+    "require": {
+        "php": ">=5.3.0",
+        "vdb/php-spider": "dev-master",
+        "solarium/solarium": "~2"
+    },
+    "minimum-stability": "dev"
+}
