@@ -1,4 +1,4 @@
-=== Concurrent spider ===
+## Concurrent spider
 
 This repository contains a set-up to have a highly scalable web crawler using PHP, RabbitMQ and Solr. How it works?
 
