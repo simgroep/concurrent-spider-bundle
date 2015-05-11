@@ -4,13 +4,18 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <!--
     <services>
-        <service id="simgroep_concurrent_spider.example" class="Simgroep\ConcurrentSpiderBundle\Example">
-            <argument type="service" id="service_id" />
-            <argument>plain_value</argument>
-            <argument>%parameter_name%</argument>
+        <service id="simgroep_concurrent_spider.rabbitmq.connection" class="PhpAmqpLib\Connection\AMQPLazyConnection">
+            <argument>%simgroep_concurrent_spider.rabbitmq.host%</argument>
+            <argument>%simgroep_concurrent_spider.rabbitmq.port%</argument>
+            <argument>%simgroep_concurrent_spider.rabbitmq.user%</argument>
+            <argument>%simgroep_concurrent_spider.rabbitmq.password%</argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.start_crawler_command" class="Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand">
+            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+
+            <tag name="console.command" />
         </service>
     </services>
-    -->
 </container>
