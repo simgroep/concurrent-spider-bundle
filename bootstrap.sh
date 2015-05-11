@@ -8,11 +8,12 @@ sudo apt-key add rabbitmq-signing-key-public.asc
 
 sudo apt-get update
 sudo apt-get -y upgrade
-sudo apt-get install -y php5-cli php5-curl git rabbitmq-server solr-tomcat
+sudo apt-get install -y php5-cli php5-curl git rabbitmq-server solr-tomcat htop
 
 sudo cp /home/vagrant/concurrent-spider/schema.xml /etc/solr/conf/schema.xml
 sudo service tomcat6 restart
 
+sudo rabbitmq-plugins enable rabbitmq_management
 sudo echo "[{rabbit, [{loopback_users, []}]}]." >> /etc/rabbitmq/rabbitmq.config
 sudo service rabbitmq-server restart
 
