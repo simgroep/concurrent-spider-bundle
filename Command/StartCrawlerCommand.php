@@ -2,49 +2,61 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Command;
 
-use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Simgroep\ConcurrentSpiderBundle\Queue;
 
 class StartCrawlerCommand extends Command
 {
-    public function __construct(AMQPConnection $connection)
+    protected $queue;
+
+    /**
+     * Constructor.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
+     */
+    public function __construct(Queue $queue)
     {
-        $this->connection = $connection;
+        $this->queue = $queue;
 
         parent::__construct();
     }
 
+    /**
+     * Configure the command options.
+     */
     public function configure()
     {
         $this
             ->setName('simgroep:start-crawler')
             ->addArgument('url', InputArgument::REQUIRED, 'The URL of the website that should be crawled.')
-            ->addOption('queue', null, InputOption::VALUE_OPTIONAL, 'The name of the queue.', 'discoved_urls')
             ->setDescription('This command saves a job to the queue that will cause crawling to start.');
     }
 
+    /**
+     * Declares the queue and persists one message.
+     *
+     * @param \Symfony\Component\Console\Input\InputInterface   $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     *
+     * @return boolean
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $channel = $this->connection->channel();
-        $channel->queue_declare($input->getOption('queue'), false, true, false, false, true);
-        $channel->basic_qos(null, 1, null);
-
         $data = array(
             'uri' => $input->getArgument('url'),
             'base_url' => $input->getArgument('url'),
         );
+        $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
 
-        $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 2));
-        $channel->basic_publish($message, '', $input->getOption('queue'));
+        $this->queue->publish($message);
 
         $output->writeLn('<info>Job is published, start a worker with app/console simgroep:crawl</info>');
 
-        $channel->close();
-        $this->connection->close();
+        return 0;
     }
 }
