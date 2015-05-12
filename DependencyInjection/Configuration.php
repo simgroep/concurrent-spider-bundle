@@ -20,9 +20,17 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('simgroep_concurrent_spider');
 
-        // Here you should define the parameters that are allowed to
-        // configure your bundle. See the documentation linked above for
-        // more information on that topic.
+        $rootNode
+            ->children()
+                ->arrayNode('rabbitmq')
+                    ->children()
+                        ->scalarNode('host')->isRequired()->cannotBeEmpty()->defaultValue('localhost')->end()
+                        ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('5672')->end()
+                        ->scalarNode('user')->isRequired()->cannotBeEmpty()->defaultValue('guest')->end()
+                        ->scalarNode('password')->isRequired()->cannotBeEmpty()->defaultValue('guest')->end()
+                    ->end()
+                ->end()
+            ->end();
 
         return $treeBuilder;
     }
