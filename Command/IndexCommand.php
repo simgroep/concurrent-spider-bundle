@@ -10,6 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
+use Solarium_Document_ReadWrite;
 
 class IndexCommand extends Command
 {
@@ -58,10 +59,9 @@ class IndexCommand extends Command
      */
     public function prepareDocument(AMQPMessage $message)
     {
-        $transaction = $this->indexer->createUpdateTransaction();
         $data = json_decode($message->body, true);
 
-        $document = $this->indexer->createDocument($transaction);
+        $document = new Solarium_Document_ReadWrite();
         $document->id = $data['document']['id'];
         $document->title = $data['document']['title'];
         $document->tstamp = $data['document']['tstamp'];
@@ -71,16 +71,16 @@ class IndexCommand extends Command
 
         $this->documents[] = $document;
 
-        if (count($this->documents) >= 50) {
+        if (count($this->documents) >= 10) {
             $this->saveDocuments();
         }
 
         $this->queue->acknowledge($message);
     }
 
-    private function saveDocuments($output)
+    private function saveDocuments()
     {
-        $this->indexer->addDocuments($this->documents, $transaction);
+        $this->indexer->addDocuments($this->documents);
 
         $this->output->writeLn(sprintf('<info>%s documents added.</info>', count($this->documents)));
         $this->documents = array();

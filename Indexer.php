@@ -33,11 +33,12 @@ class Indexer
         return $transaction->createDocument();
     }
 
-    public function addDocuments(array $documents, $transaction)
+    public function addDocuments(array $documents)
     {
-        $this->transaction->addDocuments($documents);
-        $this->transaction->addCommit();
+        $update = $this->client->createUpdate();
+        $update->addDocuments($documents);
+        $update->addCommit();
 
-        $this->client->update($this->transaction);
+        $this->client->update($update);
     }
 }
