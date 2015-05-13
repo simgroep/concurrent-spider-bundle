@@ -17,6 +17,8 @@ use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
 use VDB\Spider\Filter\Prefetch\AllowedHostsFilter;
 use VDB\Spider\Filter\Prefetch\RestrictToBaseUriFilter;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use Exception;
 
 class CrawlCommand extends Command
 {
@@ -77,29 +79,41 @@ class CrawlCommand extends Command
         if (!$this->areHostsEqual($urlToCrawl, $baseUrl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[x] Skipped %s", $urlToCrawl));
+            $this->output->writeLn(sprintf("[ ] Skipped %s", $urlToCrawl));
             return;
         }
 
         if ($this->indexer->isUrlIndexed($urlToCrawl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[x] Skipped %s", $urlToCrawl));
+            $this->output->writeLn(sprintf("[ ] Skipped %s", $urlToCrawl));
             return;
         }
 
-        $this->output->writeLn(sprintf("[x] Crawling: %s", $urlToCrawl));
-
         try {
             $this->spider->crawlUrl($urlToCrawl);
+            $this->output->writeLn(sprintf("[x] Crawling: %s", $urlToCrawl));
+            $this->queue->acknowledge($message);
+
         } catch (UriSyntaxException $e) {
-            $this->output->writeLn(sprintf('<error>[x] URL %s failed</error>', $urlToCrawl));
+            $this->output->writeLn(sprintf('<error>[-] URL %s failed</error>', $urlToCrawl));
 
             $this->queue->rejectMessageAndRequeue($message);
+        } catch (ClientErrorResponseException $e) {
+            if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
+                $this->queue->rejectMessage($message);
+
+                $this->output->writeLn(sprintf("[ ] Skipped %s", $urlToCrawl));
+            } else {
+                $this->queue->rejectMessageAndRequeue($message);
+
+                $this->output->writeLn(sprintf("[-] Failed (%s) %s", $e->getResponse()->getStatusCode(), $urlToCrawl));
+            }
+        } catch (Exception $e) {
+            $this->queue->rejectMessage($message);
+
+            $this->output->writeLn(sprintf("[-] Failed (%s) %s", $e->getMessage(), $urlToCrawl));
         }
-
-        $this->queue->acknowledge($message);
-
     }
 
     /**
@@ -114,6 +128,10 @@ class CrawlCommand extends Command
     {
         $firstUrl = parse_url($firstUrl);
         $secondUrl = parse_url($secondUrl);
+
+        if (!array_key_exists('host', $firstUrl) || !array_key_exists('host', $secondUrl)) {
+            return false;
+        }
 
         return ($firstUrl['host'] === $secondUrl['host']);
     }
