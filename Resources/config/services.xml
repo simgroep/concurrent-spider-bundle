@@ -19,10 +19,9 @@
         </service>
 
         <service id="simgroep_concurrent_spider.crawl" class="Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand">
-            <argument type="service" id="service_container" />
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
-            <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
+            <argument type="service" id="simgroep_concurrent_spider.spider" />
 
             <tag name="console.command" />
         </service>
@@ -48,10 +47,12 @@
             <argument>indexer</argument>
         </service>
 
-        <service id="simgroep_concurrent_spider.spider" class="VDB\Spider\Spider" scope="prototype">
-            <call method="setDispatcher">
-                <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
-            </call>
+        <service id="simgroep_concurrent_spider.request_handler" class="VDB\Spider\RequestHandler\GuzzleRequestHandler" />
+
+        <service id="simgroep_concurrent_spider.spider" class="Simgroep\ConcurrentSpiderBundle\Spider">
+            <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
+            <argument type="service" id="simgroep_concurrent_spider.request_handler" />
+            <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
         </service>
 
         <service id="simgroep_concurrent_spider.solr_client" class="Solarium_Client">

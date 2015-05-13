@@ -5,6 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle\Command;
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
+use Simgroep\ConcurrentSpiderBundle\Spider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,22 +20,19 @@ use VDB\Spider\PersistenceHandler\PersistenceHandler;
 
 class CrawlCommand extends Command
 {
-    private $container;
     private $queue;
     private $indexer;
-    private $persistenceHandler;
+    private $spider;
     private $output;
 
     public function __construct(
-        ContainerInterface $container,
         Queue $queue,
         Indexer $indexer,
-        PersistenceHandler $persistenceHandler
+        Spider $spider
     ) {
-        $this->container = $container;
         $this->queue = $queue;
         $this->indexer = $indexer;
-        $this->persistenceHandler = $persistenceHandler;
+        $this->spider = $spider;
 
         parent::__construct();
     }
@@ -93,22 +91,11 @@ class CrawlCommand extends Command
         $this->output->writeLn(sprintf("[x] Crawling: %s", $urlToCrawl));
 
         try {
-            $spider = $this->container->get('simgroep_concurrent_spider.spider');
-            $spider->setSeed($urlToCrawl);
-            $spider->addDiscoverer(new XPathExpressionDiscoverer("//a"));
-            $spider->setMaxDepth(10);
-            $spider->setMaxQueueSize(1);
-            $spider->addPreFetchFilter(new AllowedHostsFilter(array($baseUrl), $allowSubDomains));
-            $spider->addPreFetchFilter(new RestrictToBaseUriFilter($baseUrl));
-            $spider->setPersistenceHandler($this->persistenceHandler);
-            $spider->crawl();
-
+            $this->spider->crawlUrl($urlToCrawl);
         } catch (UriSyntaxException $e) {
             $this->output->writeLn(sprintf('<error>[x] URL %s failed</error>', $urlToCrawl));
 
             $this->queue->rejectMessageAndRequeue($message);
-        } catch (\InvalidArgumentException $e) {
-            $this->queue->rejectMessage($message);
         }
 
         $this->queue->acknowledge($message);
