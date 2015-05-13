@@ -23,14 +23,14 @@ class DiscoverUrlListener
         foreach ($event['uris'] as $uri) {
             if (!$this->indexer->isUrlIndexed($uri->toString())) {
                 $data = array(
-                    'uri' => $uri->toString(),
-                    'base_url' => $event->getSubject()->getStartUri()
+                    'uri' => $uri->normalize()->toString(),
+                    'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
                 );
                 $data = json_encode($data);
 
                 $message = new AMQPMessage($data, array('delivery_mode' => 1));
                 $this->queue->publish($message);
-            }
+           }
         }
     }
 }

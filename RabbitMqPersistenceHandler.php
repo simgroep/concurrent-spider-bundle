@@ -6,6 +6,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
+use InvalidArgumentException;
 
 class RabbitMqPersistenceHandler implements PersistenceHandler
 {
@@ -22,22 +23,27 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
 
     public function persist(Resource $resource)
     {
-        $title = $resource->getCrawler()->filterXpath('//title')->text();
-        $content = $resource->getCrawler()->filterXpath('//body')->text();
+        try {
+            $title = $resource->getCrawler()->filterXpath('//title')->text();
+            $content = $resource->getCrawler()->filterXpath('//body')->text();
 
-        $data = array(
-            'document' => array(
-                'id' => sha1($resource->getUri()),
-                'title' => $title,
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'content' => $content,
-            ),
-        );
+            $data = array(
+                'document' => array(
+                    'id' => sha1($resource->getUri()),
+                    'title' => $title,
+                    'tstamp' => date('Y-m-d\TH:i:s\Z'),
+                    'date' => date('Y-m-d\TH:i:s\Z'),
+                    'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+                    'content' => $content,
+                ),
+            );
 
-        $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
+            $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
 
-        $this->queue->publish($message);
+            $this->queue->publish($message);
+        } catch (InvalidArgumentException $e) {
+            //Content couldn't be extracted so saving the document would be silly.
+        }
+
     }
 }
