@@ -39,12 +39,12 @@
 
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
             <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
-            <argument>discovered_urls</argument>
+            <argument>%simgroep_concurrent_spider.queue.discoveredurls_queue%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.queue.indexer" class="Simgroep\ConcurrentSpiderBundle\Queue">
             <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
-            <argument>indexer</argument>
+            <argument>%simgroep_concurrent_spider.queue.indexer_queue%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.request_handler" class="VDB\Spider\RequestHandler\GuzzleRequestHandler" />
@@ -58,9 +58,9 @@
         <service id="simgroep_concurrent_spider.solr_client" class="Solarium_Client">
             <argument type="collection">
                 <argument key="adapteroptions" type="collection">
-                    <argument key="host">127.0.0.1</argument>
-                    <argument key="port">8080</argument>
-                    <argument key="path">/solr/</argument>
+                    <argument key="host">%simgroep_concurrent_spider.solr.host%</argument>
+                    <argument key="port">%simgroep_concurrent_spider.solr.port%</argument>
+                    <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
                 </argument>
             </argument>
         </service>

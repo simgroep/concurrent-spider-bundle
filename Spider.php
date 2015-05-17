@@ -7,17 +7,38 @@ use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Event\SpiderEvents;
-use VDB\Spider\Resource;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 class Spider
 {
+    /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
     private $eventDispatcher;
+
+    /**
+     * @var \VDB\Spider\RequestHandler\GuzzleRequestHandler
+     */
     private $requestHandler;
+
+    /**
+     * @var \VDB\Spider\PersistenceHandler\PersistenceHandler
+     */
     private $persistenceHandler;
+
+    /**
+     * @var string
+     */
     private $currentUri;
 
+    /**
+     * Constructor.
+     *
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+     * @param \VDB\Spider\RequestHandler\GuzzleRequestHandler             $requestHandler
+     * @param \VDB\Spider\PersistenceHandler\PersistenceHandler           $persistenceHandler
+     */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         GuzzleRequestHandler $requestHandler,
@@ -28,11 +49,21 @@ class Spider
         $this->persistenceHandler = $persistenceHandler;
     }
 
+    /**
+     * Returns the URI that is currently cralwed.
+     *
+     * @return \VDB\Uri\Uri
+     */
     public function getCurrentUri()
     {
         return $this->currentUri;
     }
 
+    /**
+     * Function that crawls one webpage based on the give url.
+     *
+     * @param string $uri
+     */
     public function crawlUrl($uri)
     {
         $this->currentUri = new Uri($uri);

@@ -9,24 +9,39 @@ use Simgroep\ConcurrentSpiderBundle\Spider;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use VDB\Uri\Exception\UriSyntaxException;
-use VDB\Spider\Discoverer\XPathExpressionDiscoverer;
-use VDB\Spider\Filter\Prefetch\AllowedHostsFilter;
-use VDB\Spider\Filter\Prefetch\RestrictToBaseUriFilter;
-use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use Guzzle\Http\Exception\ClientErrorResponseException;
 use Exception;
 
 class CrawlCommand extends Command
 {
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     private $queue;
+
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Indexer
+     */
     private $indexer;
+
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Spider
+     */
     private $spider;
+
+    /**
+     * @var \Symfony\Component\Console\Output\OutputInterface
+     */
     private $output;
 
+    /**
+     * Constructor.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
+     * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
+     */
     public function __construct(
         Queue $queue,
         Indexer $indexer,
@@ -50,6 +65,10 @@ class CrawlCommand extends Command
     }
 
     /**
+     * Starts to listen to the queue and grabs the messages from the queue to crawl url's.
+     *
+     * It should endless keep listening to the queue, if the listen function stops, something went wrong
+     * so a non-zero integer is returned to indicate something went wrong.
      *
      * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
