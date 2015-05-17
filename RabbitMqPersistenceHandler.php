@@ -8,19 +8,38 @@ use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
 use InvalidArgumentException;
 
+/**
+ * The content of crawled webpages is saved to a seperate queue that is designed for indexing documents.
+ */
 class RabbitMqPersistenceHandler implements PersistenceHandler
 {
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     private $queue;
 
+    /**
+     * Constructor.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
+     */
     public function __construct(Queue $queue)
     {
         $this->queue = $queue;
     }
 
+    /**
+     * @{inheritDoc}
+     */
     public function setSpiderId($spiderId)
     {
     }
 
+    /**
+     * Grabs the content from the crawled page and publishes a job on the queue.
+     *
+     * @param \VDB\Spider\Resource $resource
+     */
     public function persist(Resource $resource)
     {
         try {

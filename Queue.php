@@ -5,10 +5,24 @@ namespace Simgroep\ConcurrentSpiderBundle;
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
+/**
+ * This class is a gateway to the queing system that contains all the jobs for webpages that should be crawled.
+ */
 class Queue
 {
+    /**
+     * @var \PhpAmqpLib\Connection\AMQPConnection
+     */
     protected $connection;
+
+    /**
+     * @var string
+     */
     protected $queueName;
+
+    /**
+     * @var \PhpAmqpLib\Channel\AMQPChannel
+     */
     protected $channel;
 
     /**
@@ -23,15 +37,21 @@ class Queue
         $this->queueName = $queueName;
     }
 
+    /**
+     * Close the connection to RabbitMQ.
+     */
     public function __destruct()
     {
-    /*    if ($this->connection->isConnected()) {
-            $this->getChannel()->close();
+        if ($this->connection->isConnected()) {
             $this->connection->close();
-    }
-     */
+        }
     }
 
+    /**
+     * Creates (if not yet created) and returns an AMQP channel.
+     *
+     * @return \PhpAmqpLib\Channel\AMQPChannel
+     */
     protected function getChannel()
     {
         if (null === $this->channel) {
@@ -43,6 +63,13 @@ class Queue
         return $this->channel;
     }
 
+    /**
+     * Publish a job to the queue.
+     *
+     * @param \PhpAmqpLib\Message\AMQPMessage $message
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function publish(AMQPMessage $message)
     {
         $this->getChannel()->basic_publish($message, '', $this->queueName);
@@ -50,6 +77,13 @@ class Queue
         return $this;
     }
 
+    /**
+     * Listen to a queue and consume webpages to crawl.
+     *
+     * @param \Callable $callback The method that should be called for every job
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function listen(Callable $callback)
     {
         $channel = $this->getChannel();
@@ -71,6 +105,13 @@ class Queue
         return $this;
     }
 
+    /**
+     * Reject a job and remove it from the queue.
+     *
+     * @param \Callable $callback The method that should be called for every job
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function rejectMessage(AMQPMessage $message)
     {
         $message->delivery_info['channel']->basic_reject($message->delivery_info['delivery_tag'], false);
@@ -78,6 +119,15 @@ class Queue
         return $this;
     }
 
+    /**
+     * Rejects a job and put's it back on the queue.
+     *
+     * This will cause the message to be taken back from the queue and make it to process it again.
+     *
+     * @param \Callable $callback The method that should be called for every job
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function rejectMessageAndRequeue(AMQPMessage $message)
     {
         $message->delivery_info['channel']->basic_reject($message->delivery_info['delivery_tag'], true);
@@ -85,13 +135,16 @@ class Queue
         return $this;
     }
 
+    /**
+     * Acknowledge the queue that the message is processed succesfully.
+     *
+     * @param \Callable $callback The method that should be called for every job
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function acknowledge(AMQPMessage $message)
     {
-        try {
-            $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
-        } catch (\PhpAmqpLib\Exception\AMQPProtocolChannelException $e) {
-            echo "awkard \n";
-        }
+        $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
 
         return $this;
 
