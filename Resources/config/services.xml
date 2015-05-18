@@ -22,6 +22,7 @@
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.spider" />
+            <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
 
             <tag name="console.command" />
         </service>
