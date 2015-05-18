@@ -68,6 +68,7 @@ class IndexCommand extends Command
         $document->date = $data['document']['date'];
         $document->publishedDate = $data['document']['publishedDate'];
         $document->content = $data['document']['content'];
+        $document->url = $data['document']['url'];
 
         $this->documents[] = $document;
 

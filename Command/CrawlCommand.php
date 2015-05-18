@@ -36,20 +36,28 @@ class CrawlCommand extends Command
     private $output;
 
     /**
+     * @var string
+     */
+    private $userAgent;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
+     * @param string                                   $userAgent
      */
     public function __construct(
         Queue $queue,
         Indexer $indexer,
-        Spider $spider
+        Spider $spider,
+        $userAgent
     ) {
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->spider = $spider;
+        $this->userAgent = $userAgent;
 
         parent::__construct();
     }
@@ -110,6 +118,7 @@ class CrawlCommand extends Command
         }
 
         try {
+            $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->crawlUrl($urlToCrawl);
             $this->output->writeLn(sprintf("[x] Crawling: %s", $urlToCrawl));
             $this->queue->acknowledge($message);

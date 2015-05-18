@@ -18,6 +18,8 @@ Then add it to your `AppKernel.php`
 No configuration is mandatory but the following configuration is optional:
 
     simgroep_concurrent_spider:
+        http_user_agent: "PHP Concurrent Spider"
+
         rabbitmq.host: localhost
         rabbitmq.port: 5672
         rabbitmq.user: guest
