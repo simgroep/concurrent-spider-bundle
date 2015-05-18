@@ -5,4 +5,4 @@ php:
 before_script:
   - composer install -n --dev
 script:
-  - phpunit
+  - vendor/bin/phpunit -c tests/phpunit-travis.xml
