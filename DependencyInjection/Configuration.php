@@ -22,6 +22,11 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->scalarNode('http_user_agent')
+                    ->isRequired()
+                    ->cannotBeEmpty()
+                    ->defaultValue('PHP Concurrent Spider')
+                    ->end()
                 ->arrayNode('rabbitmq')
                     ->addDefaultsIfNotSet()
                     ->children()

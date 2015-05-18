@@ -4,6 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
+use Symfony\Component\DomCrawler\Crawler;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
 use InvalidArgumentException;
@@ -44,8 +45,8 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     {
         try {
             $title = $resource->getCrawler()->filterXpath('//title')->text();
-            $content = $resource->getCrawler()->filterXpath('//body')->text();
 
+            $content = $this->getContentFromResource($resource);
             $data = array(
                 'document' => array(
                     'id' => sha1($resource->getUri()),
@@ -54,6 +55,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                     'date' => date('Y-m-d\TH:i:s\Z'),
                     'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                     'content' => $content,
+                    'url' => $resource->getUri()->toString(),
                 ),
             );
 
@@ -64,5 +66,29 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             //Content couldn't be extracted so saving the document would be silly.
         }
 
+    }
+
+    /**
+     * Extracts all text content from the crawled resource exception javascript.
+     *
+     * @param \VDB\Spider\Resource $resource
+     *
+     * @return string
+     */
+    private function getContentFromResource(Resource $resource)
+    {
+        $query = '//*[not(self::script)]/text()';
+        $content = '';
+        $resource->getCrawler()->filterXpath($query)->each(
+            function (Crawler $crawler) use (&$content) {
+                $text = trim($crawler->text());
+
+                if (strlen($text) > 0) {
+                    $content .= $text . ' ';
+                }
+            }
+        );
+
+        return $content;
     }
 }
