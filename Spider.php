@@ -60,6 +60,16 @@ class Spider
     }
 
     /**
+     * Returns the request handler.
+     *
+     * @return \VDB\Spider\RequestHandler\GuzzleRequestHandler
+     */
+    public function getRequestHandler()
+    {
+        return $this->requestHandler;
+    }
+
+    /**
      * Function that crawls one webpage based on the give url.
      *
      * @param string $uri
