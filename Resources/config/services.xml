@@ -13,9 +13,71 @@
         </service>
 
         <service id="simgroep_concurrent_spider.start_crawler_command" class="Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand">
-            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
 
             <tag name="console.command" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.crawl" class="Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand">
+            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
+            <argument type="service" id="simgroep_concurrent_spider.indexer" />
+            <argument type="service" id="simgroep_concurrent_spider.spider" />
+
+            <tag name="console.command" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.index" class="Simgroep\ConcurrentSpiderBundle\Command\IndexCommand">
+            <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
+            <argument type="service" id="simgroep_concurrent_spider.indexer" />
+
+            <tag name="console.command" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler">
+            <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
+            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+            <argument>%simgroep_concurrent_spider.queue.discoveredurls_queue%</argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.queue.indexer" class="Simgroep\ConcurrentSpiderBundle\Queue">
+            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+            <argument>%simgroep_concurrent_spider.queue.indexer_queue%</argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.request_handler" class="VDB\Spider\RequestHandler\GuzzleRequestHandler" />
+
+        <service id="simgroep_concurrent_spider.spider" class="Simgroep\ConcurrentSpiderBundle\Spider">
+            <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
+            <argument type="service" id="simgroep_concurrent_spider.request_handler" />
+            <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.solr_client" class="Solarium_Client">
+            <argument type="collection">
+                <argument key="adapteroptions" type="collection">
+                    <argument key="host">%simgroep_concurrent_spider.solr.host%</argument>
+                    <argument key="port">%simgroep_concurrent_spider.solr.port%</argument>
+                    <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
+                </argument>
+            </argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.indexer" class="Simgroep\ConcurrentSpiderBundle\Indexer">
+            <argument type="service" id="simgroep_concurrent_spider.solr_client" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.discover_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener">
+            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
+            <argument type="service" id="simgroep_concurrent_spider.indexer" />
+
+            <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.post_discover" method="onDiscoverUrl" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.event_dispatcher" class="Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher">
+            <argument type="service" id="service_container" />
         </service>
     </services>
 </container>
