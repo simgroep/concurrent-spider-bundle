@@ -1,6 +1,9 @@
 Concurrent Spider Bundle
 ========================
 
+[![Build Status](https://travis-ci.org/simgroep/concurrent-spider-bundle.svg?branch=master)](http://travis-ci.org/simgroep/concurrent-spider-bundle)
+[![Coverage Status](https://coveralls.io/repos/simgroep/concurrent-spider-bundle/badge.png)](https://coveralls.io/r/simgroep/concurrent-spider-bundle)
+
 This bundle provides a set of commands to run a distributed webpage crawler. Crawled webpages are saved to SOLR.
 
 ### Instalation
