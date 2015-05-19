@@ -80,6 +80,5 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $event = new GenericEvent($spider, array('uris' => array($uri)));
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
-
     }
 }

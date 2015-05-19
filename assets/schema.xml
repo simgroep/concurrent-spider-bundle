@@ -58,7 +58,7 @@
 
     <!-- The format for this date field is of the form 1995-12-31T23:59:59Z, and
          is a more restricted form of the canonical representation of dateTime
-         http://www.w3.org/TR/xmlschema-2/#dateTime    
+         http://www.w3.org/TR/xmlschema-2/#dateTime
          The trailing "Z" designates UTC time and is mandatory.
          Optional fractional seconds are allowed: 1995-12-31T23:59:59.999Z
          All other components are mandatory.
@@ -259,7 +259,7 @@
         <!--
         The DelimitedPayloadTokenFilter can put payloads on tokens... for example,
         a token of "foo|1.4"  would be indexed as "foo" with a payload of 1.4f
-        Attributes of the DelimitedPayloadTokenFilterFactory : 
+        Attributes of the DelimitedPayloadTokenFilterFactory :
          "delimiter" - a one character delimiter. Default is | (pipe)
      "encoder" - how to encode the following value into a playload
         float -> org.apache.lucene.analysis.payloads.FloatEncoder,
@@ -295,13 +295,13 @@
     </fieldType>
 
     <!-- since fields of this type are by default not stored or indexed,
-         any data added to them will be ignored outright.  --> 
+         any data added to them will be ignored outright.  -->
     <fieldtype name="ignored" stored="false" indexed="false" multiValued="true" class="solr.StrField" />
 
  </types>
 
  <fields>
-    <!-- This field is used internally by Solr, for example by features 
+    <!-- This field is used internally by Solr, for example by features
     like partial update functionality and update log. It is NOT required
     if updateLog is turned off in your updateHandler, however it is advised
     to include it as performance improvements are minimal. -->
@@ -336,7 +336,7 @@
     <field name="lastModified" type="date" stored="true" indexed="false"/>
     <field name="date" type="tdate" stored="true" indexed="true"/>
     
-    <!-- fields for index-metadata plugin -->  
+    <!-- fields for index-metadata plugin -->
     <dynamicField name="meta_*" type="string" stored="true" indexed="true"/>
 
     <!-- fields for languageidentifier plugin -->
@@ -355,7 +355,7 @@
     <!-- fields for creativecommons plugin -->
     <field name="cc" type="string" stored="true" indexed="true" multiValued="true"/>
 
-    <!-- fields for tld plugin -->    
+    <!-- fields for tld plugin -->
     <field name="tld" type="string" stored="false" indexed="false"/>
  </fields>
  <uniqueKey>id</uniqueKey>

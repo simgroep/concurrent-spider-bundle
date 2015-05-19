@@ -33,6 +33,11 @@ class Spider
     private $currentUri;
 
     /**
+     * @var array
+     */
+    private $blacklist;
+
+    /**
      * Constructor.
      *
      * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
@@ -52,7 +57,7 @@ class Spider
     /**
      * Returns the URI that is currently cralwed.
      *
-     * @return \VDB\Uri\Uri
+     * @return \VDB\Uri\Uri $uri
      */
     public function getCurrentUri()
     {
@@ -67,6 +72,70 @@ class Spider
     public function getRequestHandler()
     {
         return $this->requestHandler;
+    }
+
+    /**
+     * Sets the blacklist.
+     *
+     * @param array $blacklist
+     */
+    public function setBlacklist(array $blacklist)
+    {
+        $this->blacklist = $blacklist;
+    }
+
+    /**
+     * Returns the blacklisted url's.
+     *
+     * @return array
+     */
+    public function getBlacklist()
+    {
+        return $this->blacklist;
+    }
+
+    /**
+     * Checks is a URL is blacklisted.
+     *
+     * @param \VDB\Uri\Uri
+     *
+     * @return bool
+     */
+    public function isUrlBlacklisted(Uri $uri)
+    {
+        $isBlacklisted = false;
+
+        if (in_array($uri->toString(), $this->blacklist)) {
+            return true;
+        }
+
+        array_walk(
+            $this->blacklist, 
+            function ($blacklistUrl) use ($uri, &$isBlacklisted) {
+                if (@preg_match('/' . $blacklistUrl . '/', $uri->toString())) {
+                    $isBlacklisted = true;
+                }
+            }
+        );
+        
+        if ($isBlacklisted) {
+            $this->eventDispatcher->dispatch(
+                "spider.crawl.blacklisted",
+                new GenericEvent($this, array('uri' => $uri))
+            );
+        }
+
+        return $isBlacklisted;
+    }
+
+    /**
+     * Returns the event dispatcher.
+     *
+     * @return \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
+    public function getEventDispatcher()
+    {
+        return $this->eventDispatcher;
     }
 
     /**
@@ -97,7 +166,14 @@ class Spider
             }
         }
 
-        $uris = array_unique($uris);
+        $spider = $this;
+
+        $uris = array_filter(
+            array_unique($uris),
+            function (Uri $uri) use ($spider) {
+                return !$spider->isUrlBlacklisted($uri);
+            }
+        );
 
         $this->eventDispatcher->dispatch(
             SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,

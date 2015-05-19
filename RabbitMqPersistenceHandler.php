@@ -65,7 +65,6 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         } catch (InvalidArgumentException $e) {
             //Content couldn't be extracted so saving the document would be silly.
         }
-
     }
 
     /**
