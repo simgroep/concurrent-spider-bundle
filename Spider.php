@@ -87,7 +87,10 @@ class Spider
 
         foreach ($crawler as $node) {
             try {
-                $uri = new Uri($node->getAttribute('href'), $resource->getUri()->toString() . '/');
+                $href = $node->getAttribute('href');
+                $baseUrl = $resource->getUri()->toString();
+
+                $uri = new Uri($href, $baseUrl);
                 $uris[] = $uri;
             } catch (UriSyntaxException $e) {
                 //too bad
