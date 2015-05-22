@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Command;
 
+use Monolog\Logger;
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
@@ -31,14 +32,14 @@ class CrawlCommand extends Command
     private $spider;
 
     /**
-     * @var \Symfony\Component\Console\Output\OutputInterface
-     */
-    private $output;
-
-    /**
      * @var string
      */
     private $userAgent;
+
+    /**
+     * @var \Monolog\Logger
+     */
+    private $logger;
 
     /**
      * Constructor.
@@ -47,17 +48,20 @@ class CrawlCommand extends Command
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
      * @param string                                   $userAgent
+     * @param \Monolog\Logger                          $logger
      */
     public function __construct(
         Queue $queue,
         Indexer $indexer,
         Spider $spider,
-        $userAgent
+        $userAgent,
+        Logger $logger
     ) {
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->spider = $spider;
         $this->userAgent = $userAgent;
+        $this->logger = $logger;
 
         parent::__construct();
     }
@@ -85,7 +89,6 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->output = $output;
         $this->queue->listen(array($this, 'crawlUrl'));
 
         return 1;
@@ -102,14 +105,14 @@ class CrawlCommand extends Command
         $urlToCrawl = $data['uri'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
-        $output = $this->output;
-        
+        $logger = $this->logger;
+
         $this->spider->setBlacklist($blacklist);
         $this->spider->getEventDispatcher()->addListener(
             "spider.crawl.blacklisted",
-            function ($event) use ($output) {
-                $output->writeLn(
-                    sprintf("[ ] <comment>Blacklisted</comment> %s", $event->getArgument('uri')->toString())
+            function ($event) use ($logger) {
+                $logger->info(
+                    sprintf("Blacklisted %s", $event->getArgument('uri')->toString())
                 );
             }
         );
@@ -117,40 +120,38 @@ class CrawlCommand extends Command
         if (!$this->areHostsEqual($urlToCrawl, $baseUrl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
             return;
         }
 
         if ($this->indexer->isUrlIndexed($urlToCrawl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
             return;
         }
 
         try {
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->crawlUrl($urlToCrawl);
-            $this->output->writeLn(sprintf("[x] <info>Crawling:</info> %s", $urlToCrawl));
+
+            $this->logger->info(sprintf("Crawling %s", $urlToCrawl));
             $this->queue->acknowledge($message);
         } catch (UriSyntaxException $e) {
-            $this->output->writeLn(sprintf('<error>[-] URL %s failed</error>', $urlToCrawl));
+            $this->logger->warning(sprintf('URL %s failed', $urlToCrawl));
 
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
             if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
                 $this->queue->rejectMessage($message);
-
-                $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+                $this->logger->warning(sprintf("Skipped %s", $urlToCrawl));
             } else {
                 $this->queue->rejectMessageAndRequeue($message);
-
-                $this->output->writeLn(sprintf("<error>[-] Failed (%s) %s</error>", $e->getResponse()->getStatusCode(), $urlToCrawl));
+                $this->logger->emergency(sprintf('URL (%s) %s failed', $e->getResponse->getStatusCode(), $urlToCrawl));
             }
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
-
-            $this->output->writeLn(sprintf("<error>[-] Failed (%s) %s</error>", $e->getMessage(), $urlToCrawl));
+            $this->logger->emergency(sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl));
         }
     }
 
