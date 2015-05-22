@@ -117,40 +117,39 @@ class CrawlCommand extends Command
         if (!$this->areHostsEqual($urlToCrawl, $baseUrl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
             return;
         }
 
         if ($this->indexer->isUrlIndexed($urlToCrawl)) {
             $this->queue->rejectMessage($message);
 
-            $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
             return;
         }
 
         try {
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->crawlUrl($urlToCrawl);
-            $this->output->writeLn(sprintf("[x] <info>Crawling:</info> %s", $urlToCrawl));
+
+            $this->logger->info(sprintf("Crawling %s", $urlToCrawl));
             $this->queue->acknowledge($message);
+
         } catch (UriSyntaxException $e) {
-            $this->output->writeLn(sprintf('<error>[-] URL %s failed</error>', $urlToCrawl));
+            $this->logger->warning(sprintf('URL %s failed', $urlToCrawl));
 
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
             if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
                 $this->queue->rejectMessage($message);
-
-                $this->output->writeLn(sprintf("[ ] <comment>Skipped</comment> %s", $urlToCrawl));
+                $this->logger->warning(sprintf("Skipped %s", $urlToCrawl));
             } else {
                 $this->queue->rejectMessageAndRequeue($message);
-
-                $this->output->writeLn(sprintf("<error>[-] Failed (%s) %s</error>", $e->getResponse()->getStatusCode(), $urlToCrawl));
+                $this->logger->emergency(sprintf('URL (%s) %s failed', $e->getResponse->getStatusCode(), $urlToCrawl));
             }
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
-
-            $this->output->writeLn(sprintf("<error>[-] Failed (%s) %s</error>", $e->getMessage(), $urlToCrawl));
+            $this->logger->emergency(sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl));
         }
     }
 
