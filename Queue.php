@@ -98,7 +98,7 @@ class Queue
             $callback
         );
 
-        while(count($channel->callbacks)) {
+        while (count($channel->callbacks)) {
             $channel->wait();
         }
 
@@ -147,6 +147,5 @@ class Queue
         $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
 
         return $this;
-
     }
 }
