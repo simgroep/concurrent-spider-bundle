@@ -55,9 +55,15 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
 
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info', 'warning', 'emergency'))
+            ->getMock();
+
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent))
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
             ->setMethods(null)
             ->getMock();
 
