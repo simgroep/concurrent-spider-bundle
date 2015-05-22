@@ -23,6 +23,7 @@
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.spider" />
             <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
+            <argument type="service" id="logger" />
 
             <tag name="console.command" />
         </service>
