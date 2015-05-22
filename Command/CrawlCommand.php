@@ -137,8 +137,6 @@ class CrawlCommand extends Command
 
             $this->logger->info(sprintf("Crawling %s", $urlToCrawl));
             $this->queue->acknowledge($message);
-
-            echo '.';
         } catch (UriSyntaxException $e) {
             $this->logger->warning(sprintf('URL %s failed', $urlToCrawl));
 
