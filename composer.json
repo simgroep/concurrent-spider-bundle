@@ -13,7 +13,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.4.0",
         "vdb/php-spider": "dev-master",
         "solarium/solarium": "~2",
         "videlalvaro/php-amqplib": "~2"

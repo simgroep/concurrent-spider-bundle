@@ -45,12 +45,13 @@ class DiscoverUrlListener
                 $data = array(
                     'uri' => $uri->normalize()->toString(),
                     'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
+                    'blacklist' => $event->getSubject()->getBlacklist()
                 );
                 $data = json_encode($data);
 
                 $message = new AMQPMessage($data, array('delivery_mode' => 1));
                 $this->queue->publish($message);
-           }
+            }
         }
     }
 }

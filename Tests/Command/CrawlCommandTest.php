@@ -35,11 +35,22 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(true));
 
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(array('getCurrentUri'))
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher'))
             ->disableOriginalConstructor()
             ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
 
         $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
@@ -59,6 +70,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             array(
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
+                'blacklist' => array()
             )
         );
 
