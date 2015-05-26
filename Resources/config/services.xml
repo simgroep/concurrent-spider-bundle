@@ -35,8 +35,11 @@
             <tag name="console.command" />
         </service>
 
+        <service id="simgroep_concurrent_spider.pdf_parser" class="Smalot\PdfParser\Parser" />
+
         <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
+            <argument type="service" id="simgroep_concurrent_spider.pdf_parser" />
         </service>
 
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
