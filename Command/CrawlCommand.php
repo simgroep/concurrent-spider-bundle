@@ -147,7 +147,7 @@ class CrawlCommand extends Command
                 $this->logger->warning(sprintf("Skipped %s", $urlToCrawl));
             } else {
                 $this->queue->rejectMessageAndRequeue($message);
-                $this->logger->emergency(sprintf('URL (%s) %s failed', $e->getResponse->getStatusCode(), $urlToCrawl));
+                $this->logger->emergency(sprintf('URL (%s) %s failed', $e->getResponse()->getStatusCode(), $urlToCrawl));
             }
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);

@@ -4,6 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
+use Smalot\PdfParser\Parser;
 use Symfony\Component\DomCrawler\Crawler;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
@@ -20,13 +21,20 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $queue;
 
     /**
+     * @var \Smalot\PdfParser\Parser
+     */
+    private $pdfParser;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
+     * @param \Smalot\PdfParser\Parser               $pdfParser
      */
-    public function __construct(Queue $queue)
+    public function __construct(Queue $queue, Parser $pdfParser)
     {
         $this->queue = $queue;
+        $this->pdfParser = $pdfParser;
     }
 
     /**
@@ -40,10 +48,75 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      * Grabs the content from the crawled page and publishes a job on the queue.
      *
      * @param \VDB\Spider\Resource $resource
+     *
+     * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
     public function persist(Resource $resource)
     {
-        try {
+        switch ($resource->getResponse()->getContentType()) {
+            case 'application/pdf':
+                $data = $this->getDataFromPdfFile($resource);
+                break;
+
+            case 'text/html':
+            default:
+                try {
+                    $data = $this->getDataFromWebPage($resource);
+                } catch (InvalidArgumentException $e) {
+                    //Content couldn't be extracted so saving the document would be silly.
+                }
+
+                break;
+        }
+
+        if (isset($data)) {
+            $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
+            $this->queue->publish($message);
+        }
+    }
+
+    /**
+     * Extracts content from a PDF File and returns document data.
+     *
+     * @param \VDB\Spider\Resource $resource
+     *
+     * @return array
+     */
+    protected function getDataFromPdfFile(Resource $resource)
+    {
+        $pdf = $this->pdfParser->parseContent($resource->getResponse()->getBody(true));
+        $url = $resource->getUri()->toString();
+        $title = '';
+
+        if (false !== stripos($url, '.pdf')) {
+            $parts = parse_url($url);
+            $title = basename($parts['path']);
+        }
+
+        $data = array(
+            'document' => array(
+                'id' => sha1($resource->getUri()),
+                'title' => $title,
+                'tstamp' => date('Y-m-d\TH:i:s\Z'),
+                'date' => date('Y-m-d\TH:i:s\Z'),
+                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+                'content' => $pdf->getText(),
+                'url' => $url,
+            ),
+        );
+
+        return $data;
+    }
+
+    /**
+     * Extracts content from a webpage and returns document data.
+     *
+     * @param \VDB\Spider\Resource $resource
+     *
+     * @return array
+     */
+    protected function getDataFromWebPage(Resource $resource)
+    {
             $title = $resource->getCrawler()->filterXpath('//title')->text();
 
             $content = $this->getContentFromResource($resource);
@@ -59,12 +132,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 ),
             );
 
-            $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
-
-            $this->queue->publish($message);
-        } catch (InvalidArgumentException $e) {
-            //Content couldn't be extracted so saving the document would be silly.
-        }
+        return $data;
     }
 
     /**
