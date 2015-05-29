@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PHPUnit_Framework_TestCase;
+use Simgroep\ConcurrentSpiderBundle\Indexer;
 
 class IndexerTest extends PHPUnit_Framework_TestCase
 {
@@ -13,52 +14,66 @@ class IndexerTest extends PHPUnit_Framework_TestCase
     {
         $url = 'https://github.com';
 
-        $solrQuery = $this
-            ->getMockBuilder('Solarium_Query_Select')
+        $solrQuery = $this->getMockBuilder('Solarium_Query_Select')
             ->disableOriginalConstructor()
-            ->setMethods(array('setQuery'))
+            ->setMethods(['setQuery'])
             ->getMock();
 
-        $solrQuery
-            ->expects($this->once())
+        $solrQuery->expects($this->once())
             ->method('setQuery')
             ->with($this->equalTo(sprintf("id:%s", sha1($url))));
 
-        $solrResult = $this
-            ->getMockBuilder('Solarium_Result')
+        $solrResult = $this->getMockBuilder('Solarium_Result')
             ->disableOriginalConstructor()
-            ->setMethods(array('getNumFound'))
+            ->setMethods(['getNumFound'])
             ->getMock();
 
-        $solrResult
-            ->expects($this->once())
+        $solrResult->expects($this->once())
             ->method('getNumFound')
             ->will($this->returnValue(1));
 
-        $solrClient = $this
-            ->getMockBuilder('Solarium_Client')
+        $solrClient = $this->getMockBuilder('Solarium_Client')
             ->disableOriginalConstructor()
-            ->setMethods(array('createSelect', 'select'))
+            ->setMethods(['createSelect', 'select'])
             ->getMock();
 
-        $solrClient
-            ->expects($this->once())
+        $solrClient->expects($this->once())
             ->method('createSelect')
             ->will($this->returnValue($solrQuery));
 
-        $solrClient
-            ->expects($this->once())
+        $solrClient->expects($this->once())
             ->method('select')
             ->will($this->returnValue($solrResult));
 
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->setConstructorArgs(array($solrClient))
-            ->setMethods(null)
-            ->getMock();
-
+        $indexer = new Indexer($solrClient);
         $actual = $indexer->isUrlIndexed($url);
 
         $this->assertTrue($actual);
     }
+
+    public function testAddDocuments()
+    {
+        $documents = ['doc1', 'doc2', 'doc3'];
+
+        $solrQuery = $this->getMockBuilder('Solarium_Query_Select')
+            ->disableOriginalConstructor()
+            ->setMethods(['addDocuments', 'addCommit'])
+            ->getMock();
+        $solrQuery->expects($this->once())
+            ->method('addDocuments')
+            ->with($this->equalTo($documents));
+
+        $solrClient = $this->getMockBuilder('Solarium_Client')
+            ->disableOriginalConstructor()
+            ->setMethods(['createUpdate', 'update'])
+            ->getMock();
+        $solrClient->expects($this->once())
+            ->method('createUpdate')
+            ->will($this->returnValue($solrQuery));
+
+        $indexer = new Indexer($solrClient);
+        $this->assertNull($indexer->addDocuments($documents));
+    }
+
+
 }
