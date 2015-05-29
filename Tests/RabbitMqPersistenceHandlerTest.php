@@ -177,7 +177,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['getContentType'])
                 ->getMock();
-        $response->expects($this->any())
+        $response->expects($this->once())
                 ->method('getContentType')
                 ->will($this->returnValue('text/html'));
 
@@ -205,9 +205,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->any())
+        $uri->expects($this->once())
                 ->method('toString')
-                ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
+                ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
         $resource = $this->getMockBuilder('VDB\Spider\Resource')
                 ->disableOriginalConstructor()
@@ -219,7 +219,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $resource->expects($this->exactly(2))
                 ->method('getCrawler')
                 ->will($this->returnValue($domCrawler));
-        $resource->expects($this->any())
+        $resource->expects($this->once())
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
