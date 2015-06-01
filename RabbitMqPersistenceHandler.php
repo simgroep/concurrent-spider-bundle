@@ -95,7 +95,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
 
         $data = array(
             'document' => array(
-                'id' => sha1($resource->getUri()),
+                'id' => sha1($url),
                 'title' => $title,
                 'tstamp' => date('Y-m-d\TH:i:s\Z'),
                 'date' => date('Y-m-d\TH:i:s\Z'),
@@ -118,17 +118,18 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     protected function getDataFromWebPage(Resource $resource)
     {
             $title = $resource->getCrawler()->filterXpath('//title')->text();
+            $url = $resource->getUri()->toString();
 
             $content = $this->getContentFromResource($resource);
             $data = array(
                 'document' => array(
-                    'id' => sha1($resource->getUri()),
+                    'id' => sha1($url),
                     'title' => $title,
                     'tstamp' => date('Y-m-d\TH:i:s\Z'),
                     'date' => date('Y-m-d\TH:i:s\Z'),
                     'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                     'content' => $content,
-                    'url' => $resource->getUri()->toString(),
+                    'url' => $url,
                 ),
             );
 
