@@ -48,7 +48,7 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('host')->isRequired()->cannotBeEmpty()->defaultValue('localhost')->end()
                         ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('8080')->end()
-                        ->integerNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
+                        ->scalarNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
                     ->end()
                 ->end()
             ->end();
