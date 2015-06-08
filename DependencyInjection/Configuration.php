@@ -23,7 +23,6 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('http_user_agent')
-                    ->isRequired()
                     ->cannotBeEmpty()
                     ->defaultValue('PHP Concurrent Spider')
                     ->end()
@@ -48,9 +47,13 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('host')->isRequired()->cannotBeEmpty()->defaultValue('localhost')->end()
                         ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('8080')->end()
-                        ->integerNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
+                        ->scalarNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
                     ->end()
                 ->end()
+                ->scalarNode('logger_service')
+                    ->cannotBeEmpty()
+                    ->defaultValue('logger')
+                    ->end()
             ->end();
 
         return $treeBuilder;
