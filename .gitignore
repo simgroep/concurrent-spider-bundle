@@ -2,3 +2,4 @@ vendor
 .vagrant
 nohup.out
 build/
+Tests/coverage

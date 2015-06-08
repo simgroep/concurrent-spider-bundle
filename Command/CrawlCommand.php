@@ -105,14 +105,18 @@ class CrawlCommand extends Command
         $urlToCrawl = $data['uri'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
-        $logger = $this->logger;
+        $command = $this;
 
         $this->spider->setBlacklist($blacklist);
         $this->spider->getEventDispatcher()->addListener(
             "spider.crawl.blacklisted",
-            function ($event) use ($logger) {
-                $logger->info(
-                    sprintf("Blacklisted %s", $event->getArgument('uri')->toString())
+            function ($event) use ($command) {
+                $uri = $event->getArgument('uri')->toString();
+
+                $command->logMessage(
+                    'info',
+                    sprintf("Blacklisted %s", $uri),
+                    $uri
                 );
             }
         );
@@ -120,14 +124,14 @@ class CrawlCommand extends Command
         if (!$this->areHostsEqual($urlToCrawl, $baseUrl)) {
             $this->queue->rejectMessage($message);
 
-            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
+            $this->logMessage('info', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
             return;
         }
 
         if ($this->indexer->isUrlIndexed($urlToCrawl)) {
             $this->queue->rejectMessage($message);
 
-            $this->logger->info(sprintf("Skipped %s", $urlToCrawl));
+            $this->logMessage('info', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
             return;
         }
 
@@ -135,24 +139,38 @@ class CrawlCommand extends Command
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->crawlUrl($urlToCrawl);
 
-            $this->logger->info(sprintf("Crawling %s", $urlToCrawl));
+            $this->logMessage('info', sprintf("Crawling %s", $urlToCrawl), $urlToCrawl);
             $this->queue->acknowledge($message);
         } catch (UriSyntaxException $e) {
-            $this->logger->warning(sprintf('URL %s failed', $urlToCrawl));
+            $this->logMessage('warning', sprintf('URL %s failed', $urlToCrawl), $urlToCrawl);
 
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
             if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
                 $this->queue->rejectMessage($message);
-                $this->logger->warning(sprintf("Skipped %s", $urlToCrawl));
+                $this->logMessage('warning', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
             } else {
                 $this->queue->rejectMessageAndRequeue($message);
-                $this->logger->emergency(sprintf('URL (%s) %s failed', $e->getResponse()->getStatusCode(), $urlToCrawl));
+                $this->logMessage('emergency', sprintf('URL (%s) %s failed', $e->getResponse()->getStatusCode(), $urlToCrawl), $urlToCrawl);
             }
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
-            $this->logger->emergency(sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl));
+            $this->logMessage('emergency', sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl), $urlToCrawl);
         }
+    }
+
+    /**
+     * Log a message to the logger.
+     *
+     * The level is the function name according to the PSR-3 logging interface.
+     *
+     * @param string $level
+     * @param string $message
+     * @param string $url
+     */
+    public function logMessage($level, $message, $url)
+    {
+        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
     }
 
     /**
@@ -165,13 +183,13 @@ class CrawlCommand extends Command
      */
     private function areHostsEqual($firstUrl, $secondUrl)
     {
-        $firstUrl = parse_url($firstUrl);
-        $secondUrl = parse_url($secondUrl);
+        $firstHost = parse_url($firstUrl, PHP_URL_HOST);
+        $secondHost = parse_url($secondUrl, PHP_URL_HOST);
 
-        if (!array_key_exists('host', $firstUrl) || !array_key_exists('host', $secondUrl)) {
+        if (is_null($firstHost) || is_null($secondHost)) {
             return false;
         }
 
-        return ($firstUrl['host'] === $secondUrl['host']);
+        return ($firstHost === $secondHost);
     }
 }

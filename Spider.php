@@ -117,7 +117,7 @@ class Spider
                 }
             }
         );
-        
+
         if ($isBlacklisted) {
             $this->eventDispatcher->dispatch(
                 "spider.crawl.blacklisted",
