@@ -306,4 +306,53 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command->crawlUrl($message);
     }
+
+    public function testCanLogError()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('error'))
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('error')
+            ->with($this->equalTo('Test'));
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $command->logMessage('error', 'Test', 'https://github.com');
+
+    }
 }
