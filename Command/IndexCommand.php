@@ -79,7 +79,7 @@ class IndexCommand extends Command
         $this->queue->acknowledge($message);
     }
 
-    private function saveDocuments()
+    protected function saveDocuments()
     {
         $this->indexer->addDocuments($this->documents);
 

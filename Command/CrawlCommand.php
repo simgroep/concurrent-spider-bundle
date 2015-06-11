@@ -7,6 +7,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
+use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -153,6 +154,9 @@ class CrawlCommand extends Command
                 $this->queue->rejectMessageAndRequeue($message);
                 $this->logMessage('emergency', sprintf('URL (%s) %s failed', $e->getResponse()->getStatusCode(), $urlToCrawl), $urlToCrawl);
             }
+        } catch (InvalidContentException $e) {
+            $this->queue->rejectMessage($message);
+            $this->logMessage('emergency', sprintf("Invalid content (%s) reason: %s", $urlToCrawl, $e->getMessage()), $urlToCrawl);
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
             $this->logMessage('emergency', sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl), $urlToCrawl);

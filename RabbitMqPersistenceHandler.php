@@ -4,6 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
+use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Smalot\PdfParser\Parser;
 use Symfony\Component\DomCrawler\Crawler;
 use VDB\Spider\PersistenceHandler\PersistenceHandler;
@@ -55,22 +56,27 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     {
         switch ($resource->getResponse()->getContentType()) {
             case 'application/pdf':
-                $data = $this->getDataFromPdfFile($resource);
+                $data = json_encode($this->getDataFromPdfFile($resource));
+
+                if (!$data) {
+                    throw new InvalidContentException("Couldn't create a JSON string while extracing PDF.");
+                }
+
                 break;
 
             case 'text/html':
             default:
                 try {
-                    $data = $this->getDataFromWebPage($resource);
+                    $data = json_encode($this->getDataFromWebPage($resource));
                 } catch (InvalidArgumentException $e) {
-                    //Content couldn't be extracted so saving the document would be silly.
+                    throw new InvalidContentException("Couldn't crawl thru DOM to obtain the webpage contents.");
                 }
 
                 break;
         }
 
         if (isset($data)) {
-            $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
+            $message = new AMQPMessage($data, array('delivery_mode' => 1));
             $this->queue->publish($message);
         }
     }
@@ -117,21 +123,21 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      */
     protected function getDataFromWebPage(Resource $resource)
     {
-            $title = $resource->getCrawler()->filterXpath('//title')->text();
-            $url = $resource->getUri()->toString();
+        $title = $resource->getCrawler()->filterXpath('//title')->text();
+        $url = $resource->getUri()->toString();
 
-            $content = $this->getContentFromResource($resource);
-            $data = array(
-                'document' => array(
-                    'id' => sha1($url),
-                    'title' => $title,
-                    'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                    'date' => date('Y-m-d\TH:i:s\Z'),
-                    'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                    'content' => $content,
-                    'url' => $url,
-                ),
-            );
+        $content = $this->getContentFromResource($resource);
+        $data = array(
+            'document' => array(
+                'id' => sha1($url),
+                'title' => $title,
+                'tstamp' => date('Y-m-d\TH:i:s\Z'),
+                'date' => date('Y-m-d\TH:i:s\Z'),
+                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+                'content' => $content,
+                'url' => $url,
+            ),
+        );
 
         return $data;
     }
