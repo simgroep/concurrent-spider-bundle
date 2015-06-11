@@ -61,12 +61,6 @@ class IndexCommand extends Command
     {
         $data = json_decode($message->body, true);
 
-        if (null === $data) {
-            $this->queue->reject($message);
-
-            return;
-        }
-
         $document = new Solarium_Document_ReadWrite();
         $document->id = $data['document']['id'];
         $document->title = $data['document']['title'];
@@ -85,7 +79,7 @@ class IndexCommand extends Command
         $this->queue->acknowledge($message);
     }
 
-    private function saveDocuments()
+    protected function saveDocuments()
     {
         $this->indexer->addDocuments($this->documents);
 

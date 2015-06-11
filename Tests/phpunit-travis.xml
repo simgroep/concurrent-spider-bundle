@@ -25,6 +25,8 @@
             <file>../Queue.php</file>
             <file>../RabbitMqPersistenceHandler.php</file>
             <file>../Spider.php</file>
+            <file>../InvalidContentException.php</file>
+            <file>../SimgroepConcurrentSpiderBundle.php</file>
         </whitelist>
     </filter>
 

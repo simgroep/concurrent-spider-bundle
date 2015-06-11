@@ -11,6 +11,12 @@
             "email": "n.vankaam@simgroep.nl"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url":  "git@github.com:simgroep/php-spider.git"
+        }
+    ],
     "license": "MIT",
     "require": {
         "php": ">=5.4.0",
