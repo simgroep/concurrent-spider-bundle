@@ -18,7 +18,7 @@ Then add it to your `AppKernel.php`
 
 ### Configuration
 
-No configuration is mandatory but the following configuration is optional:
+Minimal configuration is necesarry, the crawler needs to know how your mapping is in Solr so that it can saves documents. The only mandatory part is "mapping". Other values are optional:
 
     simgroep_concurrent_spider:
         http_user_agent: "PHP Concurrent Spider"
@@ -34,6 +34,15 @@ No configuration is mandatory but the following configuration is optional:
         solr.host: localhost
         solr.port: 8080
         solr.path: /solr
+
+        mapping:
+            id: #required
+            title: #required
+            content: #required
+            url: #required
+            tstamp: ~
+            date: ~
+            publishedDate: ~
 
 ### How does it works?
 
