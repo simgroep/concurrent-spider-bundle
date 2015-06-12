@@ -14,17 +14,47 @@ use Solarium_Document_ReadWrite;
 
 class IndexCommand extends Command
 {
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     private $queue;
+
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\Indexer
+     */
     private $indexer;
+
+    /**
+     * @var array
+     */
     private $documents;
+
+    /**
+     * @var Symfony\Component\Console\Output\OutputInterface
+     */
     private $output;
 
+    /**
+     * @var array
+     */
+    private $mapping;
+
+
+    /**
+     * Constructor.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
+     * @param array                                    $mapping
+     */
     public function __construct(
         Queue $queue,
-        Indexer $indexer
+        Indexer $indexer,
+        array $mapping
     ) {
         $this->queue = $queue;
         $this->indexer = $indexer;
+        $this->mapping = $mapping;
         $this->documents = array();
 
         parent::__construct();
@@ -41,6 +71,8 @@ class IndexCommand extends Command
     }
 
     /**
+     * Start a consumer that retrieved documents that have to be saved to the index.
+     *
      * @param \Symfony\Component\Console\Input\InputInterface   $input
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      *
@@ -55,6 +87,8 @@ class IndexCommand extends Command
     }
 
     /**
+     * Make a document ready to be indexed.
+     *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
      */
     public function prepareDocument(AMQPMessage $message)
@@ -62,13 +96,10 @@ class IndexCommand extends Command
         $data = json_decode($message->body, true);
 
         $document = new Solarium_Document_ReadWrite();
-        $document->id = $data['document']['id'];
-        $document->title = $data['document']['title'];
-        $document->tstamp = $data['document']['tstamp'];
-        $document->date = $data['document']['date'];
-        $document->publishedDate = $data['document']['publishedDate'];
-        $document->content = $data['document']['content'];
-        $document->url = $data['document']['url'];
+
+        foreach ($this->mapping as $field => $solrField) {
+            $document->addField($solrField, $data['document'][$field]);
+        }
 
         $this->documents[] = $document;
 
@@ -79,13 +110,14 @@ class IndexCommand extends Command
         $this->queue->acknowledge($message);
     }
 
+    /**
+     * Save a list of documents.
+     */
     protected function saveDocuments()
     {
         $this->indexer->addDocuments($this->documents);
 
         $this->output->writeLn(sprintf('<info>%s documents added.</info>', count($this->documents)));
         $this->documents = array();
-
-        return true;
     }
 }
