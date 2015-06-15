@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PHPUnit_Framework_TestCase;
+use Simgroep\ConcurrentSpiderBundle\Spider;
 use VDB\Uri\Uri;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -76,6 +77,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(array('dispatch'))
             ->getMock();
 
+        /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
@@ -110,6 +112,8 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             );
 
         $spider->crawlUrl('https://github.com/test');
+
+        $this->assertEquals('https://github.com/test', $spider->getCurrentUri());
     }
 
     /**
@@ -211,19 +215,19 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
-        
+
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
-        
+
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
             ->disableOriginalConstructor()
             ->setMethods(array('dispatch'))
             ->getMock();
-        
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
