@@ -7,6 +7,7 @@ use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use VDB\Uri\Uri;
 
 class CrawlCommandTest extends PHPUnit_Framework_TestCase
@@ -452,5 +453,103 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command->logMessage('error', 'Test', 'https://github.com');
 
+    }
+
+    public function testEventDispatched()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $argument = $this
+            ->getMockBuilder('\Symfony\Component\EventDispatcher\Event')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+
+        $argument
+            ->expects($this->once())
+            ->method('toString')
+            ->will($this->returnValue(''));
+
+        $event = $this
+            ->getMockBuilder('\Symfony\Component\EventDispatcher\Event')
+            ->disableOriginalConstructor()
+            ->setMethods(['getArgument'])
+            ->getMock();
+
+        $event
+            ->expects($this->once())
+            ->method('getArgument')
+            ->will($this->returnValue($argument));
+
+        $eventDispatcher = new MockEventDispatcher();
+        $eventDispatcher->setMockEvent($event);
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info'))
+            ->getMock();
+
+        $logger
+            ->expects($this->exactly(2))
+            ->method('info');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            array(
+                'uri' => 'gibberish',
+                'base_url' => 'gibberish',
+                'blacklist' => array()
+            )
+        );
+
+        $command->crawlUrl($message);
+    }
+}
+
+class MockEventDispatcher extends EventDispatcher
+{
+    public function setMockEvent($event)
+    {
+        $this->event = $event;
+    }
+
+    /**
+     * @see EventDispatcherInterface::addListener()
+     *
+     * @api
+     */
+    public function addListener($eventName, $listener, $priority = 0)
+    {
+        $listener($this->event);
     }
 }
