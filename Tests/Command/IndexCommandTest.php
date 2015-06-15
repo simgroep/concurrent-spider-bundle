@@ -51,12 +51,16 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('acknowledge', '__destruct'))
+            ->setMethods(array('acknowledge', '__destruct', 'listen'))
             ->getMock();
 
         $queue
             ->expects($this->exactly(10))
             ->method('acknowledge');
+
+        $queue
+            ->expects($this->once())
+            ->method('listen');
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -64,15 +68,18 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(array())
             ->getMock();
 
+        $indexer->expects($this->once())
+            ->method('addDocuments');
+
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
-            ->setConstructorArgs(array($queue, $indexer, array()))
-            ->setMethods(array('saveDocuments'))
+            ->setConstructorArgs([$queue, $indexer, ['id' => 'id']])
+            ->setMethods(null)
             ->getMock();
 
-        $command
-            ->expects($this->once())
-            ->method('saveDocuments');
+        $input = new StringInput('');
+        $output = new NullOutput();
+        $command->run($input, $output);
 
         for ($i=0; $i<=9; $i++) {
             $body = json_encode(
