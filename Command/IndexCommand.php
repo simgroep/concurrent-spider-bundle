@@ -98,6 +98,19 @@ class IndexCommand extends Command
         $document = new Solarium_Document_ReadWrite();
 
         foreach ($this->mapping as $field => $solrField) {
+
+            if ($field === 'groups') {
+                foreach ($this->mapping['groups'] as $groupFieldName => $solrGroupFields) {
+                    foreach ($solrGroupFields as $fieldName => $solrGroupFieldName) {
+                        $document->addField(
+                            $groupFieldName . '.' . $solrGroupFieldName,
+                            $data['document'][$groupFieldName . '.' . $fieldName]
+                        );
+                    }
+                }
+                continue;
+            }
+
             $document->addField($solrField, $data['document'][$field]);
         }
 
