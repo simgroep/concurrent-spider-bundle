@@ -28,7 +28,7 @@ class Spider
     private $persistenceHandler;
 
     /**
-     * @var string
+     * @var Uri
      */
     private $currentUri;
 
@@ -55,9 +55,17 @@ class Spider
     }
 
     /**
-     * Returns the URI that is currently cralwed.
+     * @param Uri $currentUri
+     */
+    private function setCurrentUri(Uri $currentUri)
+    {
+        $this->currentUri = $currentUri;
+    }
+
+    /**
+     * Returns the URI that is currently crawled.
      *
-     * @return \VDB\Uri\Uri $uri
+     * @return Uri $uri
      */
     public function getCurrentUri()
     {
@@ -110,7 +118,7 @@ class Spider
         }
 
         array_walk(
-            $this->blacklist, 
+            $this->blacklist,
             function ($blacklistUrl) use ($uri, &$isBlacklisted) {
                 if (@preg_match('/' . $blacklistUrl . '/', $uri->toString())) {
                     $isBlacklisted = true;
@@ -145,7 +153,7 @@ class Spider
      */
     public function crawlUrl($uri)
     {
-        $this->currentUri = new Uri($uri);
+        $this->setCurrentUri(new Uri($uri));
         $resource = $this->requestHandler->request($this->currentUri);
 
         $crawler = $resource->getCrawler()->filterXPath('//a');
