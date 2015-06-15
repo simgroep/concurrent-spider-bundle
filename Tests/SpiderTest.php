@@ -198,6 +198,39 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($spider->isUrlBlacklisted($uri));
     }
 
+    /**
+     * @test
+     */
+    public function objectPropertyGetters()
+    {
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(array('dispatch'))
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setMethods(null)
+            ->getMock();
+
+        $this->assertEquals($requestHandler, $spider->getRequesthandler());
+        $this->assertEquals($eventDispatcher, $spider->getEventDispatcher());
+    }
+
     public function blacklistedDataProvider()
     {
         return array(
