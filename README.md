@@ -4,9 +4,9 @@ Concurrent Spider Bundle
 [![Build Status](https://travis-ci.org/simgroep/concurrent-spider-bundle.svg?branch=master)](http://travis-ci.org/simgroep/concurrent-spider-bundle)
 [![Coverage Status](https://coveralls.io/repos/simgroep/concurrent-spider-bundle/badge.svg?branch=master)](https://coveralls.io/r/simgroep/concurrent-spider-bundle?branch=master)
 
-This bundle provides a set of commands to run a distributed webpage crawler. Crawled webpages are saved to SOLR.
+This bundle provides a set of commands to run a distributed web page crawler. Crawled web pages are saved to Solr.
 
-### Instalation
+### Installation
 
 Install it with Composer:
 
@@ -18,7 +18,7 @@ Then add it to your `AppKernel.php`
 
 ### Configuration
 
-Minimal configuration is necesarry, the crawler needs to know how your mapping is in Solr so that it can saves documents. The only mandatory part is "mapping". Other values are optional:
+Minimal configuration is necessary. The crawler needs to know the mapping you're using in Solr so it can save documents. The only mandatory part of the config is "mapping". Other values are optional:
 
     simgroep_concurrent_spider:
         http_user_agent: "PHP Concurrent Spider"
@@ -44,7 +44,7 @@ Minimal configuration is necesarry, the crawler needs to know how your mapping i
             date: ~
             publishedDate: ~
 
-### How does it works?
+### How does it work?
 
 You start the crawler with:
 
@@ -54,8 +54,8 @@ This will add one job to the queue to crawl the url https://github.com. Then run
 
     app/console simgroep:crawl
 
-It's recommended to use a tool to maintain the crawler process in background. We recommend Supervisord. You can run as many as threas as you like (and your machine can handle) but you should be careful to not flood the website. Every thread can mean a concurrent visitor on the to be crawled website.
+It's recommended to use a tool to maintain the crawler process in background. We recommend Supervisord. You can run as many as threads as you like (and your machine can handle), but you should be careful to not flood the website. Every thread acts as a visitor on the website you're crawling.
 
 ### Architecture
 
-This bundle uses RabbitMQ to keep track of a queue that has url's that should be indexed. Also it uses SOLR to save the crawled webpages.
+This bundle uses RabbitMQ to keep track of a queue that has URLs that should be indexed. Also it uses Solr to save the crawled web pages.
