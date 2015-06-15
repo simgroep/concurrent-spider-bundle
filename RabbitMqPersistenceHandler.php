@@ -59,7 +59,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 $data = json_encode($this->getDataFromPdfFile($resource));
 
                 if (!$data) {
-                    throw new InvalidContentException("Couldn't create a JSON string while extracing PDF.");
+                    throw new InvalidContentException("Couldn't create a JSON string while extracting PDF.");
                 }
 
                 break;
@@ -69,7 +69,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 try {
                     $data = json_encode($this->getDataFromWebPage($resource));
                 } catch (InvalidArgumentException $e) {
-                    throw new InvalidContentException("Couldn't crawl thru DOM to obtain the webpage contents.");
+                    throw new InvalidContentException("Couldn't crawl though DOM to obtain the web page contents.");
                 }
 
                 break;
