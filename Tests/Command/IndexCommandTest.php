@@ -28,9 +28,18 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(array())
             ->getMock();
 
+        $mapping = [
+            'id' =>'id',
+            'groups' =>
+                array(
+                    'SIM' => array('dummyKey1' => 'dummyKeySolr1'),
+                    'DCTERMS' => array('dummyKey2' => 'dummyKeySolr2')
+                )
+        ];
+
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
-            ->setConstructorArgs(array($queue, $indexer, array()))
+            ->setConstructorArgs(array($queue, $indexer, $mapping))
             ->setMethods(array('saveDocuments'))
             ->getMock();
 
@@ -49,6 +58,8 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
                         'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                         'content' => str_repeat(sha1(rand(0,10)), 5),
                         'url' => 'https://www.github.com',
+                        'SIM.dummyKey1' => 'dummyvalue1',
+                        'DCTERMS.dummyKey2' => 'dummyvalue2'
                     )
                 )
             );
