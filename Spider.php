@@ -55,7 +55,7 @@ class Spider
     }
 
     /**
-     * Returns the URI that is currently cralwed.
+     * Returns the URI that is currently crawled.
      *
      * @return \VDB\Uri\Uri $uri
      */
@@ -110,7 +110,7 @@ class Spider
         }
 
         array_walk(
-            $this->blacklist, 
+            $this->blacklist,
             function ($blacklistUrl) use ($uri, &$isBlacklisted) {
                 if (@preg_match('/' . $blacklistUrl . '/', $uri->toString())) {
                     $isBlacklisted = true;
