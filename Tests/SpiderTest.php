@@ -162,6 +162,39 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($spider->isUrlBlacklisted($uri));
     }
 
+    public function testIsLiteralUrlBlacklisted()
+    {
+        $uri = new Uri('http://www.simgroep.nl/');
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setMethods(null)
+            ->getMock();
+
+        $spider->setBlacklist(['http://www.simgroep.nl/']);
+
+        $this->assertTrue($spider->isUrlBlacklisted($uri));
+    }
+
     /**
      * @dataProvider notBlacklistedDataProvider
      */
