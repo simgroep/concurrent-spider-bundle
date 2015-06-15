@@ -184,6 +184,10 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(['dispatch'])
             ->getMock();
 
+        $eventDispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
