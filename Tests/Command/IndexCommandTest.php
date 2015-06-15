@@ -4,9 +4,45 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests\Command;
 
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class IndexCommandTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @test
+     */
+    public function execute()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('rejectMessage', '__destruct', 'listen'))
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('listen');
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        /** @var \Simgroep\ConcurrentSpiderBundle\Command\IndexCommand $command */
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
+            ->setConstructorArgs(array($queue, $indexer, []))
+            ->setMethods(null)
+            ->getMock();
+
+        $input = new StringInput('');
+        $output = new NullOutput();
+        $command->run($input, $output);
+    }
+
+
     /**
      * @testdox Tests if every 10 documents the index saves them.
      */
