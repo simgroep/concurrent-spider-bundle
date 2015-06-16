@@ -163,6 +163,6 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             }
         );
 
-        return $content;
+        return trim($content);
     }
 }
