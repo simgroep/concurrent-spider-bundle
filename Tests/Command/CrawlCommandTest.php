@@ -5,10 +5,11 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests\Command;
 use Exception;
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
+use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use VDB\Uri\Uri;
+use VDB\Uri\Exception\UriSyntaxException;
 
 class CrawlCommandTest extends PHPUnit_Framework_TestCase
 {
@@ -368,6 +369,419 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $logger
             ->expects($this->once())
             ->method('emergency');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            array(
+                'uri' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => array()
+            )
+        );
+
+        $command->crawlUrl($message);
+    }
+
+    public function testIfServiceNotAvailableCausesTheMessageToNotRequeue()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('__destruct', 'listen', 'rejectMessage'))
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage')
+            ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(array('setUserAgent'))
+            ->getMock();
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getClient'))
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->once())
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
+
+        $spider
+            ->expects($this->once())
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $exception = $this
+            ->getMockBuilder('Guzzle\Http\Exception\ClientErrorResponseException')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getResponse'))
+            ->getMock();
+
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getStatusCode'))
+            ->getMock();
+
+        $response
+            ->expects($this->any())
+            ->method('getStatusCode')
+            ->will($this->returnValue(404));
+
+        $exception
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $spider
+            ->expects($this->once())
+            ->method('crawlUrl')
+            ->will($this->throwException($exception));
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info', 'warning', 'emergency'))
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('warning');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            array(
+                'uri' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => array()
+            )
+        );
+
+        $command->crawlUrl($message);
+    }
+
+    public function testUriSyntaxExceptionCausesRequeue()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('__destruct', 'listen', 'rejectMessageAndRequeue'))
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessageAndRequeue')
+            ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(array('setUserAgent'))
+            ->getMock();
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getClient'))
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->once())
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
+
+        $spider
+            ->expects($this->once())
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $spider
+            ->expects($this->once())
+            ->method('crawlUrl')
+            ->will($this->throwException(new UriSyntaxException()));
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info', 'warning', 'emergency'))
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('warning');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            array(
+                'uri' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => array()
+            )
+        );
+
+        $command->crawlUrl($message);
+    }
+
+    public function testInvalidContentExceptionCausesRejection()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('__destruct', 'listen', 'rejectMessage'))
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage')
+            ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(array('setUserAgent'))
+            ->getMock();
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getClient'))
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->once())
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
+
+        $spider
+            ->expects($this->once())
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $spider
+            ->expects($this->once())
+            ->method('crawlUrl')
+            ->will($this->throwException(new InvalidContentException()));
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info', 'warning', 'emergency'))
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('emergency');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            array(
+                'uri' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => array()
+            )
+        );
+
+        $command->crawlUrl($message);
+    }
+
+    public function testAcknowledge()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('__destruct', 'listen', 'acknowledge'))
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('acknowledge')
+            ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(array('setUserAgent'))
+            ->getMock();
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array('getClient'))
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->once())
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getEventDispatcher')
+            ->will($this->returnValue($eventDispatcher));
+
+        $spider
+            ->expects($this->once())
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(array('info', 'warning', 'emergency'))
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('info');
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
