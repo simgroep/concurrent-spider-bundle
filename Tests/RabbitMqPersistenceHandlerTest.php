@@ -268,29 +268,6 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
     public function testPersistRetrieveValidDataFromWebPage()
     {
-        $data = [
-            'document' => array(
-                'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
-                'title' => 'This is the title value.',
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'content' => 'This is the text value.',
-                'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
-            ),
-        ];
-        $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
-
-        $queue = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
-                ->disableOriginalConstructor()
-                ->setMethods(['__destruct', 'publish'])
-                ->getMock();
-
-        $queue
-            ->expects($this->once())
-            ->method('publish')
-            ->with($message);
-
         $pdfParser = $this->getMockBuilder('Smalot\PdfParser\Parser')
                 ->disableOriginalConstructor()
                 ->getMock();
@@ -349,6 +326,29 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $resource->expects($this->once())
                 ->method('getUri')
                 ->will($this->returnValue($uri));
+
+        $data = [
+            'document' => array(
+                'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
+                'title' => 'This is the title value.',
+                'tstamp' => date('Y-m-d\TH:i:s\Z'),
+                'date' => date('Y-m-d\TH:i:s\Z'),
+                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+                'content' => 'This is the text value.',
+                'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
+            ),
+        ];
+        $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
+
+        $queue = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+                ->disableOriginalConstructor()
+                ->setMethods(['__destruct', 'publish'])
+                ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('publish')
+            ->with($message);
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
