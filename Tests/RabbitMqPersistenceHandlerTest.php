@@ -156,9 +156,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
-        $persistanceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistanceHandler->persist($resource));
+        $this->assertNull($persistenceHandler->persist($resource));
     }
 
     public function testPersistRetrieveValidDataFromWebPage()
@@ -223,9 +223,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
-        $persistanceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistanceHandler->persist($resource));
+        $this->assertNull($persistenceHandler->persist($resource));
     }
 
     public function testSpiderId()
@@ -239,9 +239,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->getMock();
 
-        $persistanceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistanceHandler->setSpiderId(123));
+        $this->assertNull($persistenceHandler->setSpiderId(123));
     }
 
 }
