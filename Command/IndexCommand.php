@@ -8,8 +8,6 @@ use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Solarium_Document_ReadWrite;
 
 class IndexCommand extends Command
@@ -30,7 +28,7 @@ class IndexCommand extends Command
     private $documents = [];
 
     /**
-     * @var Symfony\Component\Console\Output\OutputInterface
+     * @var \Symfony\Component\Console\Output\OutputInterface
      */
     private $output;
 
