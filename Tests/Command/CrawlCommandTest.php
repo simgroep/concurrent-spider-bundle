@@ -54,7 +54,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('getEventDispatcher')
             ->will($this->returnValue($eventDispatcher));
 
-        $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
 
         $logger = $this
@@ -154,7 +153,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('crawlUrl')
             ->will($this->throwException(new Exception()));
 
-        $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
 
         $logger = $this
@@ -172,9 +170,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
             ->setMethods(null)
             ->getMock();
-
-        $input = new StringInput('');
-        $output = new NullOutput();
 
         $message = new AMQPMessage();
         $message->body = json_encode(
@@ -217,12 +212,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $client = $this
-            ->getMockBuilder('Guzzle\Http\Client')
-            ->disableOriginalConstructor()
-            ->setMethods(array('setUserAgent'))
-            ->getMock();
-
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -252,7 +241,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->never())
             ->method('crawlUrl');
 
-        $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
 
         $logger = $this
@@ -270,9 +258,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
             ->setMethods(null)
             ->getMock();
-
-        $input = new StringInput('');
-        $output = new NullOutput();
 
         $message = new AMQPMessage();
         $message->body = json_encode(
@@ -372,7 +357,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('crawlUrl')
             ->will($this->throwException($exception));
 
-        $uri = new Uri('https://github.com');
         $userAgent = 'I am some agent';
 
         $logger = $this
@@ -390,9 +374,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setConstructorArgs(array($queue, $indexer, $spider, $userAgent, $logger))
             ->setMethods(null)
             ->getMock();
-
-        $input = new StringInput('');
-        $output = new NullOutput();
 
         $message = new AMQPMessage();
         $message->body = json_encode(
@@ -418,12 +399,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
             ->setMethods(array())
-            ->getMock();
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
             ->getMock();
 
         $spider = $this
