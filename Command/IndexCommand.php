@@ -27,7 +27,7 @@ class IndexCommand extends Command
     /**
      * @var array
      */
-    private $documents;
+    private $documents = [];
 
     /**
      * @var Symfony\Component\Console\Output\OutputInterface
@@ -55,7 +55,6 @@ class IndexCommand extends Command
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->mapping = $mapping;
-        $this->documents = array();
 
         parent::__construct();
     }
