@@ -69,7 +69,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 try {
                     $data = json_encode($this->getDataFromWebPage($resource));
                 } catch (InvalidArgumentException $e) {
-                    throw new InvalidContentException("Couldn't crawl though DOM to obtain the web page contents.");
+                    throw new InvalidContentException("Couldn't crawl through DOM to obtain the web page contents.");
                 }
 
                 break;
