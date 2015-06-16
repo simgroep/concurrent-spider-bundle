@@ -271,7 +271,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $command->crawlUrl($message);
     }
 
-    public function testIfServiceNotAvailableMakesTheMessageToRequeue()
+    public function testIfServiceNotAvailableCausesTheMessageToRequeue()
     {
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
