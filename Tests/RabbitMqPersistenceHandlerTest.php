@@ -105,6 +105,110 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $persistenceHandler->persist($resource);
     }
 
+    /**
+     * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException
+     */
+    public function testInvalidContentException()
+    {
+        $queue = $this
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+                ->disableOriginalConstructor()
+                ->setMethods(['publish', '__destruct'])
+                ->getMock();
+
+        $pdfParser = $this
+                ->getMockBuilder('Smalot\PdfParser\Parser')
+                ->disableOriginalConstructor()
+                ->getMock();
+
+        $persistenceHandler = $this
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->setConstructorArgs([$queue, $pdfParser])
+                ->setMethods(['getDataFromPdfFile'])
+                ->getMock();
+
+        $persistenceHandler
+                ->expects($this->once())
+                ->method('getDataFromPdfFile')
+                ->will($this->returnValue(utf8_decode('nön-json-value'))); # decode, so it should fail on json_encode()
+
+        $response = $this
+                ->getMockBuilder('Guzzle\Http\Message\Response')
+                ->disableOriginalConstructor()
+                ->setMethods(['getContentType'])
+                ->getMock();
+
+        $response
+                ->expects($this->once())
+                ->method('getContentType')
+                ->will($this->returnValue('application/pdf'));
+
+        $resource = $this
+                ->getMockBuilder('\VDB\Spider\Resource')
+                ->disableOriginalConstructor()
+                ->setMethods(['getResponse'])
+                ->getMock();
+
+        $resource
+                ->expects($this->once())
+                ->method('getResponse')
+                ->will($this->returnValue($response));
+
+        $persistenceHandler->persist($resource);
+    }
+
+    /**
+     * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException
+     */
+    public function testInvalidArgumentException()
+    {
+        $queue = $this
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+                ->disableOriginalConstructor()
+                ->setMethods(['publish', '__destruct'])
+                ->getMock();
+
+        $pdfParser = $this
+                ->getMockBuilder('Smalot\PdfParser\Parser')
+                ->disableOriginalConstructor()
+                ->getMock();
+
+        $persistenceHandler = $this
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->setConstructorArgs([$queue, $pdfParser])
+                ->setMethods(['getDataFromWebPage'])
+                ->getMock();
+
+        $persistenceHandler
+                ->expects($this->once())
+                ->method('getDataFromWebPage')
+                ->will($this->throwException(new \InvalidArgumentException()));
+
+        $response = $this
+                ->getMockBuilder('Guzzle\Http\Message\Response')
+                ->disableOriginalConstructor()
+                ->setMethods(['getContentType'])
+                ->getMock();
+
+        $response
+                ->expects($this->once())
+                ->method('getContentType')
+                ->will($this->returnValue('text/html'));
+
+        $resource = $this
+                ->getMockBuilder('\VDB\Spider\Resource')
+                ->disableOriginalConstructor()
+                ->setMethods(['getResponse'])
+                ->getMock();
+
+        $resource
+                ->expects($this->once())
+                ->method('getResponse')
+                ->will($this->returnValue($response));
+
+        $persistenceHandler->persist($resource);
+    }
+
     public function testPersistRetrieveValidDataFromPdfFile()
     {
 
