@@ -1,10 +1,26 @@
 <?php
 
-namespace Simgroep\ConcurrentSpiderBundle\Tests;
+namespace Simgroep\ConcurrentSpiderBundle;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler;
+
+/**
+ * Mock version of json_encode
+ *
+ * Used for testing an error situation.
+ *
+ * @param $value
+ * @return bool|string
+ */
+function json_encode($value)
+{
+    if ($value === 'return-false') {
+        return false;
+    }
+    return \json_encode($value);
+}
 
 class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 {
@@ -131,7 +147,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $persistenceHandler
                 ->expects($this->once())
                 ->method('getDataFromPdfFile')
-                ->will($this->returnValue(utf8_decode('nön-json-value'))); # decode, so it should fail on json_encode()
+                ->will($this->returnValue('return-false')); # tell the mock-json_encode() to return false
 
         $response = $this
                 ->getMockBuilder('Guzzle\Http\Message\Response')
