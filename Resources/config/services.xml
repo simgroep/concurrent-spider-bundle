@@ -76,6 +76,7 @@
 
         <service id="simgroep_concurrent_spider.indexer" class="Simgroep\ConcurrentSpiderBundle\Indexer">
             <argument type="service" id="simgroep_concurrent_spider.solr_client" />
+            <argument>%simgroep_concurrent_spider.mapping%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.discover_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener">
