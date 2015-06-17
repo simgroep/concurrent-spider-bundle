@@ -34,7 +34,6 @@
         <service id="simgroep_concurrent_spider.index" class="Simgroep\ConcurrentSpiderBundle\Command\IndexCommand">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
-            <argument>%simgroep_concurrent_spider.mapping%</argument>
 
             <tag name="console.command" />
         </service>
