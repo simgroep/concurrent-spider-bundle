@@ -8,8 +8,6 @@ use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Solarium_Document_ReadWrite;
 
 class IndexCommand extends Command
@@ -25,37 +23,17 @@ class IndexCommand extends Command
     private $indexer;
 
     /**
-     * @var array
-     */
-    private $documents;
-
-    /**
-     * @var Symfony\Component\Console\Output\OutputInterface
-     */
-    private $output;
-
-    /**
-     * @var array
-     */
-    private $mapping;
-
-
-    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
-     * @param array                                    $mapping
      */
     public function __construct(
         Queue $queue,
-        Indexer $indexer,
-        array $mapping
+        Indexer $indexer
     ) {
         $this->queue = $queue;
         $this->indexer = $indexer;
-        $this->mapping = $mapping;
-        $this->documents = array();
 
         parent::__construct();
     }
@@ -80,57 +58,11 @@ class IndexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->output = $output;
-        $this->queue->listen(array($this, 'prepareDocument'));
+        $this->queue->listen(function ($message) {
+            $this->indexer->prepareDocument($message);
+            $this->queue->acknowledge($message);
+        });
 
         return 1;
-    }
-
-    /**
-     * Make a document ready to be indexed.
-     *
-     * @param \PhpAmqpLib\Message\AMQPMessage $message
-     */
-    public function prepareDocument(AMQPMessage $message)
-    {
-        $data = json_decode($message->body, true);
-
-        $document = new Solarium_Document_ReadWrite();
-
-        foreach ($this->mapping as $field => $solrField) {
-
-            if ($field === 'groups') {
-                foreach ($this->mapping['groups'] as $groupFieldName => $solrGroupFields) {
-                    foreach ($solrGroupFields as $fieldName => $solrGroupFieldName) {
-                        $document->addField(
-                            $groupFieldName . '.' . $solrGroupFieldName,
-                            $data['document'][$groupFieldName . '.' . $fieldName]
-                        );
-                    }
-                }
-                continue;
-            }
-
-            $document->addField($solrField, $data['document'][$field]);
-        }
-
-        $this->documents[] = $document;
-
-        if (count($this->documents) >= 10) {
-            $this->saveDocuments();
-        }
-
-        $this->queue->acknowledge($message);
-    }
-
-    /**
-     * Save a list of documents.
-     */
-    protected function saveDocuments()
-    {
-        $this->indexer->addDocuments($this->documents);
-
-        $this->output->writeLn(sprintf('<info>%s documents added.</info>', count($this->documents)));
-        $this->documents = array();
     }
 }

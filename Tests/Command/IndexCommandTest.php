@@ -14,21 +14,37 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
      */
     public function execute()
     {
+        $message = $this
+            ->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
+            ->setMethods(null)
+            ->getMock();
+
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('rejectMessage', '__destruct', 'listen'))
+            ->setMethods(['rejectMessage', '__destruct', 'listen', 'acknowledge'])
             ->getMock();
 
         $queue
             ->expects($this->once())
-            ->method('listen');
+            ->method('listen')
+            ->will($this->returnCallback(function($callback) use($message) {
+                $callback($message);
+            }));
+
+        $queue
+            ->expects($this->once())
+            ->method('acknowledge');
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed', 'prepareDocument'])
             ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('prepareDocument');
 
         /** @var \Simgroep\ConcurrentSpiderBundle\Command\IndexCommand $command */
         $command = $this
@@ -42,73 +58,4 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         $command->run($input, $output);
     }
 
-
-    /**
-     * @testdox Tests if every 10 documents the index saves them.
-     */
-    public function testIfEveryTenDocumentsAreSaved()
-    {
-        $queue = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
-            ->disableOriginalConstructor()
-            ->setMethods(array('acknowledge', '__destruct', 'listen'))
-            ->getMock();
-
-        $queue
-            ->expects($this->exactly(10))
-            ->method('acknowledge');
-
-        $queue
-            ->expects($this->once())
-            ->method('listen');
-
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->disableOriginalConstructor()
-            ->setMethods(array())
-            ->getMock();
-
-        $indexer->expects($this->once())
-            ->method('addDocuments');
-
-        $mapping = [
-            'id' =>'id',
-            'groups' =>
-                array(
-                    'SIM' => array('dummyKey1' => 'dummyKeySolr1'),
-                    'DCTERMS' => array('dummyKey2' => 'dummyKeySolr2')
-                )
-        ];
-
-        $command = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
-            ->setConstructorArgs([$queue, $indexer, $mapping])
-            ->setMethods(null)
-            ->getMock();
-
-        $input = new StringInput('');
-        $output = new NullOutput();
-        $command->run($input, $output);
-
-        for ($i=0; $i<=9; $i++) {
-            $body = json_encode(
-                array(
-                    'document' => array(
-                        'id' => rand(0,10),
-                        'title' => sha1(rand(0,10)),
-                        'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                        'date' => date('Y-m-d\TH:i:s\Z'),
-                        'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                        'content' => str_repeat(sha1(rand(0,10)), 5),
-                        'url' => 'https://www.github.com',
-                        'SIM.dummyKey1' => 'dummyvalue1',
-                        'DCTERMS.dummyKey2' => 'dummyvalue2'
-                    )
-                )
-            );
-
-            $message = new AMQPMessage($body);
-            $command->prepareDocument($message);
-        }
-    }
 }
