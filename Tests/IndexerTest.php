@@ -89,10 +89,10 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $mapping = [
             'id' =>'id',
             'groups' =>
-                array(
-                    'SIM' => array('dummyKey1' => 'dummyKeySolr1'),
-                    'DCTERMS' => array('dummyKey2' => 'dummyKeySolr2')
-                )
+                [
+                    'SIM' => ['dummyKey1' => 'dummyKeySolr1'],
+                    'DCTERMS' => ['dummyKey2' => 'dummyKeySolr2']
+                ]
         ];
 
         $indexer = $this
