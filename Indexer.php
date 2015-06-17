@@ -85,18 +85,23 @@ class Indexer
         foreach ($this->mapping as $field => $solrField) {
 
             if ($field === 'groups') {
-                foreach ($this->mapping['groups'] as $groupFieldName => $solrGroupFields) {
+                foreach ($solrField as $groupFieldName => $solrGroupFields) {
                     foreach ($solrGroupFields as $fieldName => $solrGroupFieldName) {
-                        $document->addField(
-                            $groupFieldName . '.' . $solrGroupFieldName,
-                            $data['document'][$groupFieldName . '.' . $fieldName]
-                        );
+
+                        $composedFieldName = $groupFieldName . '.' . $fieldName;
+                        $composedSolrFieldName = $groupFieldName . '.' . $solrGroupFieldName;
+
+                        if (array_key_exists($composedFieldName, $data['document'])) {
+                            $document->addField($composedSolrFieldName, $data['document'][$composedFieldName]);
+                        }
                     }
                 }
                 continue;
             }
 
-            $document->addField($solrField, $data['document'][$field]);
+            if (array_key_exists($field, $data['document'])) {
+                $document->addField($solrField, $data['document'][$field]);
+            }
         }
 
         $this->documents[] = $document;
