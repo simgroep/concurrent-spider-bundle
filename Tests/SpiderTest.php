@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PHPUnit_Framework_TestCase;
+use Simgroep\ConcurrentSpiderBundle\Spider;
 use VDB\Uri\Uri;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -76,6 +77,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(array('dispatch'))
             ->getMock();
 
+        /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
@@ -110,6 +112,8 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             );
 
         $spider->crawlUrl('https://github.com/test');
+
+        $this->assertEquals('https://github.com/test', $spider->getCurrentUri());
     }
 
     /**
@@ -162,6 +166,43 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($spider->isUrlBlacklisted($uri));
     }
 
+    public function testIsLiteralUrlBlacklisted()
+    {
+        $uri = new Uri('http://www.simgroep.nl/');
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
+
+        $eventDispatcher
+            ->expects($this->never())
+            ->method('dispatch');
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setMethods(null)
+            ->getMock();
+
+        $spider->setBlacklist(['http://www.simgroep.nl/']);
+
+        $this->assertTrue($spider->isUrlBlacklisted($uri));
+    }
+
     /**
      * @dataProvider notBlacklistedDataProvider
      */
@@ -174,19 +215,19 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
-        
+
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
-        
+
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
             ->disableOriginalConstructor()
             ->setMethods(array('dispatch'))
             ->getMock();
-        
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
@@ -196,6 +237,39 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $spider->setBlacklist(array($pattern));
 
         $this->assertFalse($spider->isUrlBlacklisted($uri));
+    }
+
+    /**
+     * @test
+     */
+    public function objectPropertyGetters()
+    {
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(array())
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(array('dispatch'))
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setMethods(null)
+            ->getMock();
+
+        $this->assertEquals($requestHandler, $spider->getRequesthandler());
+        $this->assertEquals($eventDispatcher, $spider->getEventDispatcher());
     }
 
     public function blacklistedDataProvider()

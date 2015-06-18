@@ -43,7 +43,7 @@ class QueueTest extends PHPUnit_Framework_TestCase
 
         $callback = new QueueCallableClass();
 
-        $channel = $this->getChannel($queueName);
+        $channel = $this->getChannel($queueName, true);
         $channel->expects($this->once())
                 ->method('basic_consume')
                 ->with($this->equalTo($queueName), $this->equalTo(''), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $callback);
@@ -167,18 +167,28 @@ class QueueTest extends PHPUnit_Framework_TestCase
      * @param string $queueName
      * @return PhpAmqpLib\Channel\AMQPChannel
      */
-    protected function getChannel($queueName)
+    protected function getChannel($queueName, $wait = false)
     {
         $channel = $this->getMockBuilder('PhpAmqpLib\Channel\AMQPChannel')
-                ->disableOriginalConstructor()
-                ->setMethods(['queue_declare', 'basic_qos', 'basic_publish', 'basic_consume'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['queue_declare', 'basic_qos', 'basic_publish', 'basic_consume', 'wait'])
+            ->getMock();
         $channel->expects($this->once())
-                ->method('queue_declare')
-                ->with($this->equalTo($queueName), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
+            ->method('queue_declare')
+            ->with($this->equalTo($queueName), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
         $channel->expects($this->once())
-                ->method('basic_qos')
-                ->with($this->equalTo(null), $this->equalTo(1), $this->equalTo(null));
+            ->method('basic_qos')
+            ->with($this->equalTo(null), $this->equalTo(1), $this->equalTo(null));
+        if ($wait === true) {
+            $channel->callbacks = [1, 2];
+            
+            $channel->expects($this->exactly(2))
+                ->method('wait')
+                ->will($this->returnCallback(function () use ($channel) {
+                    # gradually reset callbacks property so wait() will no longer be called
+                    array_pop($channel->callbacks);
+                }));
+        }
 
         return $channel;
     }
