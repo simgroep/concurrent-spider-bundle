@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
+use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 
@@ -45,7 +46,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('select')
             ->will($this->returnValue($solrResult));
 
-        $indexer = new Indexer($solrClient);
+        $indexer = new Indexer($solrClient, []);
         $actual = $indexer->isUrlIndexed($url);
 
         $this->assertTrue($actual);
@@ -71,9 +72,57 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('createUpdate')
             ->will($this->returnValue($solrQuery));
 
-        $indexer = new Indexer($solrClient);
+        $indexer = new Indexer($solrClient, []);
         $this->assertNull($indexer->addDocuments($documents));
     }
 
+    /**
+     * @testdox Tests if every 10 documents the index saves them.
+     */
+    public function testIfEveryTenDocumentsAreSaved()
+    {
+        $solrClient = $this
+            ->getMockBuilder('Solarium_Client')
+            ->setMethods(null)
+            ->getMock();
 
+        $mapping = [
+            'id' =>'id',
+            'groups' =>
+                [
+                    'SIM' => ['dummyKey1' => 'dummyKeySolr1'],
+                    'DCTERMS' => ['dummyKey2' => 'dummyKeySolr2']
+                ]
+        ];
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->setConstructorArgs([$solrClient, $mapping])
+            ->setMethods(['addDocuments'])
+            ->getMock();
+
+        $indexer->expects($this->once())
+            ->method('addDocuments');
+
+        for ($i = 0; $i <= 9; $i++) {
+            $body = json_encode(
+                [
+                    'document' => [
+                        'id' => rand(0, 10),
+                        'title' => sha1(rand(0, 10)),
+                        'tstamp' => date('Y-m-d\TH:i:s\Z'),
+                        'date' => date('Y-m-d\TH:i:s\Z'),
+                        'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+                        'content' => str_repeat(sha1(rand(0, 10)), 5),
+                        'url' => 'https://www.github.com',
+                        'SIM.dummyKey1' => 'dummyvalue1',
+                        'DCTERMS.dummyKey2' => 'dummyvalue2'
+                    ]
+                ]
+            );
+
+            $message = new AMQPMessage($body);
+            $indexer->prepareDocument($message);
+        }
+    }
 }
