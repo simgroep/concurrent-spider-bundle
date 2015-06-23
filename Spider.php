@@ -38,6 +38,11 @@ class Spider
     private $blacklist;
 
     /**
+     * @var string
+     */
+    private $coreName;
+
+    /**
      * Constructor.
      *
      * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
@@ -100,6 +105,26 @@ class Spider
     public function getBlacklist()
     {
         return $this->blacklist;
+    }
+
+    /**
+     * Sets core name
+     *
+     * @param string $coreName
+     */
+    public function setCoreName($coreName)
+    {
+        $this->coreName = $coreName;
+    }
+
+    /**
+     * Returns core name
+     *
+     * @return string
+     */
+    public function getCoreName()
+    {
+        return $this->coreName;
     }
 
     /**

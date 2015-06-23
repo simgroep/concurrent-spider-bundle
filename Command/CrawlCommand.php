@@ -106,9 +106,13 @@ class CrawlCommand extends Command
         $urlToCrawl = $data['uri'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
+        $coreName = $data['core_name'];
         $command = $this;
 
+        $this->indexer->setCoreName($coreName);
+
         $this->spider->setBlacklist($blacklist);
+        $this->spider->setCoreName($coreName);
         $this->spider->getEventDispatcher()->addListener(
             "spider.crawl.blacklisted",
             function ($event) use ($command) {

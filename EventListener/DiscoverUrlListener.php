@@ -45,7 +45,8 @@ class DiscoverUrlListener
                 $data = array(
                     'uri' => $uri->normalize()->toString(),
                     'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
-                    'blacklist' => $event->getSubject()->getBlacklist()
+                    'blacklist' => $event->getSubject()->getBlacklist(),
+                    'core_name' => $event->getSubject()->getCoreName()
                 );
                 $data = json_encode($data);
 
