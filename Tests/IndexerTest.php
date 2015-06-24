@@ -125,4 +125,24 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             $indexer->prepareDocument($message);
         }
     }
+
+
+    public function testSetCoreName()
+    {
+        $adapter = $this->getMockBuilder('Solarium_Client_Adapter')
+            ->disableOriginalConstructor()
+            ->setMethods(['execute' ,'setCore'])
+            ->getMock();
+
+        $solrClient = $this->getMockBuilder('Solarium_Client')
+            ->disableOriginalConstructor()
+            ->setMethods(['getAdapter'])
+            ->getMock();
+        $solrClient->expects($this->once())
+            ->method('getAdapter')
+            ->will($this->returnValue($adapter));
+
+        $indexer = new Indexer($solrClient, []);
+        $this->assertNull($indexer->setCoreName('dummyName'));
+    }
 }
