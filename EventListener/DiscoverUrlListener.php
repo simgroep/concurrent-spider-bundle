@@ -41,16 +41,32 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         foreach ($event['uris'] as $uri) {
-            if (!$this->indexer->isUrlIndexed($uri->toString())) {
-                $data = array(
-                    'uri' => $uri->normalize()->toString(),
-                    'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
-                    'blacklist' => $event->getSubject()->getBlacklist()
-                );
-                $data = json_encode($data);
+            $blacklist = $event->getSubject()->getBlacklist();
+            $url = $uri->normalize()->toString();
+            $isBlacklisted = false;
+            array_walk(
+                $blacklist,
+                function ($blacklistUrl) use ($url, &$isBlacklisted) {
+                    if (@preg_match('/' . $blacklistUrl . '/', $url)) {
+                        $isBlacklisted = true;
+                    }
+                }
+            );
 
-                $message = new AMQPMessage($data, array('delivery_mode' => 1));
-                $this->queue->publish($message);
+            if (!$isBlacklisted) {
+                if (!$this->indexer->isUrlIndexed($uri->toString())) {
+                    $data = array(
+                        'uri' => $url,
+                        'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
+                        'blacklist' => $blacklist
+                    );
+                    $data = json_encode($data);
+
+                    $message = new AMQPMessage($data, array('delivery_mode' => 1));
+                    $this->queue->publish($message);
+                }
+            }else {
+                echo "Found blacklisted url: " . $url . PHP_EOL;
             }
         }
     }
