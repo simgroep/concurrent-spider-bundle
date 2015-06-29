@@ -31,6 +31,22 @@ class DiscoverUrlListener
         $this->indexer = $indexer;
     }
 
+    public function isUrlBlacklisted($url, $blacklist)
+    {
+        $isBlacklisted = false;
+
+        array_walk(
+            $blacklist,
+            function ($blacklistUrl) use ($url, &$isBlacklisted) {
+                if (@preg_match('/' . $blacklistUrl . '/', $url)) {
+                    $isBlacklisted = true;
+                }
+            }
+        );
+
+        return $isBlacklisted;
+    }
+
     /**
      * Writes the found URL as a job on the queue.
      *
@@ -43,15 +59,7 @@ class DiscoverUrlListener
         foreach ($event['uris'] as $uri) {
             $blacklist = $event->getSubject()->getBlacklist();
             $url = $uri->normalize()->toString();
-            $isBlacklisted = false;
-            array_walk(
-                $blacklist,
-                function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                    if (@preg_match('/' . $blacklistUrl . '/', $url)) {
-                        $isBlacklisted = true;
-                    }
-                }
-            );
+            $isBlacklisted = $this->isUrlBlacklisted($url, $blacklist);
 
             if (!$isBlacklisted) {
                 if (!$this->indexer->isUrlIndexed($uri->toString())) {
@@ -65,8 +73,6 @@ class DiscoverUrlListener
                     $message = new AMQPMessage($data, array('delivery_mode' => 1));
                     $this->queue->publish($message);
                 }
-            }else {
-                echo "Found blacklisted url: " . $url . PHP_EOL;
             }
         }
     }
