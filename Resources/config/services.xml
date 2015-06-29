@@ -71,6 +71,9 @@
                     <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
                 </argument>
             </argument>
+            <call method="setAdapter">
+                <argument>%simgroep_concurrent_spider.solarium_adapter%</argument>
+            </call>
         </service>
 
         <service id="simgroep_concurrent_spider.indexer" class="Simgroep\ConcurrentSpiderBundle\Indexer">
