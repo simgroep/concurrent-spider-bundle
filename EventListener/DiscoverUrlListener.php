@@ -61,18 +61,17 @@ class DiscoverUrlListener
             $url = $uri->normalize()->toString();
             $isBlacklisted = $this->isUrlBlacklisted($url, $blacklist);
 
-            if (!$isBlacklisted) {
-                if (!$this->indexer->isUrlIndexed($uri->toString())) {
-                    $data = array(
-                        'uri' => $url,
-                        'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
-                        'blacklist' => $blacklist
-                    );
-                    $data = json_encode($data);
+            if (!$this->indexer->isUrlIndexed($uri->toString())) {
+                $data = array(
+                    'uri' => $uri->normalize()->toString(),
+                    'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
+                    'blacklist' => $event->getSubject()->getBlacklist(),
+                    'core_name' => $event->getSubject()->getCoreName()
+                );
+                $data = json_encode($data);
 
-                    $message = new AMQPMessage($data, array('delivery_mode' => 1));
-                    $this->queue->publish($message);
-                }
+                $message = new AMQPMessage($data, array('delivery_mode' => 1));
+                $this->queue->publish($message);
             }
         }
     }

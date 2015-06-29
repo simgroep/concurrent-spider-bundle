@@ -41,6 +41,16 @@ class Indexer
     }
 
     /**
+     * Set Core Name to write/read data
+     *
+     * @param string $coreName
+     */
+    public function setCoreName($coreName)
+    {
+        $this->client->getAdapter()->setCore($coreName);
+    }
+
+    /**
      * Indicates whether an URL already has been indexed or not.
      *
      * @param string $uri
