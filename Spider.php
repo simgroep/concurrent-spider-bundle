@@ -128,40 +128,6 @@ class Spider
     }
 
     /**
-     * Checks is a URL is blacklisted.
-     *
-     * @param \VDB\Uri\Uri
-     *
-     * @return bool
-     */
-    public function isUrlBlacklisted(Uri $uri)
-    {
-        $isBlacklisted = false;
-
-        if (in_array($uri->toString(), $this->blacklist)) {
-            return true;
-        }
-
-        array_walk(
-            $this->blacklist,
-            function ($blacklistUrl) use ($uri, &$isBlacklisted) {
-                if (@preg_match('/' . $blacklistUrl . '/', $uri->toString())) {
-                    $isBlacklisted = true;
-                }
-            }
-        );
-
-        if ($isBlacklisted) {
-            $this->eventDispatcher->dispatch(
-                "spider.crawl.blacklisted",
-                new GenericEvent($this, array('uri' => $uri))
-            );
-        }
-
-        return $isBlacklisted;
-    }
-
-    /**
      * Returns the event dispatcher.
      *
      * @return \Symfony\Component\EventDispatcher\EventDispatcherInterface
@@ -200,13 +166,6 @@ class Spider
         }
 
         $spider = $this;
-
-        $uris = array_filter(
-            array_unique($uris),
-            function (Uri $uri) use ($spider) {
-                return !$spider->isUrlBlacklisted($uri);
-            }
-        );
 
         $this->eventDispatcher->dispatch(
             SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,

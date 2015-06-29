@@ -31,6 +31,22 @@ class DiscoverUrlListener
         $this->indexer = $indexer;
     }
 
+    public function isUrlBlacklisted($url, $blacklist)
+    {
+        $isBlacklisted = false;
+
+        array_walk(
+            $blacklist,
+            function ($blacklistUrl) use ($url, &$isBlacklisted) {
+                if (@preg_match('/' . $blacklistUrl . '/', $url)) {
+                    $isBlacklisted = true;
+                }
+            }
+        );
+
+        return $isBlacklisted;
+    }
+
     /**
      * Writes the found URL as a job on the queue.
      *
@@ -41,6 +57,10 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         foreach ($event['uris'] as $uri) {
+            $blacklist = $event->getSubject()->getBlacklist();
+            $url = $uri->normalize()->toString();
+            $isBlacklisted = $this->isUrlBlacklisted($url, $blacklist);
+
             if (!$this->indexer->isUrlIndexed($uri->toString())) {
                 $data = array(
                     'uri' => $uri->normalize()->toString(),
