@@ -35,6 +35,7 @@ class StartCrawlerCommand extends Command
             ->setName('simgroep:start-crawler')
             ->addArgument('url', InputArgument::REQUIRED, 'The URL of the website that should be crawled.')
             ->addOption('blacklist', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Which URLs do you want to blacklist?')
+            ->addOption('corename', null, InputOption::VALUE_OPTIONAL, 'To which core do you want to save data?')
             ->setDescription('This command saves a job to the queue that will cause crawling to start.');
     }
 
@@ -52,6 +53,7 @@ class StartCrawlerCommand extends Command
             'uri' => $input->getArgument('url'),
             'base_url' => $input->getArgument('url'),
             'blacklist' => $input->getOption('blacklist'),
+            'core_name' => $input->getOption('corename'),
         );
 
         $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));

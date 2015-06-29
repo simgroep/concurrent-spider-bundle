@@ -27,6 +27,11 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $pdfParser;
 
     /**
+     * @var string
+     */
+    private $coreName;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
@@ -43,6 +48,14 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      */
     public function setSpiderId($spiderId)
     {
+    }
+
+    /**
+     * @{inheritDoc}
+     */
+    public function setCoreName($coreName)
+    {
+        $this->coreName = $coreName;
     }
 
     /**
@@ -115,8 +128,8 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             $sIM_simfaq = ['no'];
         }
 
-        $data = array(
-            'document' => array(
+        $data = [
+            'document' => [
                 'id' => sha1($url),
 //                'boost' => 0,
                 'url' => $url,
@@ -129,8 +142,9 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                 'SIM_archief' => $sIMArchive,
                 'SIM.simfaq' => $sIM_simfaq,
-            ),
-        );
+            ],
+            'core_name' => $this->coreName,
+        ];
 
         return $data;
     }
@@ -259,6 +273,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 'DCTERMS.language' => $dCTERMS_language,
                 'DCTERMS.type' => $dCTERMS_type,
             ],
+            'core_name' => $this->coreName,
         ];
 
         try {

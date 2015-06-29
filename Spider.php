@@ -184,6 +184,7 @@ class Spider
         $crawler = $resource->getCrawler()->filterXPath('//a');
         $uris = array();
 
+        $this->persistenceHandler->setCoreName($this->getCoreName());
         $this->persistenceHandler->persist($resource);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 

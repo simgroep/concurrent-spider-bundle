@@ -59,6 +59,9 @@ class IndexCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->queue->listen(function ($message) {
+            $data = json_decode($message->body, true);
+            $coreName = $data['core_name'];
+            $this->indexer->setCoreName($coreName);
             $this->indexer->prepareDocument($message);
             $this->queue->acknowledge($message);
         });
