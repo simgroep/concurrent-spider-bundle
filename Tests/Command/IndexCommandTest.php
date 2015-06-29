@@ -18,6 +18,7 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
             ->setMethods(null)
             ->getMock();
+        $message->body = '{"metadata":{"core":"dummyCoreName"}}';
 
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')

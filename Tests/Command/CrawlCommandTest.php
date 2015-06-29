@@ -32,36 +32,20 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexed')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com'), array('core' => 'corename'))
             ->will($this->returnValue(true));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher'])
+            ->setMethods(null)
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $userAgent = 'I am some agent';
 
@@ -84,10 +68,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -113,7 +97,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -121,11 +105,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -150,25 +129,21 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('getClient')
             ->will($this->returnValue($client));
 
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
-            ->disableOriginalConstructor()
+            ->setMethods(['crawl'])
+            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
             ->getMock();
 
         $spider
             ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
-
-        $spider
-            ->expects($this->once())
-            ->method('getRequestHandler')
-            ->will($this->returnValue($requestHandler));
-
-        $spider
-            ->expects($this->once())
-            ->method('crawlUrl')
+            ->method('crawl')
             ->will($this->throwException(new Exception()));
 
         $userAgent = 'I am some agent';
@@ -192,10 +167,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -221,23 +196,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
             ->expects($this->never())
             ->method('isUrlIndexed');
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -251,14 +215,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->never())
@@ -266,7 +225,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider
             ->expects($this->never())
-            ->method('crawlUrl');
+            ->method('crawl');
 
         $userAgent = 'I am some agent';
 
@@ -289,10 +248,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'gibberish',
+                'url' => 'gibberish',
                 'base_url' => 'gibberish',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -318,7 +277,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -326,17 +285,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
@@ -357,14 +305,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->once())
@@ -390,7 +333,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider
             ->expects($this->once())
-            ->method('crawlUrl')
+            ->method('crawl')
             ->will($this->throwException($exception));
 
         $userAgent = 'I am some agent';
@@ -414,10 +357,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -443,7 +386,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -451,18 +394,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
@@ -483,14 +414,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->once())
@@ -521,7 +447,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider
             ->expects($this->once())
-            ->method('crawlUrl')
+            ->method('crawl')
             ->will($this->throwException($exception));
 
         $userAgent = 'I am some agent';
@@ -545,10 +471,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename'],
             ]
         );
 
@@ -574,7 +500,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -582,17 +508,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
@@ -613,14 +528,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->once())
@@ -629,7 +539,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider
             ->expects($this->once())
-            ->method('crawlUrl')
+            ->method('crawl')
             ->will($this->throwException(new UriSyntaxException()));
 
         $userAgent = 'I am some agent';
@@ -642,7 +552,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $logger
             ->expects($this->once())
-            ->method('warning');
+            ->method('emergency');
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
@@ -653,10 +563,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -682,7 +592,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -690,17 +600,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
@@ -721,14 +620,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->once())
@@ -737,7 +631,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider
             ->expects($this->once())
-            ->method('crawlUrl')
+            ->method('crawl')
             ->will($this->throwException(new InvalidContentException()));
 
         $userAgent = 'I am some agent';
@@ -761,10 +655,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -790,7 +684,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -798,17 +692,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('isUrlIndexed')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
-
-        $indexer
-            ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(null)
-            ->getMock();
 
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
@@ -829,14 +712,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher', 'getRequestHandler', 'crawlUrl'])
+            ->setMethods(['getRequestHandler', 'crawl'])
             ->disableOriginalConstructor()
             ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
 
         $spider
             ->expects($this->once())
@@ -864,10 +742,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
-                'uri' => 'https://github.com',
+                'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => []
             ]
         );
 
@@ -893,7 +771,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher'])
+            ->setMethods(null)
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -918,90 +796,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command->logMessage('error', 'Test', 'https://github.com');
 
-    }
-
-    /**
-     * @test
-     */
-    public function eventDispatched()
-    {
-        $queue = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
-            ->disableOriginalConstructor()
-            ->setMethods([])
-            ->getMock();
-
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->disableOriginalConstructor()
-            ->setMethods([])
-            ->getMock();
-
-        $argument = $this
-            ->getMockBuilder('\Symfony\Component\EventDispatcher\Event')
-            ->disableOriginalConstructor()
-            ->setMethods(['toString'])
-            ->getMock();
-
-        $argument
-            ->expects($this->once())
-            ->method('toString')
-            ->will($this->returnValue(''));
-
-        $event = $this
-            ->getMockBuilder('\Symfony\Component\EventDispatcher\Event')
-            ->disableOriginalConstructor()
-            ->setMethods(['getArgument'])
-            ->getMock();
-
-        $event
-            ->expects($this->once())
-            ->method('getArgument')
-            ->will($this->returnValue($argument));
-
-        $eventDispatcher = new MockEventDispatcher();
-        $eventDispatcher->setMockEvent($event);
-
-        $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(['getCurrentUri', 'getEventDispatcher'])
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $spider
-            ->expects($this->once())
-            ->method('getEventDispatcher')
-            ->will($this->returnValue($eventDispatcher));
-
-        $userAgent = 'I am some agent';
-
-        $logger = $this
-            ->getMockBuilder('Monolog\Logger')
-            ->disableOriginalConstructor()
-            ->setMethods(['info'])
-            ->getMock();
-
-        $logger
-            ->expects($this->exactly(2))
-            ->method('info');
-
-        $command = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
-            ->setMethods(null)
-            ->getMock();
-
-        $message = new AMQPMessage();
-        $message->body = json_encode(
-            [
-                'uri' => 'gibberish',
-                'base_url' => 'gibberish',
-                'blacklist' => [],
-                'core_name' => null
-            ]
-        );
-
-        $command->crawlUrl($message);
     }
 }
 
