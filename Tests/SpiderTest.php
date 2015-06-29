@@ -116,23 +116,18 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('https://github.com/test', $spider->getCurrentUri());
     }
 
-    /**
-     * @dataProvider blacklistedDataProvider
-     */
-    public function testIsUrlBlacklisted($url, $pattern)
+    public function testGetBlacklistReturnCorrectValue()
     {
-        $uri = new Uri($url);
-
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array())
+            ->setMethods(array('request'))
             ->getMock();
 
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array())
+            ->setMethods(array('persist'))
             ->getMock();
 
         $eventDispatcher = $this
@@ -141,102 +136,18 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(array('dispatch'))
             ->getMock();
 
-        $eventDispatcher
-            ->expects($this->once())
-            ->method('dispatch')
-            ->with(
-                $this->equalTo('spider.crawl.blacklisted'),
-                $this->callback(
-                    function (GenericEvent $event) use ($url) {
-                        $uri = $event->getArgument('uri');
-
-                        return ($uri->toString() === $url);
-                    }
-                )
-            );
-
+        /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
             ->setMethods(null)
             ->getMock();
 
-        $spider->setBlacklist(array($pattern));
+        $spider->setBlacklist(array('simgroep\.nl'));
 
-        $this->assertTrue($spider->isUrlBlacklisted($uri));
-    }
+        $blacklist = $spider->getBlacklist();
 
-    public function testIsLiteralUrlBlacklisted()
-    {
-        $uri = new Uri('http://www.simgroep.nl/');
-
-        $requestHandler = $this
-            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
-            ->disableOriginalConstructor()
-            ->setMethods([])
-            ->getMock();
-
-        $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
-            ->disableOriginalConstructor()
-            ->setMethods([])
-            ->getMock();
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(['dispatch'])
-            ->getMock();
-
-        $eventDispatcher
-            ->expects($this->never())
-            ->method('dispatch');
-
-        $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
-            ->setMethods(null)
-            ->getMock();
-
-        $spider->setBlacklist(['http://www.simgroep.nl/']);
-
-        $this->assertTrue($spider->isUrlBlacklisted($uri));
-    }
-
-    /**
-     * @dataProvider notBlacklistedDataProvider
-     */
-    public function testUrlIsNotBlacklisted($url, $pattern)
-    {
-        $uri = new Uri($url);
-
-        $requestHandler = $this
-            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
-            ->disableOriginalConstructor()
-            ->setMethods(array())
-            ->getMock();
-
-        $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
-            ->disableOriginalConstructor()
-            ->setMethods(array())
-            ->getMock();
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(array('dispatch'))
-            ->getMock();
-
-        $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
-            ->setMethods(null)
-            ->getMock();
-
-        $spider->setBlacklist(array($pattern));
-
-        $this->assertFalse($spider->isUrlBlacklisted($uri));
+        $this->assertEquals(array('simgroep\.nl'), $blacklist);
     }
 
     /**
@@ -270,26 +181,5 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($requestHandler, $spider->getRequesthandler());
         $this->assertEquals($eventDispatcher, $spider->getEventDispatcher());
-    }
-
-    public function blacklistedDataProvider()
-    {
-        return array(
-            array('http://www.simgroep.nl/internet/medewerkers_41499/', 'http:\/\/www\.simgroep\.nl\/internet\/.*'),
-            array('http://www.simgroep.nl/internet/medewerkers_41499/andrew_8295.html', 'http:\/\/www\.simgroep\.nl\/internet\/medewerkers_41499\/.*'),
-            array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', 'http:\/\/www\.simgroep\.nl\/internet\/medewerkers_41499\/.*'),
-            array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', '(internet|medewerker)'),
-            array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', '\.html$'),
-        );
-    }
-
-    public function notBlacklistedDataProvider()
-    {
-        return array(
-            array('http://www.simgroep.nl/internet/medewerkers_41499/', 'http:\/\/www\.simgroep\.nl\/intranet\/.*'),
-            array('http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509/', 'http:\/\/www\.simgroep\.nl\/beheer\/.*'),
-            array('http://www.simgroep.nl/internet/portfolio_41515/#search', 'http:\/\/www\.simgroep\.nl\/internet\/portfolio_41516.*'),
-            array('http://www.simgroep.nl/internet/vacatures_41521/', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'),
-        );
     }
 }
