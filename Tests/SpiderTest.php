@@ -68,8 +68,13 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array('persist'))
+            ->setMethods(array('persist', 'setMetadata'))
             ->getMock();
+        $persistenceHandler
+            ->expects($this->once())
+            ->method('setMetadata')
+            ->with([])
+            ->will($this->returnValue([]));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -85,6 +90,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider->setBlacklist(array());
+        $spider->setMetadata([]);
 
         $eventDispatcher
             ->expects($this->at(1))
