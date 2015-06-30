@@ -60,8 +60,7 @@ class IndexCommand extends Command
     {
         $this->queue->listen(function ($message) {
             $data = json_decode($message->body, true);
-            $coreName = $data['core_name'];
-            $this->indexer->setCoreName($coreName);
+            $this->indexer->setMetadata($data['metadata']);
             $this->indexer->prepareDocument($message);
             $this->queue->acknowledge($message);
         });

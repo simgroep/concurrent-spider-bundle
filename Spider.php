@@ -38,9 +38,9 @@ class Spider
     private $blacklist;
 
     /**
-     * @var string
+     * @var array
      */
-    private $coreName;
+    private $metadata;
 
     /**
      * Constructor.
@@ -108,23 +108,23 @@ class Spider
     }
 
     /**
-     * Sets core name
+     * Sets metadata
      *
-     * @param string $coreName
+     * @param array $metadata
      */
-    public function setCoreName($coreName)
+    public function setMetadata(array $metadata)
     {
-        $this->coreName = $coreName;
+        $this->metadata = $metadata;
     }
 
     /**
-     * Returns core name
+     * Returns metadata
      *
      * @return string
      */
-    public function getCoreName()
+    public function getMetadata()
     {
-        return $this->coreName;
+        return $this->metadata;
     }
 
     /**
@@ -184,7 +184,7 @@ class Spider
         $crawler = $resource->getCrawler()->filterXPath('//a');
         $uris = array();
 
-        $this->persistenceHandler->setCoreName($this->getCoreName());
+        $this->persistenceHandler->setMetadata($this->getMetadata());
         $this->persistenceHandler->persist($resource);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 

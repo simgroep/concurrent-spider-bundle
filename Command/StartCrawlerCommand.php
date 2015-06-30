@@ -53,7 +53,7 @@ class StartCrawlerCommand extends Command
             'uri' => $input->getArgument('url'),
             'base_url' => $input->getArgument('url'),
             'blacklist' => $input->getOption('blacklist'),
-            'core_name' => $input->getOption('corename'),
+            'metadata' => ['core' =>   $input->getOption('corename')],
         );
 
         $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
