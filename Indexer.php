@@ -29,6 +29,11 @@ class Indexer
     private $mapping;
 
     /**
+     * @var array
+     */
+    private $metadata;
+
+    /**
      * Constructor.
      *
      * @param \Solarium_Client $client
@@ -41,13 +46,13 @@ class Indexer
     }
 
     /**
-     * Set Core Name to write/read data
+     * Set Metadata
      *
-     * @param string $coreName
+     * @param array $metadata
      */
-    public function setCoreName($coreName)
+    public function setMetadata($metadata)
     {
-        $this->client->getAdapter()->setCore($coreName);
+        $this->metadata = $metadata;
     }
 
     /**
@@ -59,6 +64,8 @@ class Indexer
      */
     public function isUrlIndexed($uri)
     {
+        $this->setCoreNameFromMetadata();
+
         $query = $this->client->createSelect();
         $query->setQuery(sprintf("id:%s", sha1($uri)));
 
@@ -74,6 +81,8 @@ class Indexer
      */
     public function addDocuments(array $documents)
     {
+        $this->setCoreNameFromMetadata();
+
         $update = $this->client->createUpdate();
         $update->addDocuments($documents);
         $update->addCommit();
@@ -119,6 +128,16 @@ class Indexer
         if (count($this->documents) >= 10) {
             $this->addDocuments($this->documents);
             $this->documents = [];
+        }
+    }
+
+    /**
+     * Set Core Name to write/read data
+     */
+    protected function setCoreNameFromMetadata()
+    {
+        if (array_key_exists('core', $this->metadata)) {
+            $this->client->getAdapter()->setCore($this->metadata['core']);
         }
     }
 }

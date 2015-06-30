@@ -27,9 +27,9 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $pdfParser;
 
     /**
-     * @var string
+     * @var array
      */
-    private $coreName;
+    private $metadata;
 
     /**
      * Constructor.
@@ -53,9 +53,9 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     /**
      * @{inheritDoc}
      */
-    public function setCoreName($coreName)
+    public function setMetadata(array $metadata)
     {
-        $this->coreName = $coreName;
+        $this->metadata = $metadata;
     }
 
     /**
@@ -143,7 +143,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 'SIM_archief' => $sIMArchive,
                 'SIM.simfaq' => $sIM_simfaq,
             ],
-            'core_name' => $this->coreName,
+            'metadata' => $this->metadata,
         ];
 
         return $data;
@@ -273,7 +273,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 'DCTERMS.language' => $dCTERMS_language,
                 'DCTERMS.type' => $dCTERMS_type,
             ],
-            'core_name' => $this->coreName,
+            'metadata' => $this->metadata,
         ];
 
         try {
