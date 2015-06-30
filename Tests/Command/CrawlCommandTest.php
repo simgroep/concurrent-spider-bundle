@@ -32,7 +32,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -43,8 +43,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -87,7 +87,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -113,7 +113,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -124,8 +124,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -195,7 +195,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -221,7 +221,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -230,8 +230,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -292,7 +292,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'gibberish',
                 'base_url' => 'gibberish',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -318,7 +318,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -329,8 +329,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -417,7 +417,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -443,7 +443,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -454,8 +454,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
 
         $eventDispatcher = $this
@@ -548,7 +548,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename'],
             ]
         );
 
@@ -574,7 +574,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -585,8 +585,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -656,7 +656,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -682,7 +682,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -693,8 +693,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo(['core' => 'corename']));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -764,7 +764,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -790,7 +790,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -801,8 +801,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName')
-            ->with($this->equalTo(null));
+            ->method('setMetadata')
+            ->with($this->equalTo([]));
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
@@ -867,7 +867,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => []
             ]
         );
 
@@ -997,7 +997,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'uri' => 'gibberish',
                 'base_url' => 'gibberish',
                 'blacklist' => [],
-                'core_name' => null
+                'metadata' => []
             ]
         );
 

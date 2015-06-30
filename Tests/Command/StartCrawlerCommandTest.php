@@ -17,7 +17,7 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'uri' => 'http://simgroep.nl',
             'base_url' => 'http://simgroep.nl',
             'blacklist' => [],
-            'core_name' => null,
+            'metadata' => ['core' => null],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 

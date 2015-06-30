@@ -289,8 +289,8 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->will($this->returnValue($uri));
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
-        $persistenceHandler->setCoreName('dummyCoreName');
-        
+        $persistenceHandler->setMetadata(['core' => 'dummyCoreName']);
+
         $this->assertNull($persistenceHandler->persist($resource));
     }
 
@@ -416,7 +416,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 'DCTERMS.language'=> 'nl-NL',
                 'DCTERMS.type'=> 'webpagina'
             ],
-            'core_name' => 'dummyCoreName',
+            'metadata' => [
+                'core' =>'dummyCoreName',
+            ],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
         $queue = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
@@ -430,7 +432,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
             ->with($message);
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
-        $persistenceHandler->setCoreName('dummyCoreName');
+        $persistenceHandler->setMetadata(['core' => 'dummyCoreName']);
 
         $this->assertNull($persistenceHandler->persist($resource));
     }
@@ -562,7 +564,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 'DCTERMS.audience'=> 'DCTERMS.audience',
                 'DCTERMS.subject'=> 'DCTERMS.subject'
             ],
-            'core_name' => 'dummyCoreName2',
+            'metadata' => [
+                'core' =>'dummyCoreName2',
+            ],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -577,7 +581,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
             ->with($message);
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
-        $persistenceHandler->setCoreName('dummyCoreName2');
+        $persistenceHandler->setMetadata(['core' => 'dummyCoreName2']);
 
         $this->assertNull($persistenceHandler->persist($resource));
     }

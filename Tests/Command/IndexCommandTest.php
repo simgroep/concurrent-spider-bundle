@@ -18,7 +18,7 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
             ->setMethods(null)
             ->getMock();
-        $message->body = '{core_name:"dummyCoreName"}';
+        $message->body = '{"metadata":{"core":"dummyCoreName"}}';
 
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
@@ -40,7 +40,7 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'prepareDocument', 'setCoreName'])
+            ->setMethods(['isUrlIndexed', 'prepareDocument', 'setMetadata'])
             ->getMock();
 
         $indexer
@@ -49,7 +49,8 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
 
         $indexer
             ->expects($this->once())
-            ->method('setCoreName');
+            ->method('setMetadata')
+            ->with(['core' => 'dummyCoreName']);
 
         /** @var \Simgroep\ConcurrentSpiderBundle\Command\IndexCommand $command */
         $command = $this
