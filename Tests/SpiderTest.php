@@ -279,7 +279,6 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', '\/internet\/medewerkers_41499\/.*'),
             array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', '(internet|medewerker)'),
             array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html', '\.html$'),
-            array('http://www.simgroep.nl/internet/medewerkers_41499/anne-marie_8287.html#', 'test'),
         );
     }
 

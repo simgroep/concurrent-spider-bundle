@@ -151,10 +151,6 @@ class Spider
             }
         );
 
-        if (preg_match('/#/', $uri)) {
-            $isBlacklisted = true;
-        }
-
         if ($isBlacklisted) {
             $this->eventDispatcher->dispatch(
                 "spider.crawl.blacklisted",
