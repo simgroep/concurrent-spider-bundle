@@ -106,7 +106,7 @@ class CrawlCommand extends Command
         $urlToCrawl = $data['uri'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
-        $coreName = $data['core_name'];
+        $coreName = isset($data['core_name']) ? $data['core_name'] : '';
         $command = $this;
 
         $this->indexer->setCoreName($coreName);
