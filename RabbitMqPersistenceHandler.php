@@ -342,7 +342,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      *
      * @return string
      */
-    private function getContentFromResource(Resource $resource)
+    protected function getContentFromResource(Resource $resource)
     {
         $query = '//*[not(self::script)]/text()';
         $content = '';
