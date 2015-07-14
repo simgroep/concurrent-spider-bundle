@@ -81,4 +81,37 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }
+
+    public function testIfShebangIsRemoved()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(array('publish', '__destruct'))
+            ->getMock();
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('isUrlIndexed'))
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com/test/'))
+            ->will($this->returnValue(true));
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(array('getCurrentUri'))
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $uri = new Uri('https://github.com/test/#shebang');
+
+        $event = new GenericEvent($spider, array('uris' => array($uri)));
+        $listener = new DiscoverUrlListener($queue, $indexer);
+        $listener->onDiscoverUrl($event);
+    }
 }
