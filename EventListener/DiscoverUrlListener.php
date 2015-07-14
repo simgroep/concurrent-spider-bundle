@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use VDB\Uri\Uri;
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
@@ -41,6 +42,10 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         foreach ($event['uris'] as $uri) {
+            if (($position = strpos($uri, '#'))) {
+                $uri = new Uri(substr($uri, 0, $position));
+            }
+
             if (!$this->indexer->isUrlIndexed($uri->toString())) {
                 $data = array(
                     'uri' => $uri->normalize()->toString(),
