@@ -16,6 +16,8 @@ use InvalidArgumentException;
  */
 class RabbitMqPersistenceHandler implements PersistenceHandler
 {
+    const MINIMAL_CONTENT_LENGTH = 3;
+
     /**
      * @var \Simgroep\ConcurrentSpiderBundle\Queue
      */
@@ -82,6 +84,18 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     }
 
     /**
+     * Strip away binary content since it doesn't make sense to index it.
+     *
+     * @param string $content
+     *
+     * @return string
+     */
+    private function stripBinaryContent($content)
+    {
+        return preg_replace('@[\x00-\x08\x0B\x0C\x0E-\x1F]@', '', $content);
+    }
+
+    /**
      * Extracts content from a PDF File and returns document data.
      *
      * @param \VDB\Spider\Resource $resource
@@ -92,12 +106,13 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     {
         $pdf = $this->pdfParser->parseContent($resource->getResponse()->getBody(true));
         $url = $resource->getUri()->toString();
-        $title = '';
-        $content = $pdf->getText();
+        $title = $this->getTitleByUrl($url) ?: '';
+        $content = $this->stripBinaryContent($pdf->getText());
 
-        if (false !== stripos($url, '.pdf')) {
-            $urlParts = parse_url($url);
-            $title = basename($urlParts['path']);
+        if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
+            throw new InvalidContentException(
+                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            );
         }
 
         $lastModifiedDateTime = new \DateTime($resource->getResponse()->getLastModified());
@@ -133,6 +148,25 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         );
 
         return $data;
+    }
+
+    /**
+     * Assumes that the path of the URL contains the title of the document and extracts it.
+     *
+     * @param string $url
+     *
+     * @return string
+     */
+    private function getTitleByUrl($url)
+    {
+        $title = null;
+
+        if (false !== stripos($url, '.pdf')) {
+            $urlParts = parse_url($url);
+            $title = basename($urlParts['path']);
+        }
+
+        return $title;
     }
 
     /**
@@ -230,6 +264,13 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         }
 
         $content = $this->getContentFromResource($resource);
+
+        if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
+            throw new InvalidContentException(
+                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            );
+        }
+
         $data = [
             'document' => [
                 'id' => sha1($url),
