@@ -130,7 +130,7 @@ class Spider
     /**
      * Checks is a URL is blacklisted.
      *
-     * @param \VDB\Uri\Uri
+     * @param \VDB\Uri\Uri $uri
      *
      * @return bool
      */
@@ -145,7 +145,7 @@ class Spider
         array_walk(
             $this->blacklist,
             function ($blacklistUrl) use ($uri, &$isBlacklisted) {
-                if (@preg_match('/' . $blacklistUrl . '/', $uri->toString())) {
+                if (@preg_match('#' . $blacklistUrl . '#', $uri->toString())) {
                     $isBlacklisted = true;
                 }
             }
