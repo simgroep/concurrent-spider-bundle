@@ -21,9 +21,10 @@
             <directory suffix=".php">../Command/</directory>
             <directory suffix=".php">../DependencyInjection/</directory>
             <directory suffix=".php">../EventListener/</directory>
+            <directory suffix=".php">../PersistenceHandler/</directory>
             <file>../Indexer.php</file>
+            <file>../CrawlJob.php</file>
             <file>../Queue.php</file>
-            <file>../RabbitMqPersistenceHandler.php</file>
             <file>../Spider.php</file>
             <file>../InvalidContentException.php</file>
             <file>../SimgroepConcurrentSpiderBundle.php</file>

@@ -1,13 +1,14 @@
 <?php
 
-namespace Simgroep\ConcurrentSpiderBundle;
+namespace Simgroep\ConcurrentSpiderBundle\PersistenceHandler;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
+use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler;
 use Smalot\PdfParser\Parser;
 use Symfony\Component\DomCrawler\Crawler;
-use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
 use InvalidArgumentException;
 
@@ -41,26 +42,20 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     }
 
     /**
-     * @{inheritDoc}
-     */
-    public function setSpiderId($spiderId)
-    {
-    }
-
-    /**
      * Grabs the content from the crawled page and publishes a job on the queue.
      *
-     * @param \VDB\Spider\Resource $resource
+     * @param \VDB\Spider\Resource                      $resource
+     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
      *
      * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
-    public function persist(Resource $resource)
+    public function persist(Resource $resource, CrawlJob $crawlJob)
     {
         switch ($resource->getResponse()->getContentType()) {
             case 'application/pdf':
-                $data = json_encode($this->getDataFromPdfFile($resource));
+                $data = $this->getDataFromPdfFile($resource);
 
-                if (!$data) {
+                if (!json_encode($data)) {
                     throw new InvalidContentException("Couldn't create a JSON string while extracting PDF.");
                 }
 
@@ -69,7 +64,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             case 'text/html':
             default:
                 try {
-                    $data = json_encode($this->getDataFromWebPage($resource));
+                    $data = $this->getDataFromWebPage($resource);
                 } catch (InvalidArgumentException $e) {
                     throw new InvalidContentException("Couldn't crawl through DOM to obtain the web page contents.");
                 }
@@ -78,7 +73,11 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         }
 
         if (isset($data)) {
-            $message = new AMQPMessage($data, array('delivery_mode' => 1));
+            $message = new AMQPMessage(
+                json_encode(array_merge($data, ['metadata' => $crawlJob->getMetadata()])),
+                ['delivery_mode' => 1]
+            );
+
             $this->queue->publish($message);
         }
     }
@@ -130,10 +129,9 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             $sIM_simfaq = ['no'];
         }
 
-        $data = array(
-            'document' => array(
+        $data = [
+            'document' => [
                 'id' => sha1($url),
-//                'boost' => 0,
                 'url' => $url,
                 'content' => $content,
                 'title' => $title,
@@ -144,8 +142,8 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                 'SIM_archief' => $sIMArchive,
                 'SIM.simfaq' => $sIM_simfaq,
-            ),
-        );
+            ],
+        ];
 
         return $data;
     }

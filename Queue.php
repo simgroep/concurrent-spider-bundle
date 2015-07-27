@@ -77,6 +77,16 @@ class Queue
         return $this;
     }
 
+    public function publishJob(CrawlJob $crawlJob)
+    {
+        $message = new AMQPMessage(
+            json_encode($crawlJob->toArray()),
+            ['delivery_mode' => 1]
+        );
+
+        return $this->publish($message);
+    }
+
     /**
      * Listen to a queue and consume webpages to crawl.
      *
