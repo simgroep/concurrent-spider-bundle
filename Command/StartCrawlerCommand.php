@@ -2,13 +2,13 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Command;
 
-use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Simgroep\ConcurrentSpiderBundle\Queue;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 
 class StartCrawlerCommand extends Command
 {
@@ -35,6 +35,7 @@ class StartCrawlerCommand extends Command
             ->setName('simgroep:start-crawler')
             ->addArgument('url', InputArgument::REQUIRED, 'The URL of the website that should be crawled.')
             ->addOption('blacklist', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Which URLs do you want to blacklist?')
+            ->addOption('corename', null, InputOption::VALUE_OPTIONAL, 'To which core do you want to save data?')
             ->setDescription('This command saves a job to the queue that will cause crawling to start.');
     }
 
@@ -48,15 +49,20 @@ class StartCrawlerCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $data = array(
-            'uri' => $input->getArgument('url'),
-            'base_url' => $input->getArgument('url'),
-            'blacklist' => $input->getOption('blacklist'),
+        $metadata = [];
+
+        if (null !== $input->getOption('corename')) {
+            $metadata = ['core' => $input->getOption('corename')];
+        }
+
+        $job = new CrawlJob(
+            $input->getArgument('url'),
+            $input->getArgument('url'),
+            $input->getOption('blacklist'),
+            $metadata
         );
 
-        $message = new AMQPMessage(json_encode($data), array('delivery_mode' => 1));
-        $this->queue->publish($message);
-
+        $this->queue->publishJob($job);
         $output->writeLn('<info>Job is published, start a worker with app/console simgroep:crawl</info>');
 
         return 0;

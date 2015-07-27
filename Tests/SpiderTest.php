@@ -4,12 +4,16 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Spider;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use VDB\Uri\Uri;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 class SpiderTest extends PHPUnit_Framework_TestCase
 {
-    public function testIfDoubleSlashIsRemoved()
+    /**
+     * @test
+     */
+    public function isDoubleSlashIsRemoved()
     {
         $node = $this
             ->getMockBuilder('DOMNode')
@@ -66,7 +70,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($resource));
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array('persist'))
             ->getMock();
@@ -83,8 +87,6 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
             ->setMethods(null)
             ->getMock();
-
-        $spider->setBlacklist(array());
 
         $eventDispatcher
             ->expects($this->at(1))
@@ -110,9 +112,11 @@ class SpiderTest extends PHPUnit_Framework_TestCase
                 )
             );
 
-        $spider->crawlUrl('https://github.com/test');
+        $crawlJob = new CrawlJob('https://github.com/test', 'https://github.com/test');
 
-        $this->assertEquals('https://github.com/test', $spider->getCurrentUri());
+        $spider->crawl($crawlJob);
+
+        $this->assertEquals('https://github.com/test', $spider->getCurrentCrawlJob()->getUrl());
     }
 
     /**
@@ -129,7 +133,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
@@ -160,9 +164,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $spider->setBlacklist(array($pattern));
-
-        $this->assertTrue($spider->isUrlBlacklisted($uri));
+        $this->assertTrue($spider->isUrlBlacklisted($uri, array($pattern)));
     }
 
     public function testIsLiteralUrlBlacklisted()
@@ -176,7 +178,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods([])
             ->getMock();
@@ -197,9 +199,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $spider->setBlacklist(['http://www.simgroep.nl/']);
-
-        $this->assertTrue($spider->isUrlBlacklisted($uri));
+        $this->assertTrue($spider->isUrlBlacklisted($uri, array('http://www.simgroep.nl/')));
     }
 
     /**
@@ -216,7 +216,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
@@ -233,9 +233,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $spider->setBlacklist(array($pattern));
-
-        $this->assertFalse($spider->isUrlBlacklisted($uri));
+        $this->assertFalse($spider->isUrlBlacklisted($uri, array($pattern)));
     }
 
     /**
@@ -250,7 +248,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
             ->setMethods(array())
             ->getMock();
@@ -290,5 +288,38 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             array('http://www.simgroep.nl/internet/portfolio_41515/search', 'http:\/\/www\.simgroep\.nl\/internet\/portfolio_41516.*'),
             array('http://www.simgroep.nl/internet/vacatures_41521/', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'),
         );
+    }
+
+    /**
+     * @test
+     */
+    public function canGetPersistenceHandler()
+    {
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setMethods(null)
+            ->getMock();
+
+        $this->assertEquals($persistenceHandler, $spider->getPersistenceHandler());
+
     }
 }
