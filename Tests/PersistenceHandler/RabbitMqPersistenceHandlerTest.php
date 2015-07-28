@@ -706,14 +706,14 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $pdfParser = $this
             ->getMockBuilder('Smalot\PdfParser\Parser')
-            ->setMethods(array('parseContent'))
+            ->setMethods(['parseContent'])
             ->disableOriginalConstructor()
             ->getMock();
 
         $document = $this
             ->getMockBuilder('\Smalot\PdfParser\Document')
             ->disableOriginalConstructor()
-            ->setMethods(array('getText'))
+            ->setMethods(['getText'])
             ->getMock();
 
         $document
@@ -765,7 +765,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $reflectionMethod = new \ReflectionMethod('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler','getDataFromPdfFile');
         $reflectionMethod->setAccessible(true);
-        $reflectionMethod->invokeArgs($persistenceHandler, array($resource));
+        $reflectionMethod->invokeArgs($persistenceHandler, [$resource]);
     }
 
     /**
@@ -789,7 +789,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->setConstructorArgs([$queue, $pdfParser])
-            ->setMethods(array('getContentFromResource'))
+            ->setMethods(['getContentFromResource'])
             ->getMock();
 
         $persistenceHandler
@@ -847,6 +847,6 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $reflectionMethod = new \ReflectionMethod('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler','getDataFromWebPage');
         $reflectionMethod->setAccessible(true);
-        $reflectionMethod->invokeArgs($persistenceHandler, array($resource));
+        $reflectionMethod->invokeArgs($persistenceHandler, [$resource]);
     }
 }
