@@ -16,7 +16,7 @@ class SimgroepConcurrentSpiderBundleTest extends PHPUnit_Framework_TestCase
         $container = $this
             ->getMockBuilder('Symfony\Component\DependencyInjection\ContainerBuilder')
             ->disableOriginalConstructor()
-            ->setMethods(array('addCompilerPass'))
+            ->setMethods(['addCompilerPass'])
             ->getMock();
 
         $container
