@@ -122,8 +122,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             );
 
             $message = new AMQPMessage($body);
-            $indexer->setMetadata(['core' => 'coreName']);
-            $indexer->prepareDocument($message);
+            $indexer->prepareDocument($message, ['core' => 'coreName']);
         }
     }
 }
