@@ -2,9 +2,11 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use VDB\Uri\Uri;
 use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
 
 class DiscoverUrlListener
@@ -56,6 +58,7 @@ class DiscoverUrlListener
      */
     public function onDiscoverUrl(Event $event)
     {
+        $crawlJob = $event->getSubject()->getCurrentCrawlJob();
         foreach ($event['uris'] as $uri) {
             $blacklist = $event->getSubject()->getBlacklist();
             $url = $uri->normalize()->toString();
@@ -70,8 +73,20 @@ class DiscoverUrlListener
                 );
                 $data = json_encode($data);
 
-                $message = new AMQPMessage($data, array('delivery_mode' => 1));
-                $this->queue->publish($message);
+        foreach ($event['uris'] as $uri) {
+            if (($position = strpos($uri, '#'))) {
+                $uri = new Uri(substr($uri, 0, $position));
+            }
+
+            if (!$this->indexer->isUrlIndexed($uri->toString(), $crawlJob->getMetadata())) {
+                $job = new CrawlJob(
+                    $uri->normalize()->toString(),
+                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                    $crawlJob->getBlacklist(),
+                    $crawlJob->getMetadata()
+                );
+
+                $this->queue->publishJob($job);
             }
         }
     }

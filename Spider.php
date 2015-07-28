@@ -5,8 +5,8 @@ namespace Simgroep\ConcurrentSpiderBundle;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
-use VDB\Spider\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Event\SpiderEvents;
+use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
@@ -23,31 +23,21 @@ class Spider
     private $requestHandler;
 
     /**
-     * @var \VDB\Spider\PersistenceHandler\PersistenceHandler
+     * @var \Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler
      */
     private $persistenceHandler;
 
     /**
-     * @var Uri
+     * @var \Simgroep\ConcurrentSpiderBundle\CrawlJob
      */
-    private $currentUri;
-
-    /**
-     * @var array
-     */
-    private $blacklist;
-
-    /**
-     * @var string
-     */
-    private $coreName;
+    private $currentCrawlJob;
 
     /**
      * Constructor.
      *
-     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
-     * @param \VDB\Spider\RequestHandler\GuzzleRequestHandler             $requestHandler
-     * @param \VDB\Spider\PersistenceHandler\PersistenceHandler           $persistenceHandler
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface            $eventDispatcher
+     * @param \VDB\Spider\RequestHandler\GuzzleRequestHandler                        $requestHandler
+     * @param \Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler $persistenceHandler
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
@@ -57,24 +47,6 @@ class Spider
         $this->eventDispatcher = $eventDispatcher;
         $this->requestHandler = $requestHandler;
         $this->persistenceHandler = $persistenceHandler;
-    }
-
-    /**
-     * @param Uri $currentUri
-     */
-    private function setCurrentUri(Uri $currentUri)
-    {
-        $this->currentUri = $currentUri;
-    }
-
-    /**
-     * Returns the URI that is currently crawled.
-     *
-     * @return Uri $uri
-     */
-    public function getCurrentUri()
-    {
-        return $this->currentUri;
     }
 
     /**
@@ -88,43 +60,38 @@ class Spider
     }
 
     /**
-     * Sets the blacklist.
+     * Checks is a URL is blacklisted.
      *
-     * @param array $blacklist
+     * @param \VDB\Uri\Uri $uri
+     * @param array        $blacklist
+     *
+     * @return bool
      */
-    public function setBlacklist(array $blacklist)
+    public function isUrlBlacklisted(Uri $uri, array $blacklist)
     {
-        $this->blacklist = $blacklist;
-    }
+        $isBlacklisted = false;
 
-    /**
-     * Returns the blacklisted url's.
-     *
-     * @return array
-     */
-    public function getBlacklist()
-    {
-        return $this->blacklist;
-    }
+        if (in_array($uri->toString(), $blacklist)) {
+            return true;
+        }
 
-    /**
-     * Sets core name
-     *
-     * @param string $coreName
-     */
-    public function setCoreName($coreName)
-    {
-        $this->coreName = $coreName;
-    }
+        array_walk(
+            $blacklist,
+            function ($blacklistUrl) use ($uri, &$isBlacklisted) {
+                if (@preg_match('#' . $blacklistUrl . '#', $uri->toString())) {
+                    $isBlacklisted = true;
+                }
+            }
+        );
 
-    /**
-     * Returns core name
-     *
-     * @return string
-     */
-    public function getCoreName()
-    {
-        return $this->coreName;
+        if ($isBlacklisted) {
+            $this->eventDispatcher->dispatch(
+                "spider.crawl.blacklisted",
+                new GenericEvent($this, array('uri' => $uri))
+            );
+        }
+
+        return $isBlacklisted;
     }
 
     /**
@@ -138,19 +105,38 @@ class Spider
     }
 
     /**
+     * Returns the job that is currently being processed.
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\CrawlJob
+     */
+    public function getCurrentCrawlJob()
+    {
+        return $this->currentCrawlJob;
+    }
+
+    /**
+     * Returns the persistence handler.
+     *
+     * @return \VDB\Spider\PersistenceHandler\PersistenceHandler
+     */
+    public function getPersistenceHandler()
+    {
+        return $this->persistenceHandler;
+    }
+
+    /**
      * Function that crawls one webpage based on the give url.
      *
-     * @param string $uri
+     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
      */
-    public function crawlUrl($uri)
+    public function crawl(CrawlJob $crawlJob)
     {
-        $this->setCurrentUri(new Uri($uri));
-        $resource = $this->requestHandler->request($this->currentUri);
-
+        $this->currentCrawlJob = $crawlJob;
+        $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
         $crawler = $resource->getCrawler()->filterXPath('//a');
         $uris = array();
 
-        $this->persistenceHandler->persist($resource);
+        $this->persistenceHandler->persist($resource, $crawlJob);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
         foreach ($crawler as $node) {
@@ -166,6 +152,13 @@ class Spider
         }
 
         $spider = $this;
+
+        $uris = array_filter(
+            array_unique($uris),
+            function (Uri $uri) use ($spider, $crawlJob) {
+                return !$spider->isUrlBlacklisted($uri, $crawlJob->getBlacklist());
+            }
+        );
 
         $this->eventDispatcher->dispatch(
             SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,

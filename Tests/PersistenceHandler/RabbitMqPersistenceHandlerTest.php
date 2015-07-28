@@ -1,17 +1,18 @@
 <?php
 
-namespace Simgroep\ConcurrentSpiderBundle;
+namespace Simgroep\ConcurrentSpiderBundle\PersistenceHandler;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit_Framework_TestCase;
-use Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler;
+use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 
 /**
  * Mock version of json_encode
  *
  * Used for testing an error situation.
  *
- * @param $value
+ * @param mixed $value
  * @return bool|string
  */
 function json_encode($value)
@@ -26,7 +27,7 @@ function json_encode($value)
  * Date function mock for returning the same date string
  * Fixing problem with generating not the same datetime each call
  *
- * @retutn string
+ * @return string
  */
 function date()
 {
@@ -49,7 +50,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->getMock();
 
         $persistenceHandler = $this
-                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
                 ->setConstructorArgs([$queue, $pdfParser])
                 ->setMethods(['getDataFromPdfFile'])
                 ->getMock();
@@ -81,7 +82,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getResponse')
                 ->will($this->returnValue($response));
 
-        $persistenceHandler->persist($resource);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $persistenceHandler->persist($resource, $crawlJob);
     }
 
     public function testIfCanHandleTextHtmlContentType()
@@ -98,7 +101,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->getMock();
 
         $persistenceHandler = $this
-                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
                 ->setConstructorArgs([$queue, $pdfParser])
                 ->setMethods(['getDataFromWebPage'])
                 ->getMock();
@@ -130,7 +133,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getResponse')
                 ->will($this->returnValue($response));
 
-        $persistenceHandler->persist($resource);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $persistenceHandler->persist($resource, $crawlJob);
     }
 
     /**
@@ -150,7 +155,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->getMock();
 
         $persistenceHandler = $this
-                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
                 ->setConstructorArgs([$queue, $pdfParser])
                 ->setMethods(['getDataFromPdfFile'])
                 ->getMock();
@@ -182,7 +187,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getResponse')
                 ->will($this->returnValue($response));
 
-        $persistenceHandler->persist($resource);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $persistenceHandler->persist($resource, $crawlJob);
     }
 
     /**
@@ -202,7 +209,7 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->getMock();
 
         $persistenceHandler = $this
-                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+                ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
                 ->setConstructorArgs([$queue, $pdfParser])
                 ->setMethods(['getDataFromWebPage'])
                 ->getMock();
@@ -234,7 +241,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->method('getResponse')
                 ->will($this->returnValue($response));
 
-        $persistenceHandler->persist($resource);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $persistenceHandler->persist($resource, $crawlJob);
     }
 
     public function testPersistRetrieveValidDataFromPdfFile()
@@ -290,10 +299,15 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistenceHandler->persist($resource));
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $this->assertNull($persistenceHandler->persist($resource, $crawlJob));
     }
 
-    public function testPersistRetrieveValidDataFromWebPageWithAllDefaultValuesInFields()
+    /**
+     * @test
+     */
+    public function persistRetrieveValidDataFromWebPageWithAllDefaultValuesInFields()
     {
         $pdfParser = $this->getMockBuilder('Smalot\PdfParser\Parser')
                 ->disableOriginalConstructor()
@@ -415,6 +429,8 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 'DCTERMS.language'=> 'nl-NL',
                 'DCTERMS.type'=> 'webpagina'
             ],
+            'metadata' => [
+            ],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
         $queue = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
@@ -429,7 +445,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistenceHandler->persist($resource));
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
+        $this->assertNull($persistenceHandler->persist($resource, $crawlJob));
     }
 
     public function testPersistRetrieveValidDataFromWebPageWithAllValuesSetInFields()
@@ -559,6 +577,8 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 'DCTERMS.audience'=> 'DCTERMS.audience',
                 'DCTERMS.subject'=> 'DCTERMS.subject'
             ],
+            'metadata' => [
+            ],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -574,23 +594,9 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 
         $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
 
-        $this->assertNull($persistenceHandler->persist($resource));
-    }
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
 
-    public function testSpiderId()
-    {
-        $queue = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
-                ->disableOriginalConstructor()
-                ->setMethods(['__destruct', 'publish'])
-                ->getMock();
-
-        $pdfParser = $this->getMockBuilder('Smalot\PdfParser\Parser')
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $pdfParser);
-
-        $this->assertNull($persistenceHandler->setSpiderId(123));
+        $this->assertNull($persistenceHandler->persist($resource, $crawlJob));
     }
 
     /**
@@ -683,5 +689,164 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
                 ->will($this->returnValue($domNode));
 
         return $domCrawler;
+    }
+
+    /**
+     * @testdox Tests if an exception is thrown when the total content length  of a PDF is below 3 chars
+     *
+     * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException
+     */
+    public function testPdfInvalidContentException()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['publish', '__destruct'])
+            ->getMock();
+
+        $pdfParser = $this
+            ->getMockBuilder('Smalot\PdfParser\Parser')
+            ->setMethods(['parseContent'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $document = $this
+            ->getMockBuilder('\Smalot\PdfParser\Document')
+            ->disableOriginalConstructor()
+            ->setMethods(['getText'])
+            ->getMock();
+
+        $document
+            ->expects($this->once())
+            ->method('getText')
+            ->will($this->returnValue('12'));
+
+        $pdfParser
+            ->expects($this->once())
+            ->method('parseContent')
+            ->will($this->returnValue($document));
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->setConstructorArgs([$queue, $pdfParser])
+            ->getMock();
+
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $resource = $this
+            ->getMockBuilder('\VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getUri'])
+            ->getMock();
+
+        $uri = $this
+            ->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+
+        $uri
+            ->expects($this->once())
+            ->method('toString')
+            ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
+
+        $resource
+            ->expects($this->once())
+            ->method('getUri')
+            ->will($this->returnValue($uri));
+
+        $resource
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $reflectionMethod = new \ReflectionMethod('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler','getDataFromPdfFile');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invokeArgs($persistenceHandler, [$resource]);
+    }
+
+    /**
+     * @testdox Tests if an exception is thrown when the total content length of a webpage is below 3 chars
+     *
+     * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException
+     */
+    public function testWebpageInvalidContentException()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['publish', '__destruct'])
+            ->getMock();
+
+        $pdfParser = $this
+            ->getMockBuilder('Smalot\PdfParser\Parser')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->setConstructorArgs([$queue, $pdfParser])
+            ->setMethods(['getContentFromResource'])
+            ->getMock();
+
+        $persistenceHandler
+            ->expects($this->once())
+            ->method('getContentFromResource')
+            ->will($this->returnValue('12'));
+
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $uri = $this
+            ->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+
+        $uri
+            ->expects($this->once())
+            ->method('toString')
+            ->will($this->returnValue('https://github.com/test'));
+
+        $resource = $this
+            ->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getUri', 'getCrawler'])
+            ->getMock();
+
+        $resource
+            ->expects($this->exactly(2))
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $domCrawler = $this
+            ->getMockBuilder('Symfony\Component\DomCrawler\Crawler')
+            ->disableOriginalConstructor()
+            ->setMethods(['filterXpath'])
+            ->getMock();
+
+        $domCrawler
+            ->expects($this->atLeastOnce())
+            ->method('filterXpath')
+            ->will($this->throwException(new \InvalidArgumentException()));
+
+        $resource
+            ->expects($this->atLeastOnce())
+            ->method('getCrawler')
+            ->will($this->returnValue($domCrawler));
+
+        $resource
+            ->expects($this->once())
+            ->method('getUri')
+            ->will($this->returnValue($uri));
+
+        $reflectionMethod = new \ReflectionMethod('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler','getDataFromWebPage');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invokeArgs($persistenceHandler, [$resource]);
     }
 }

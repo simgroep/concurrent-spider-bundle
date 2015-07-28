@@ -4,6 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests\EventListener;
 
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use PHPUnit_Framework_TestCase;
 use VDB\Uri\Uri;
 
@@ -14,7 +15,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
         $queue
@@ -24,7 +25,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -33,19 +34,21 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(true));
 
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
         $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(array('getBlacklist'))
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
             ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
             ->getMock();
 
         $spider
-            ->expects($this->any())
-            ->method('getBlacklist')
-            ->will($this->returnValue([]));
-        
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
         $uri = new Uri('https://github.com');
-        $event = new GenericEvent($spider, array('uris' => array($uri)));
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }
@@ -55,7 +58,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
         $queue
@@ -66,7 +69,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -75,60 +78,63 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
-        $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(array('getCurrentUri', 'getBlacklist'))
-            ->disableOriginalConstructor()
-            ->getMock();
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
 
-        $uri = new Uri('https://github.com');
+        $spider = $this
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
+            ->getMock();
 
         $spider
             ->expects($this->once())
-            ->method('getCurrentUri')
-            ->will($this->returnValue($uri));
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
 
-        $spider
-            ->expects($this->any())
-            ->method('getBlacklist')
-            ->will($this->returnValue([]));
+        $uri = new Uri('https://github.com');
 
-        $event = new GenericEvent($spider, array('uris' => array($uri)));
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }
-    
-    public function testIfUrlIsBlacklisted()
+
+    public function testIfShebangIsRemoved()
     {
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
-
-        $queue
-            ->expects($this->never())
-            ->method('publish');
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexed')
+            ->with($this->equalTo('https://github.com/test/'))
+            ->will($this->returnValue(true));
+
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+
         $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setMethods(array('getBlacklist'))
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
             ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
             ->getMock();
 
         $spider
-            ->expects($this->any())
-            ->method('getBlacklist')
-            ->will($this->returnValue(['github\.com']));
-        
-        $uri = new Uri('https://github.com');
-        $event = new GenericEvent($spider, array('uris' => array($uri)));
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
+
+        $uri = new Uri('https://github.com/test/#shebang');
+
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }

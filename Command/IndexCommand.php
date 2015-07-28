@@ -2,13 +2,11 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Command;
 
-use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Solarium_Document_ReadWrite;
 
 class IndexCommand extends Command
 {
@@ -59,10 +57,12 @@ class IndexCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->queue->listen(function ($message) {
-            $this->indexer->prepareDocument($message);
+            $data = json_decode($message->body, true);
+            $this->indexer->prepareDocument($message, $data['metadata']);
             $this->queue->acknowledge($message);
         });
 
         return 1;
     }
+
 }
