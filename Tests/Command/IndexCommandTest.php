@@ -47,11 +47,6 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('prepareDocument');
 
-        $indexer
-            ->expects($this->once())
-            ->method('setMetadata')
-            ->with(['core' => 'dummyCoreName']);
-
         /** @var \Simgroep\ConcurrentSpiderBundle\Command\IndexCommand $command */
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')

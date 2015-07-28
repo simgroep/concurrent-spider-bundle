@@ -130,7 +130,7 @@ class CrawlCommand extends Command
             $this->markAsFailed($crawlJob, 'Invalid URI syntax');
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
-            if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
+            if (in_array($e->getResponse()->getStatusCode(), [404, 403, 401, 500])) {
                 $this->queue->rejectMessage($message);
                 $this->markAsSkipped($crawlJob, 'warning');
             } else {
