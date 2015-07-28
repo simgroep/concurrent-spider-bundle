@@ -109,8 +109,6 @@ class CrawlCommand extends Command
         $metadata = $data['metadata'];
         $command = $this;
 
-        $this->indexer->setMetadata($metadata);
-
         $this->spider->setBlacklist($blacklist);
         $this->spider->setMetadata($metadata);
         $this->spider->getEventDispatcher()->addListener(
@@ -133,7 +131,7 @@ class CrawlCommand extends Command
             return;
         }
 
-        if ($this->indexer->isUrlIndexed($urlToCrawl)) {
+        if ($this->indexer->isUrlIndexed($urlToCrawl, $metadata)) {
             $this->queue->rejectMessage($message);
 
             $this->logMessage('info', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
