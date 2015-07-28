@@ -83,7 +83,7 @@ class Indexer
      * @param \PhpAmqpLib\Message\AMQPMessage $message
      * @param array $metadata
      */
-    public function prepareDocument(AMQPMessage $message, array $metadata)
+    public function prepareDocument(AMQPMessage $message, array $metadata = [])
     {
         $data = json_decode($message->body, true);
 
