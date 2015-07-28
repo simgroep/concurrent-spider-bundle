@@ -38,7 +38,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexed')
-            ->with($this->equalTo('https://github.com'), array('core' => 'corename'))
+            ->with($this->equalTo('https://github.com'), ['core' => 'corename'])
             ->will($this->returnValue(true));
 
         $spider = $this
@@ -138,7 +138,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
             ->getMock();
 
         $spider

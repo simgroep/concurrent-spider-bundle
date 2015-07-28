@@ -15,7 +15,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
         $queue
@@ -25,7 +25,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -39,7 +39,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
             ->disableOriginalConstructor()
-            ->setMethods(array('getCurrentCrawlJob'))
+            ->setMethods(['getCurrentCrawlJob'])
             ->getMock();
 
         $spider
@@ -58,7 +58,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
         $queue
@@ -69,7 +69,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -83,7 +83,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
             ->disableOriginalConstructor()
-            ->setMethods(array('getCurrentCrawlJob'))
+            ->setMethods(['getCurrentCrawlJob'])
             ->getMock();
 
         $spider
@@ -93,7 +93,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
 
         $uri = new Uri('https://github.com');
 
-        $event = new GenericEvent($spider, array('uris' => array($uri)));
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }
@@ -103,13 +103,13 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(array('publish', '__destruct'))
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(array('isUrlIndexed'))
+            ->setMethods(['isUrlIndexed'])
             ->getMock();
 
         $indexer
@@ -134,7 +134,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
 
         $uri = new Uri('https://github.com/test/#shebang');
 
-        $event = new GenericEvent($spider, array('uris' => array($uri)));
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer);
         $listener->onDiscoverUrl($event);
     }
