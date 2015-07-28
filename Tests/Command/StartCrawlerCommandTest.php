@@ -14,10 +14,10 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
     public function execute()
     {
         $data = [
-            'uri' => 'http://simgroep.nl',
+            'url' => 'http://simgroep.nl',
             'base_url' => 'http://simgroep.nl',
             'blacklist' => [],
-            'metadata' => ['core' => null],
+            'metadata' => [],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -32,7 +32,6 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             ->method('publish')
             ->with($message);
 
-        /** @var \Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand $command */
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand')
             ->setConstructorArgs([$queue])
@@ -40,6 +39,42 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             ->getMock();
 
         $input = new StringInput('http://simgroep.nl');
+        $output = new NullOutput();
+        $command->run($input, $output);
+    }
+
+    /**
+     * @test
+     */
+    public function canStartCrawlerWithCore()
+    {
+        $data = [
+            'url' => 'https://github.com',
+            'base_url' => 'https://github.com',
+            'blacklist' => [],
+            'metadata' => ['core' => 'github'],
+        ];
+        $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
+
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['rejectMessage', '__destruct', 'publish'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('publish')
+            ->with($message);
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand')
+            ->setConstructorArgs([$queue])
+            ->setMethods(null)
+            ->getMock();
+
+        $input = new StringInput('https://github.com --corename=github');
+
         $output = new NullOutput();
         $command->run($input, $output);
     }
