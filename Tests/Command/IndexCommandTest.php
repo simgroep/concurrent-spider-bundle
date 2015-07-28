@@ -40,7 +40,7 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'prepareDocument', 'setMetadata'])
+            ->setMethods(['isUrlIndexed', 'prepareDocument'])
             ->getMock();
 
         $indexer
