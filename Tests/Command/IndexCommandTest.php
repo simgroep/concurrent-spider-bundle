@@ -50,7 +50,7 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         /** @var \Simgroep\ConcurrentSpiderBundle\Command\IndexCommand $command */
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
-            ->setConstructorArgs(array($queue, $indexer, []))
+            ->setConstructorArgs([$queue, $indexer, []])
             ->setMethods(null)
             ->getMock();
 

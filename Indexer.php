@@ -81,8 +81,9 @@ class Indexer
      * Make a document ready to be indexed.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
+     * @param array $metadata
      */
-    public function prepareDocument(AMQPMessage $message)
+    public function prepareDocument(AMQPMessage $message, array $metadata = [])
     {
         $data = json_decode($message->body, true);
 
@@ -113,7 +114,7 @@ class Indexer
         $this->documents[] = $document;
 
         if (count($this->documents) >= 10) {
-            $this->addDocuments($this->documents);
+            $this->addDocuments($this->documents, $metadata);
             $this->documents = [];
         }
     }
