@@ -44,13 +44,13 @@ class Indexer
      * Indicates whether an URL already has been indexed or not.
      *
      * @param string $uri
-     * @param array $metadata
+     * @param array  $metadata
      *
      * @return boolean
      */
-    public function isUrlIndexed($uri, array $metadata)
+    public function isUrlIndexed($uri, array $metadata = [])
     {
-        $this->setCoreName($metadata);
+        $this->setCoreNameFromMetadata($metadata);
 
         $query = $this->client->createSelect();
         $query->setQuery(sprintf("id:%s", sha1($uri)));
@@ -66,9 +66,9 @@ class Indexer
      * @param array $documents
      * @param array $metadata
      */
-    public function addDocuments(array $documents, array $metadata)
+    public function addDocuments(array $documents, array $metadata = [])
     {
-        $this->setCoreName($metadata);
+        $this->setCoreNameFromMetadata($metadata);
 
         $update = $this->client->createUpdate();
         $update->addDocuments($documents);
@@ -121,7 +121,7 @@ class Indexer
 
     /**
      * Set Core Name to write/read data
-     * 
+     *
      * @param array $metadata
      */
     protected function setCoreNameFromMetadata(array $metadata)
