@@ -47,7 +47,7 @@ class DiscoverUrlListener
      *
      * @return boolean
      */
-    public function isUrlBlacklisted($url, $blacklist)
+    public function isUrlBlacklisted($url, array $blacklist)
     {
         $isBlacklisted = false;
 
