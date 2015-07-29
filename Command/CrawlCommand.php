@@ -91,7 +91,7 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->queue->listen(array($this, 'crawlUrl'));
+        $this->queue->listen([$this, 'crawlUrl']);
 
         return 1;
     }

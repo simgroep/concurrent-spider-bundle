@@ -84,7 +84,7 @@ class DiscoverUrlListener
             if ($isBlacklisted) {
                 $this->eventDispatcher->dispatch(
                     "spider.crawl.blacklisted",
-                    new Event($this, array('uri' => $uri))
+                    new Event($this, ['uri' => $uri])
                 );
 
                 continue;//url blacklisted, so go to next one
