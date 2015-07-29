@@ -60,41 +60,6 @@ class Spider
     }
 
     /**
-     * Checks is a URL is blacklisted.
-     *
-     * @param \VDB\Uri\Uri $uri
-     * @param array        $blacklist
-     *
-     * @return bool
-     */
-    public function isUrlBlacklisted(Uri $uri, array $blacklist)
-    {
-        $isBlacklisted = false;
-
-        if (in_array($uri->toString(), $blacklist)) {
-            return true;
-        }
-
-        array_walk(
-            $blacklist,
-            function ($blacklistUrl) use ($uri, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#', $uri->toString())) {
-                    $isBlacklisted = true;
-                }
-            }
-        );
-
-        if ($isBlacklisted) {
-            $this->eventDispatcher->dispatch(
-                "spider.crawl.blacklisted",
-                new GenericEvent($this, array('uri' => $uri))
-            );
-        }
-
-        return $isBlacklisted;
-    }
-
-    /**
      * Returns the event dispatcher.
      *
      * @return \Symfony\Component\EventDispatcher\EventDispatcherInterface
@@ -134,7 +99,7 @@ class Spider
         $this->currentCrawlJob = $crawlJob;
         $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
         $crawler = $resource->getCrawler()->filterXPath('//a');
-        $uris = array();
+        $uris = [];
 
         $this->persistenceHandler->persist($resource, $crawlJob);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
@@ -151,18 +116,9 @@ class Spider
             }
         }
 
-        $spider = $this;
-
-        $uris = array_filter(
-            array_unique($uris),
-            function (Uri $uri) use ($spider, $crawlJob) {
-                return !$spider->isUrlBlacklisted($uri, $crawlJob->getBlacklist());
-            }
-        );
-
         $this->eventDispatcher->dispatch(
             SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,
-            new GenericEvent($this, array('uris' => $uris))
+            new GenericEvent($this, ['uris' => $uris])
         );
     }
 }
