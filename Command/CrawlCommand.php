@@ -104,7 +104,6 @@ class CrawlCommand extends Command
     public function crawlUrl(AMQPMessage $message)
     {
         $crawlJob = CrawlJob::create($message);
-        $command = $this;
 
         if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl())) {
             $this->queue->rejectMessage($message);
