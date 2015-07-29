@@ -41,24 +41,17 @@ class Indexer
     }
 
     /**
-     * Set Core Name to write/read data
-     *
-     * @param string $coreName
-     */
-    public function setCoreName($coreName)
-    {
-        $this->client->getAdapter()->setCore($coreName);
-    }
-
-    /**
      * Indicates whether an URL already has been indexed or not.
      *
      * @param string $uri
+     * @param array  $metadata
      *
      * @return boolean
      */
-    public function isUrlIndexed($uri)
+    public function isUrlIndexed($uri, array $metadata = [])
     {
+        $this->setCoreNameFromMetadata($metadata);
+
         $query = $this->client->createSelect();
         $query->setQuery(sprintf("id:%s", sha1($uri)));
 
@@ -71,9 +64,12 @@ class Indexer
      * Add multiple documents to the data store.
      *
      * @param array $documents
+     * @param array $metadata
      */
-    public function addDocuments(array $documents)
+    public function addDocuments(array $documents, array $metadata = [])
     {
+        $this->setCoreNameFromMetadata($metadata);
+
         $update = $this->client->createUpdate();
         $update->addDocuments($documents);
         $update->addCommit();
@@ -85,8 +81,9 @@ class Indexer
      * Make a document ready to be indexed.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
+     * @param array $metadata
      */
-    public function prepareDocument(AMQPMessage $message)
+    public function prepareDocument(AMQPMessage $message, array $metadata = [])
     {
         $data = json_decode($message->body, true);
 
@@ -117,8 +114,20 @@ class Indexer
         $this->documents[] = $document;
 
         if (count($this->documents) >= 10) {
-            $this->addDocuments($this->documents);
+            $this->addDocuments($this->documents, $metadata);
             $this->documents = [];
+        }
+    }
+
+    /**
+     * Set Core Name to write/read data
+     *
+     * @param array $metadata
+     */
+    protected function setCoreNameFromMetadata(array $metadata)
+    {
+        if (array_key_exists('core', $metadata)) {
+            $this->client->getAdapter()->setCore($metadata['core']);
         }
     }
 }

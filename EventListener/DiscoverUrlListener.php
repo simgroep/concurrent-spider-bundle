@@ -2,10 +2,12 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
-use PhpAmqpLib\Message\AMQPMessage;
+use VDB\Uri\Uri;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\EventDispatcher\GenericEvent as Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class DiscoverUrlListener
 {
@@ -20,17 +22,31 @@ class DiscoverUrlListener
     private $indexer;
 
     /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcher
+     */
+    private $eventDispatcher;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      */
-    public function __construct(Queue $queue, Indexer $indexer)
+    public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher )
     {
         $this->queue = $queue;
         $this->indexer = $indexer;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * Check if given url is blacklisted
+     *
+     * @param string $url
+     * @param array $blacklist
+     *
+     * @return boolean
+     */
     public function isUrlBlacklisted($url, $blacklist)
     {
         $isBlacklisted = false;
@@ -38,7 +54,7 @@ class DiscoverUrlListener
         array_walk(
             $blacklist,
             function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('/' . $blacklistUrl . '/', $url)) {
+                if (@preg_match('#' . $blacklistUrl . '#', $url)) {
                     $isBlacklisted = true;
                 }
             }
@@ -56,23 +72,35 @@ class DiscoverUrlListener
      */
     public function onDiscoverUrl(Event $event)
     {
+        $crawlJob = $event->getSubject()->getCurrentCrawlJob();
+
         foreach ($event['uris'] as $uri) {
-            $blacklist = $event->getSubject()->getBlacklist();
-            $url = $uri->normalize()->toString();
-            $isBlacklisted = $this->isUrlBlacklisted($url, $blacklist);
+            if (($position = strpos($uri, '#'))) {
+                $uri = new Uri(substr($uri, 0, $position));
+            }
 
-            if (!$this->indexer->isUrlIndexed($uri->toString())) {
-                $data = array(
-                    'uri' => $uri->normalize()->toString(),
-                    'base_url' => $event->getSubject()->getCurrentUri()->normalize()->toString(),
-                    'blacklist' => $event->getSubject()->getBlacklist(),
-                    'core_name' => $event->getSubject()->getCoreName()
+            $isBlacklisted = $this->isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
+
+            if ($isBlacklisted) {
+                $this->eventDispatcher->dispatch(
+                    "spider.crawl.blacklisted",
+                    new Event($this, array('uri' => $uri))
                 );
-                $data = json_encode($data);
 
-                $message = new AMQPMessage($data, array('delivery_mode' => 1));
-                $this->queue->publish($message);
+                continue;//url blacklisted, so go to next one
+            }
+
+            if (!$this->indexer->isUrlIndexed($uri->toString(), $crawlJob->getMetadata())) {
+                $job = new CrawlJob(
+                    $uri->normalize()->toString(),
+                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                    $crawlJob->getBlacklist(),
+                    $crawlJob->getMetadata()
+                );
+
+                $this->queue->publishJob($job);
             }
         }
     }
+
 }

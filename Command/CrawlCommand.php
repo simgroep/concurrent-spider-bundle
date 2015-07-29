@@ -8,6 +8,7 @@ use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -102,68 +103,42 @@ class CrawlCommand extends Command
      */
     public function crawlUrl(AMQPMessage $message)
     {
-        $data = json_decode($message->body, true);
-        $urlToCrawl = $data['uri'];
-        $baseUrl = $data['base_url'];
-        $blacklist = $data['blacklist'];
-        $coreName = $data['core_name'];
-        $command = $this;
+        $crawlJob = CrawlJob::create($message);
 
-        $this->indexer->setCoreName($coreName);
-
-        $this->spider->setBlacklist($blacklist);
-        $this->spider->setCoreName($coreName);
-        $this->spider->getEventDispatcher()->addListener(
-            "spider.crawl.blacklisted",
-            function ($event) use ($command) {
-                $uri = $event->getArgument('uri')->toString();
-
-                $command->logMessage(
-                    'info',
-                    sprintf("Blacklisted %s", $uri),
-                    $uri
-                );
-            }
-        );
-
-        if (!$this->areHostsEqual($urlToCrawl, $baseUrl)) {
+        if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl())) {
             $this->queue->rejectMessage($message);
+            $this->markAsSkipped($crawlJob);
 
-            $this->logMessage('info', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
             return;
         }
 
-        if ($this->indexer->isUrlIndexed($urlToCrawl)) {
+        if ($this->indexer->isUrlIndexed($crawlJob->getUrl(), $crawlJob->getMetadata())) {
             $this->queue->rejectMessage($message);
+            $this->markAsSkipped($crawlJob);
 
-            $this->logMessage('info', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
             return;
         }
 
         try {
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
-            $this->spider->crawlUrl($urlToCrawl);
+            $this->spider->crawl($crawlJob);
 
-            $this->logMessage('info', sprintf("Crawling %s", $urlToCrawl), $urlToCrawl);
+            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl());
             $this->queue->acknowledge($message);
         } catch (UriSyntaxException $e) {
-            $this->logMessage('warning', sprintf('URL %s failed', $urlToCrawl), $urlToCrawl);
-
+            $this->markAsFailed($crawlJob, 'Invalid URI syntax');
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
-            if (in_array($e->getResponse()->getStatusCode(), array(404, 403, 401, 500))) {
+            if (in_array($e->getResponse()->getStatusCode(), [404, 403, 401, 500])) {
                 $this->queue->rejectMessage($message);
-                $this->logMessage('warning', sprintf("Skipped %s", $urlToCrawl), $urlToCrawl);
+                $this->markAsSkipped($crawlJob, 'warning');
             } else {
                 $this->queue->rejectMessageAndRequeue($message);
-                $this->logMessage('emergency', sprintf('URL (%s) %s failed', $e->getResponse()->getStatusCode(), $urlToCrawl), $urlToCrawl);
+                $this->markAsFailed($crawlJob, $e->getResponse()->getStatusCode());
             }
-        } catch (InvalidContentException $e) {
-            $this->queue->rejectMessage($message);
-            $this->logMessage('emergency', sprintf("Invalid content (%s) reason: %s", $urlToCrawl, $e->getMessage()), $urlToCrawl);
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
-            $this->logMessage('emergency', sprintf("Failed (%s) %s", $e->getMessage(), $urlToCrawl), $urlToCrawl);
+            $this->markAsFailed($crawlJob, $e->getMessage());
         }
     }
 
@@ -179,6 +154,28 @@ class CrawlCommand extends Command
     public function logMessage($level, $message, $url)
     {
         $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
+    }
+
+    /**
+     * Logs a message that will tell the job is skipped.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
+     * @param string                                    $level
+     */
+    public function markAsSkipped(CrawlJob $crawlJob, $level = 'info')
+    {
+        $this->logMessage($level, sprintf("Skipped %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+    }
+
+    /**
+     * Logs a message that will tell the job is failed.
+     *
+     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
+     * @param string                                    $level
+     */
+    public function markAsFailed(CrawlJob $crawlJob, $errorMessage)
+    {
+        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl());
     }
 
     /**

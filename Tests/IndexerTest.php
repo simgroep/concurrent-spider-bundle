@@ -47,7 +47,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($solrResult));
 
         $indexer = new Indexer($solrClient, []);
-        $actual = $indexer->isUrlIndexed($url);
+        $actual = $indexer->isUrlIndexed($url, ['core' => 'coreName']);
 
         $this->assertTrue($actual);
     }
@@ -73,7 +73,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($solrQuery));
 
         $indexer = new Indexer($solrClient, []);
-        $this->assertNull($indexer->addDocuments($documents));
+        $this->assertNull($indexer->addDocuments($documents, ['core' => 'coreName']));
     }
 
     /**
@@ -124,25 +124,5 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             $message = new AMQPMessage($body);
             $indexer->prepareDocument($message);
         }
-    }
-
-
-    public function testSetCoreName()
-    {
-        $adapter = $this->getMockBuilder('Solarium_Client_Adapter')
-            ->disableOriginalConstructor()
-            ->setMethods(['execute' ,'setCore'])
-            ->getMock();
-
-        $solrClient = $this->getMockBuilder('Solarium_Client')
-            ->disableOriginalConstructor()
-            ->setMethods(['getAdapter'])
-            ->getMock();
-        $solrClient->expects($this->once())
-            ->method('getAdapter')
-            ->will($this->returnValue($adapter));
-
-        $indexer = new Indexer($solrClient, []);
-        $this->assertNull($indexer->setCoreName('dummyName'));
     }
 }

@@ -23,7 +23,6 @@
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.spider" />
             <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
-            <argument type="service" id="monolog.logger.raygun" />
             <argument type="expression">
                 service(parameter('simgroep_concurrent_spider.logger_service'))
             </argument>
@@ -40,7 +39,7 @@
 
         <service id="simgroep_concurrent_spider.pdf_parser" class="Smalot\PdfParser\Parser" />
 
-        <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler">
+        <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.pdf_parser" />
         </service>
@@ -71,6 +70,9 @@
                     <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
                 </argument>
             </argument>
+            <call method="setAdapter">
+                <argument>%simgroep_concurrent_spider.solarium_adapter%</argument>
+            </call>
         </service>
 
         <service id="simgroep_concurrent_spider.indexer" class="Simgroep\ConcurrentSpiderBundle\Indexer">
@@ -81,8 +83,17 @@
         <service id="simgroep_concurrent_spider.discover_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener">
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
+            <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
 
             <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.post_discover" method="onDiscoverUrl" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.url_blacklisted_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\UrlBlacklistedListener">
+            <argument type="expression">
+                service(parameter('simgroep_concurrent_spider.logger_service'))
+            </argument>
+
+            <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.blacklisted" method="onBlacklisted" />
         </service>
 
         <service id="simgroep_concurrent_spider.event_dispatcher" class="Symfony\Component\EventDispatcher\ContainerAwareEventDispatcher">

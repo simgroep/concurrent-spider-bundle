@@ -4,43 +4,47 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Spider;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use VDB\Uri\Uri;
 use Symfony\Component\EventDispatcher\GenericEvent;
 
 class SpiderTest extends PHPUnit_Framework_TestCase
 {
-    public function testIfDoubleSlashIsRemoved()
+    /**
+     * @test
+     */
+    public function isDoubleSlashIsRemoved()
     {
         $node = $this
             ->getMockBuilder('DOMNode')
             ->disableOriginalConstructor()
-            ->setMethods(array('getAttribute'))
+            ->setMethods(['getAttribute'])
             ->getMock();
 
         $node
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('getAttribute')
             ->with($this->equalTo('href'))
-            ->will($this->onConsecutiveCalls('/', '#search', 'aboutus'));
+            ->will($this->onConsecutiveCalls('/', 'aboutus'));
 
         $crawler = $this
             ->getMockBuilder('Symfony\Component\DomCrawler\Crawler')
             ->disableOriginalConstructor()
-            ->setMethods(array('filterXpath'))
+            ->setMethods(['filterXpath'])
             ->getMock();
 
         $crawler
             ->expects($this->once())
             ->method('filterXpath')
             ->with($this->equalTo('//a'))
-            ->will($this->returnValue(array($node, $node, $node)));
+            ->will($this->returnValue([$node, $node]));
 
         $uri = new Uri('https://github.com/test');
 
         $resource = $this
             ->getMockBuilder('VDB\Spider\Resource')
             ->disableOriginalConstructor()
-            ->setMethods(array('getCrawler', 'getUri'))
+            ->setMethods(['getCrawler', 'getUri'])
             ->getMock();
 
         $resource
@@ -49,14 +53,14 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($crawler));
 
         $resource
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('getUri')
             ->will($this->returnValue($uri));
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array('request'))
+            ->setMethods(['request'])
             ->getMock();
 
         $requestHandler
@@ -66,25 +70,23 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($resource));
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array('persist'))
+            ->setMethods(['persist'])
             ->getMock();
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
             ->disableOriginalConstructor()
-            ->setMethods(array('dispatch'))
+            ->setMethods(['dispatch'])
             ->getMock();
 
         /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
             ->setMethods(null)
             ->getMock();
-
-        $spider->setBlacklist(array());
 
         $eventDispatcher
             ->expects($this->at(1))
@@ -94,11 +96,10 @@ class SpiderTest extends PHPUnit_Framework_TestCase
                 $this->callback(
                     function (GenericEvent $event) {
                         $uris = $event->getArgument('uris');
-                        $validUris = array(
+                        $validUris = [
                             'https://github.com/',
-                            'https://github.com/test#search',
                             'https://github.com/aboutus',
-                        );
+                        ];
 
                         foreach ($uris as $uri) {
                             if (!in_array($uri->toString(), $validUris)) {
@@ -111,43 +112,11 @@ class SpiderTest extends PHPUnit_Framework_TestCase
                 )
             );
 
-        $spider->crawlUrl('https://github.com/test');
+        $crawlJob = new CrawlJob('https://github.com/test', 'https://github.com/test');
 
-        $this->assertEquals('https://github.com/test', $spider->getCurrentUri());
-    }
+        $spider->crawl($crawlJob);
 
-    public function testGetBlacklistReturnCorrectValue()
-    {
-        $requestHandler = $this
-            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
-            ->disableOriginalConstructor()
-            ->setMethods(array('request'))
-            ->getMock();
-
-        $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
-            ->disableOriginalConstructor()
-            ->setMethods(array('persist'))
-            ->getMock();
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->setMethods(array('dispatch'))
-            ->getMock();
-
-        /** @var Spider $spider */
-        $spider = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
-            ->setMethods(null)
-            ->getMock();
-
-        $spider->setBlacklist(array('simgroep\.nl'));
-
-        $blacklist = $spider->getBlacklist();
-
-        $this->assertEquals(array('simgroep\.nl'), $blacklist);
+        $this->assertEquals('https://github.com/test', $spider->getCurrentCrawlJob()->getUrl());
     }
 
     /**
@@ -158,28 +127,61 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array())
+            ->setMethods([])
             ->getMock();
 
         $persistenceHandler = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\RabbitMqPersistenceHandler')
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
-            ->setMethods(array())
+            ->setMethods([])
             ->getMock();
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
             ->disableOriginalConstructor()
-            ->setMethods(array('dispatch'))
+            ->setMethods(['dispatch'])
             ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs(array($eventDispatcher, $requestHandler, $persistenceHandler))
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
             ->setMethods(null)
             ->getMock();
 
         $this->assertEquals($requestHandler, $spider->getRequesthandler());
         $this->assertEquals($eventDispatcher, $spider->getEventDispatcher());
+    }
+
+    /**
+     * @test
+     */
+    public function canGetPersistenceHandler()
+    {
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods([])
+            ->getMock();
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setMethods(null)
+            ->getMock();
+
+        $this->assertEquals($persistenceHandler, $spider->getPersistenceHandler());
+
     }
 }
