@@ -34,7 +34,6 @@ class SimgroepConcurrentSpiderExtension extends Extension
         $container->setParameter('simgroep_concurrent_spider.solr.path', $config['solr']['path']);
         $container->setParameter('simgroep_concurrent_spider.logger_service', $config['logger_service']);
         $container->setParameter('simgroep_concurrent_spider.mapping', $config['mapping']);
-        $container->setParameter('simgroep_concurrent_spider.solarium_adapter', $config['solarium_adapter']);
 
         $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.xml');
