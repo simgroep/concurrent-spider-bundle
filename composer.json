@@ -25,7 +25,7 @@
     "require": {
         "php": ">=5.4.0",
         "vdb/php-spider": "dev-master",
-        "solarium/solarium": "~2",
+        "solarium/solarium": "~3",
         "videlalvaro/php-amqplib": "~2",
         "smalot/pdfparser": "dev-master",
         "symfony/symfony": ">=2.4,<3"
