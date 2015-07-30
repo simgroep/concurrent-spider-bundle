@@ -3,8 +3,8 @@
 namespace Simgroep\ConcurrentSpiderBundle;
 
 use PhpAmqpLib\Message\AMQPMessage;
-use Solarium_Client;
-use Solarium_Document_ReadWrite;
+use Solarium\Client;
+use Solarium\QueryType\Update\Query\Query;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -12,7 +12,7 @@ use Solarium_Document_ReadWrite;
 class Indexer
 {
     /**
-     * @var \Solarium_Client
+     * @var \Solarium\Client
      */
     private $client;
 
@@ -31,10 +31,10 @@ class Indexer
     /**
      * Constructor.
      *
-     * @param \Solarium_Client $client
+     * @param \Solarium\Client $client
      * @param array $mapping
      */
-    public function __construct(Solarium_Client $client, array $mapping)
+    public function __construct(Client $client, array $mapping)
     {
         $this->client = $client;
         $this->mapping = $mapping;
@@ -63,18 +63,16 @@ class Indexer
     /**
      * Add multiple documents to the data store.
      *
+     * @param \Solarium\QueryType\Update\Query\Query $updateQuery
      * @param array $documents
      * @param array $metadata
      */
-    public function addDocuments(array $documents, array $metadata = [])
+    public function addDocuments(Query $updateQuery, array $documents, array $metadata = [])
     {
-        $this->setCoreNameFromMetadata($metadata);
+        $updateQuery->addDocuments($documents);
+        $updateQuery->addCommit();
 
-        $update = $this->client->createUpdate();
-        $update->addDocuments($documents);
-        $update->addCommit();
-
-        $this->client->update($update);
+        $this->client->update($updateQuery);
     }
 
     /**
@@ -87,7 +85,10 @@ class Indexer
     {
         $data = json_decode($message->body, true);
 
-        $document = new Solarium_Document_ReadWrite();
+        $this->setCoreNameFromMetadata($metadata);
+
+        $updateQuery = $this->client->createUpdate();
+        $document = $updateQuery->createDocument();
 
         foreach ($this->mapping as $field => $solrField) {
 
@@ -114,7 +115,7 @@ class Indexer
         $this->documents[] = $document;
 
         if (count($this->documents) >= 10) {
-            $this->addDocuments($this->documents, $metadata);
+            $this->addDocuments($updateQuery, $this->documents, $metadata);
             $this->documents = [];
         }
     }
@@ -127,7 +128,7 @@ class Indexer
     protected function setCoreNameFromMetadata(array $metadata)
     {
         if (array_key_exists('core', $metadata)) {
-            $this->client->getAdapter()->setCore($metadata['core']);
+            $this->client->getEndpoint()->setCore($metadata['core']);
         }
     }
 }
