@@ -60,6 +60,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     {
         switch ($resource->getResponse()->getContentType()) {
             case 'application/pdf':
+            case 'application/octet-stream' :
                 $data = $this->getDataFromPdfFile($resource);
 
                 if (!json_encode($data)) {
