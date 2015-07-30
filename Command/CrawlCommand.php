@@ -91,7 +91,7 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->queue->listen(array($this, 'crawlUrl'));
+        $this->queue->listen([$this, 'crawlUrl']);
 
         return 1;
     }
@@ -104,7 +104,6 @@ class CrawlCommand extends Command
     public function crawlUrl(AMQPMessage $message)
     {
         $crawlJob = CrawlJob::create($message);
-        $command = $this;
 
         if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl())) {
             $this->queue->rejectMessage($message);
