@@ -30,15 +30,22 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $pdfParser;
 
     /**
+     * @var string
+     */
+    private $cssBlacklist;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
      * @param \Smalot\PdfParser\Parser               $pdfParser
+     * @param string                                 $cssBlacklist
      */
-    public function __construct(Queue $queue, Parser $pdfParser)
+    public function __construct(Queue $queue, Parser $pdfParser, $cssBlacklist)
     {
         $this->queue = $queue;
         $this->pdfParser = $pdfParser;
+        $this->cssBlacklist = $cssBlacklist;
     }
 
     /**
@@ -265,7 +272,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+                sprintf("Webpage didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
@@ -342,9 +349,19 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      */
     protected function getContentFromResource(Resource $resource)
     {
-        $query = '//*[not(self::script)]/text()';
+        $crawler = $resource->getCrawler();
+
+        if (null !== $this->cssBlacklist) {
+            $crawler->filter($this->cssBlacklist)->each(function (Crawler $crawler) {
+                foreach ($crawler as $node) {
+                    $node->parentNode->removeChild($node);
+                }
+            });
+        }
+
+        $query = '//body//*[not(self::script)]/text()';
         $content = '';
-        $resource->getCrawler()->filterXpath($query)->each(
+        $crawler->filterXpath($query)->each(
             function (Crawler $crawler) use (&$content) {
                 $text = trim($crawler->text());
 
