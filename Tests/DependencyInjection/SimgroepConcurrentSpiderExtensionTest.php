@@ -37,7 +37,6 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.solr.proxy'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solarium_adapter'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.css_blacklist'), $this->anything()]
             );
 
