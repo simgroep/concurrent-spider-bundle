@@ -15,7 +15,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
     {
         $url = 'https://github.com';
 
-        $solrQuery = $this->getMockBuilder('Solarium_Query_Select')
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Select\Query\Query')
             ->disableOriginalConstructor()
             ->setMethods(['setQuery'])
             ->getMock();
@@ -24,7 +24,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('setQuery')
             ->with($this->equalTo(sprintf("id:%s", sha1($url))));
 
-        $solrResult = $this->getMockBuilder('Solarium_Result')
+        $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
             ->disableOriginalConstructor()
             ->setMethods(['getNumFound'])
             ->getMock();
@@ -33,8 +33,8 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('getNumFound')
             ->will($this->returnValue(1));
 
-        $solrClient = $this->getMockBuilder('Solarium_Client')
-            ->disableOriginalConstructor()
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
             ->setMethods(['createSelect', 'select'])
             ->getMock();
 
@@ -52,39 +52,23 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($actual);
     }
 
-    public function testAddDocuments()
-    {
-        $documents = ['doc1', 'doc2', 'doc3'];
-
-        $solrQuery = $this->getMockBuilder('Solarium_Query_Select')
-            ->disableOriginalConstructor()
-            ->setMethods(['addDocuments', 'addCommit'])
-            ->getMock();
-        $solrQuery->expects($this->once())
-            ->method('addDocuments')
-            ->with($this->equalTo($documents));
-
-        $solrClient = $this->getMockBuilder('Solarium_Client')
-            ->disableOriginalConstructor()
-            ->setMethods(['createUpdate', 'update'])
-            ->getMock();
-        $solrClient->expects($this->once())
-            ->method('createUpdate')
-            ->will($this->returnValue($solrQuery));
-
-        $indexer = new Indexer($solrClient, []);
-        $this->assertNull($indexer->addDocuments($documents, ['core' => 'coreName']));
-    }
-
     /**
      * @testdox Tests if every 10 documents the index saves them.
      */
     public function testIfEveryTenDocumentsAreSaved()
     {
-        $solrClient = $this
-            ->getMockBuilder('Solarium_Client')
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
+            ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createUpdate', 'update'])
+            ->getMock();
+        $solrClient->expects($this->any())
+            ->method('createUpdate')
+            ->will($this->returnValue($solrQuery));
 
         $mapping = [
             'id' =>'id',
@@ -95,14 +79,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
                 ]
         ];
 
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->setConstructorArgs([$solrClient, $mapping])
-            ->setMethods(['addDocuments'])
-            ->getMock();
-
-        $indexer->expects($this->once())
-            ->method('addDocuments');
+        $indexer = new Indexer($solrClient, $mapping);
 
         for ($i = 0; $i <= 9; $i++) {
             $body = json_encode(
