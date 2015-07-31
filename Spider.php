@@ -98,11 +98,12 @@ class Spider
     {
         $this->currentCrawlJob = $crawlJob;
         $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
-        $crawler = $resource->getCrawler()->filterXPath('//a');
         $uris = [];
 
         $this->persistenceHandler->persist($resource, $crawlJob);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
+
+        $crawler = $resource->getCrawler()->filterXPath('//a');
 
         foreach ($crawler as $node) {
             try {

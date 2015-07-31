@@ -42,6 +42,7 @@
         <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.pdf_parser" />
+            <argument>%simgroep_concurrent_spider.css_blacklist%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
