@@ -61,21 +61,6 @@ class Indexer
     }
 
     /**
-     * Add multiple documents to the data store.
-     *
-     * @param \Solarium\QueryType\Update\Query\Query $updateQuery
-     * @param array $documents
-     * @param array $metadata
-     */
-    public function addDocuments(Query $updateQuery, array $documents, array $metadata = [])
-    {
-        $updateQuery->addDocuments($documents);
-        $updateQuery->addCommit();
-
-        $this->client->update($updateQuery);
-    }
-
-    /**
      * Make a document ready to be indexed.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
@@ -130,5 +115,20 @@ class Indexer
         if (array_key_exists('core', $metadata)) {
             $this->client->getEndpoint()->setCore($metadata['core']);
         }
+    }
+
+     /**
+     * Add multiple documents to the data store.
+     *
+     * @param \Solarium\QueryType\Update\Query\Query $updateQuery
+     * @param array $documents
+     * @param array $metadata
+     */
+    protected function addDocuments(Query $updateQuery, array $documents, array $metadata = [])
+    {
+        $updateQuery->addDocuments($documents);
+        $updateQuery->addCommit();
+
+        $this->client->update($updateQuery);
     }
 }

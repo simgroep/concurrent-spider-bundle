@@ -52,36 +52,23 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($actual);
     }
 
-    public function testAddDocuments()
-    {
-        $documents = ['doc1', 'doc2', 'doc3'];
-
-        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
-            ->disableOriginalConstructor()
-            ->setMethods(['addDocuments', 'addCommit'])
-            ->getMock();
-        $solrQuery->expects($this->once())
-            ->method('addDocuments')
-            ->with($this->equalTo($documents));
-
-        $solrClient = $this->getMockBuilder('Solarium\Client')
-            ->disableOriginalConstructor()
-            ->setMethods(['update'])
-            ->getMock();
-
-        $indexer = new Indexer($solrClient, []);
-        $this->assertNull($indexer->addDocuments($solrQuery, $documents, ['core' => 'coreName']));
-    }
-
     /**
      * @testdox Tests if every 10 documents the index saves them.
      */
     public function testIfEveryTenDocumentsAreSaved()
     {
-        $solrClient = $this
-            ->getMockBuilder('Solarium\Client')
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
+            ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createUpdate', 'update'])
+            ->getMock();
+        $solrClient->expects($this->any())
+            ->method('createUpdate')
+            ->will($this->returnValue($solrQuery));
 
         $mapping = [
             'id' =>'id',
@@ -92,14 +79,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
                 ]
         ];
 
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->setConstructorArgs([$solrClient, $mapping])
-            ->setMethods(['addDocuments'])
-            ->getMock();
-
-        $indexer->expects($this->once())
-            ->method('addDocuments');
+        $indexer = new Indexer($solrClient, $mapping);
 
         for ($i = 0; $i <= 9; $i++) {
             $body = json_encode(
