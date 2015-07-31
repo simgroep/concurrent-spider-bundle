@@ -21,7 +21,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $container
-            ->expects($this->exactly(13))
+            ->expects($this->exactly(14))
             ->method('setParameter')
             ->withConsecutive(
                 [$this->equalTo('simgroep_concurrent_spider.http_user_agent'), $this->anything()],
@@ -36,7 +36,9 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.solr.path'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.solr.proxy'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()]
+                [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.solarium_adapter'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.css_blacklist'), $this->anything()]
             );
 
         $config = [
