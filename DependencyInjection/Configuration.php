@@ -48,6 +48,7 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('host')->isRequired()->cannotBeEmpty()->defaultValue('localhost')->end()
                         ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('8080')->end()
                         ->scalarNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
+                        ->scalarNode('proxy')->isRequired()->defaultValue(null)->end()
                     ->end()
                 ->end()
                 ->scalarNode('logger_service')

@@ -71,6 +71,9 @@
                         <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
                     </argument>
                 </argument>
+                <argument key="adapteroptions" type="collection">
+                    <argument key="proxy">%simgroep_concurrent_spider.solr.proxy%</argument><!-- solr curl adapter proxy setting -->
+                </argument>
             </argument>
         </service>
 
