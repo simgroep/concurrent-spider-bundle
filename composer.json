@@ -19,13 +19,17 @@
         {
             "type": "vcs",
             "url":  "git@github.com:simgroep/php-spider.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/keesschepers/solarium.git"
         }
     ],
     "license": "MIT",
     "require": {
         "php": ">=5.4.0",
         "vdb/php-spider": "dev-master",
-        "solarium/solarium": "~3",
+        "solarium/solarium": "dev-develop",
         "videlalvaro/php-amqplib": "~2",
         "smalot/pdfparser": "dev-master",
         "symfony/symfony": ">=2.4,<3"
