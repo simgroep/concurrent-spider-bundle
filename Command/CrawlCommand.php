@@ -175,7 +175,8 @@ class CrawlCommand extends Command
      */
     public function markAsFailed(CrawlJob $crawlJob, $errorMessage)
     {
-        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl());
+        print_r(sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()));
+//        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl());
     }
 
     /**
