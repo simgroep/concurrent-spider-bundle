@@ -37,12 +37,35 @@
             <tag name="console.command" />
         </service>
 
+        <service id="simgroep_concurrent_spider.document_resolver.type_html" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html">
+            <argument>%simgroep_concurrent_spider.css_blacklist%</argument>
+        </service>
+
         <service id="simgroep_concurrent_spider.pdf_parser" class="Smalot\PdfParser\Parser" />
+        <service id="simgroep_concurrent_spider.document_resolver.type_pdf" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf">
+            <argument type="service" id="simgroep_concurrent_spider.pdf_parser"></argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.document_resolver.type_word2007" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007">
+        </service>
+
+        <service id="simgroep_concurrent_spider.document_resolver.type_rtf" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf">
+        </service>
+
+        <service id="simgroep_concurrent_spider.document_resolver.type_odt" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt">
+        </service>
+
+        <service id="simgroep_concurrent_spider.document_resolver" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver">
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_html" />
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_pdf" />
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_word2007" />
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_rtf" />
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_odt" />
+        </service>
 
         <service id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" class="Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
-            <argument type="service" id="simgroep_concurrent_spider.pdf_parser" />
-            <argument>%simgroep_concurrent_spider.css_blacklist%</argument>
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver" />
         </service>
 
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
