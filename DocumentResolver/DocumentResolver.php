@@ -5,7 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver;
 use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf;
-use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007;
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDocx;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt;
 
@@ -27,9 +27,9 @@ class DocumentResolver
     private $pdf;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007
+     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDocx
      */
-    private $word2007;
+    private $msdoc;
 
     /**
      * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf
@@ -46,11 +46,11 @@ class DocumentResolver
      */
     private $data;
 
-    public function __construct(Html $html, Pdf $pdf, Word2007 $word2007, Rtf $rtf, Odt $odt)
+    public function __construct(Html $html, Pdf $pdf, MsDocx $msdoc, Rtf $rtf, Odt $odt)
     {
         $this->html = $html;
         $this->pdf = $pdf;
-        $this->word2007 = $word2007;
+        $this->msdoc = $msdoc;
         $this->rtf = $rtf;
         $this->odt = $odt;
     }
@@ -58,7 +58,7 @@ class DocumentResolver
     public function resolveTypeFromResource(Resource $resource)
     {
         $this->data = '';
-        
+
         switch ($resource->getResponse()->getContentType()) {
             case 'application/pdf':
             case 'application/octet-stream' :
@@ -68,7 +68,7 @@ class DocumentResolver
             case 'application/msword' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template' :
-                $this->data = $this->word2007->getData($resource);
+                $this->data = $this->msdoc->getData($resource);
                 break;
 
             case 'application/rtf' :

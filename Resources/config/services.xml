@@ -46,19 +46,28 @@
             <argument type="service" id="simgroep_concurrent_spider.pdf_parser"></argument>
         </service>
 
-        <service id="simgroep_concurrent_spider.document_resolver.type_word2007" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007">
+        <service id="simgroep_concurrent_spider.phpword.reader.msdoc" class="PhpOffice\PhpWord\Reader\MsDoc" />
+
+        <service id="simgroep_concurrent_spider.document_resolver.type_msdoc" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDocx">
+            <argument type="service" id="simgroep_concurrent_spider.phpword.reader.msdoc"/>
         </service>
+
+        <service id="simgroep_concurrent_spider.phpword.reader.rtf" class="PhpOffice\PhpWord\Reader\Rtf" />
 
         <service id="simgroep_concurrent_spider.document_resolver.type_rtf" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf">
+            <argument type="service" id="simgroep_concurrent_spider.phpword.reader.rtf"/>
         </service>
 
+        <service id="simgroep_concurrent_spider.phpword.reader.odt" class="PhpOffice\PhpWord\Reader\Odt" />
+
         <service id="simgroep_concurrent_spider.document_resolver.type_odt" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt">
+            <argument type="service" id="simgroep_concurrent_spider.phpword.reader.odt"/>
         </service>
 
         <service id="simgroep_concurrent_spider.document_resolver" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver">
             <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_html" />
             <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_pdf" />
-            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_word2007" />
+            <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_msdoc" />
             <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_rtf" />
             <argument type="service" id="simgroep_concurrent_spider.document_resolver.type_odt" />
         </service>
