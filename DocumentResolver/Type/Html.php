@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use Symfony\Component\DomCrawler\Crawler;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
@@ -12,10 +13,8 @@ use InvalidArgumentException;
  *
  * @author lkalinka
  */
-class Html implements DocumentTypeInterface
+class Html extends TypeAbstract implements DocumentTypeInterface
 {
-    const MINIMAL_CONTENT_LENGTH = 3;
-
     /**
      * @var string
      */
@@ -28,6 +27,7 @@ class Html implements DocumentTypeInterface
     {
         $this->cssBlacklist = $cssBlacklist;
     }
+
     /**
      * Extracts content from a webpage and returns document data.
      *
@@ -122,7 +122,7 @@ class Html implements DocumentTypeInterface
             $dCTERMS_type = 'webpagina';
         }
 
-        $content = $this->getContentFromResource($resource);
+        $content = $this->extractContentFromResource($resource);
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
@@ -201,7 +201,7 @@ class Html implements DocumentTypeInterface
      *
      * @return string
      */
-    protected function getContentFromResource(Resource $resource)
+    public function extractContentFromResource(Resource $resource)
     {
         $crawler = $resource->getCrawler();
 
@@ -216,13 +216,13 @@ class Html implements DocumentTypeInterface
         $query = '//body//*[not(self::script)]/text()';
         $content = '';
         $crawler->filterXpath($query)->each(
-                function (Crawler $crawler) use (&$content) {
-            $text = trim($crawler->text());
+            function (Crawler $crawler) use (&$content) {
+                $text = trim($crawler->text());
 
-            if (strlen($text) > 0) {
-                $content .= $text . ' ';
+                if (strlen($text) > 0) {
+                    $content .= $text . ' ';
+                }
             }
-        }
         );
 
         return trim($content);

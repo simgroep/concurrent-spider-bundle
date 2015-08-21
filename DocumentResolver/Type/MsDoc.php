@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use PhpOffice\PhpWord\Reader\MsDoc as MsDocReader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
@@ -14,16 +15,14 @@ use Exception;
  *
  * @author lkalinka
  */
-class MsDoc implements DocumentTypeInterface
+class MsDoc extends TypeAbstract implements DocumentTypeInterface
 {
-    const MINIMAL_CONTENT_LENGTH = 3;
 
     /**
      *
      * @param Resource $resource
      * @return array
      *
-     * @throws Exception
      * @throws InvalidContentException
      */
     public function getData(Resource $resource)
@@ -74,46 +73,15 @@ class MsDoc implements DocumentTypeInterface
     }
 
     /**
-     * Assumes that the path of the URL contains the title of the document and extracts it.
-     *
-     * @param string $url
-     *
-     * @return string
-     */
-    protected function getTitleByUrl($url)
-    {
-        $title = null;
-
-        if (false !== stripos($url, '.doc') || false !== stripos($url, '.docx')) {
-            $urlParts = parse_url($url);
-            $title = basename($urlParts['path']);
-        }
-
-        return $title;
-    }
-
-    /**
-     * Strip away binary content since it doesn't make sense to index it.
-     *
-     * @param string $content
-     *
-     * @return string
-     */
-    protected function stripBinaryContent($content)
-    {
-        return preg_replace('@[\x00-\x08\x0B\x0C\x0E-\x1F]@', '', $content);
-    }
-
-    /**
      * Extract content from resource
      *
      * @param Resource $resource
-     * 
+     *
      * @return string
      *
      * @throws Exception
      */
-    protected function extractContentFromResource(Resource $resource)
+    public function extractContentFromResource(Resource $resource)
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'doc');
         if (false === $tempFile) {
@@ -139,7 +107,9 @@ class MsDoc implements DocumentTypeInterface
 
         unlink($tempFile);
 
-        return strip_tags($this->stripBinaryContent($this->getWriter($phpword)->getContent()));
+        $writer = $this->getWriter($phpword);
+
+        return strip_tags($this->stripBinaryContent($writer->getContent()));
     }
 
     /**
