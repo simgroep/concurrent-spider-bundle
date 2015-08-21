@@ -5,12 +5,12 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver;
 use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf;
-use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDocx;
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc as MsDocType;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt;
 
 /**
- * Description of DocumentResolver
+ * Determine and extract document content from resource
  *
  * @author lkalinka
  */
@@ -27,7 +27,7 @@ class DocumentResolver
     private $pdf;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDocx
+     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc
      */
     private $msdoc;
 
@@ -46,7 +46,16 @@ class DocumentResolver
      */
     private $data;
 
-    public function __construct(Html $html, Pdf $pdf, MsDocx $msdoc, Rtf $rtf, Odt $odt)
+    /**
+     * Cosntructor
+     *
+     * @param Html $html
+     * @param Pdf $pdf
+     * @param MsDocType $msdoc
+     * @param Rtf $rtf
+     * @param Odt $odt
+     */
+    public function __construct(Html $html, Pdf $pdf, MsDocType $msdoc, Rtf $rtf, Odt $odt)
     {
         $this->html = $html;
         $this->pdf = $pdf;
@@ -55,6 +64,11 @@ class DocumentResolver
         $this->odt = $odt;
     }
 
+    /**
+     * Determine docuemnt type with mime type from resource
+     *
+     * @param Resource $resource
+     */
     public function resolveTypeFromResource(Resource $resource)
     {
         $this->data = '';
@@ -86,6 +100,11 @@ class DocumentResolver
         }
     }
 
+    /**
+     * Data extracted from docuemnts
+     *
+     * @return array
+     */
     public function getData()
     {
         return $this->data;
