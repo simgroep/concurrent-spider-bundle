@@ -10,7 +10,7 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 abstract class TypeAbstract
 {
     const MINIMAL_CONTENT_LENGTH = 3;
-    
+
     /**
      * Assumes that the path of the URL contains the title of the document and extracts it.
      *
@@ -22,7 +22,7 @@ abstract class TypeAbstract
     {
         $title = null;
 
-        if (false !== stripos($url, '.doc') || false !== stripos($url, '.docx')) {
+        if (false !== stripos($url, '.doc') || false !== stripos($url, '.docx') || false !== stripos($url, '.odt') || false !== stripos($url, '.odf') || false !== stripos($url, '.pdf') || false !== stripos($url, '.rtf')) {
             $urlParts = parse_url($url);
             $title = basename($urlParts['path']);
         }
