@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use Smalot\PdfParser\Parser;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
@@ -12,10 +13,8 @@ use InvalidArgumentException;
  *
  * @author lkalinka
  */
-class Pdf implements DocumentTypeInterface
+class Pdf extends TypeAbstract implements DocumentTypeInterface
 {
-    const MINIMAL_CONTENT_LENGTH = 3;
-
     /**
      * @var Smalot\PdfParser\Parser
      */
@@ -39,14 +38,15 @@ class Pdf implements DocumentTypeInterface
      */
     public function getData(Resource $resource)
     {
-        $pdf = $this->pdfParser->parseContent($resource->getResponse()->getBody(true));
+
         $url = $resource->getUri()->toString();
-        $title = $this->getTitleByUrl($url) ?: '';
-        $content = $this->stripBinaryContent($pdf->getText());
+        $title = $this->getTitleByUrl($url) ? : '';
+
+        $content = $this->extractContentFromResource($resource);
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
@@ -85,33 +85,18 @@ class Pdf implements DocumentTypeInterface
     }
 
     /**
-     * Assumes that the path of the URL contains the title of the document and extracts it.
      *
-     * @param string $url
+     * Extract content from resource
      *
-     * @return string
-     */
-    protected function getTitleByUrl($url)
-    {
-        $title = null;
-
-        if (false !== stripos($url, '.pdf')) {
-            $urlParts = parse_url($url);
-            $title = basename($urlParts['path']);
-        }
-
-        return $title;
-    }
-
-    /**
-     * Strip away binary content since it doesn't make sense to index it.
-     *
-     * @param string $content
+     * @param Resource $resource
      *
      * @return string
      */
-    protected function stripBinaryContent($content)
+    public function extractContentFromResource(Resource $resource)
     {
-        return preg_replace('@[\x00-\x08\x0B\x0C\x0E-\x1F]@', '', $content);
+        $pdf = $this->pdfParser->parseContent($resource->getResponse()->getBody(true));
+
+        return $this->stripBinaryContent($pdf->getText());
     }
+
 }
