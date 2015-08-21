@@ -3,62 +3,39 @@
 namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
 use VDB\Spider\Resource;
-use PhpOffice\PhpWord\Reader\MsDoc;
+use PhpOffice\PhpWord\Reader\MsDoc as MsDocReader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
+use Exception;
 
 /**
  * Description of MsDoc
  *
  * @author lkalinka
  */
-class MsDocx implements DocumentTypeInterface
+class MsDoc implements DocumentTypeInterface
 {
     const MINIMAL_CONTENT_LENGTH = 3;
 
-    private $reader;
-
-    public function __construct(MsDoc $reader)
-    {
-        $this->reader = $reader;
-    }
-
+    /**
+     *
+     * @param Resource $resource
+     * @return array
+     *
+     * @throws Exception
+     * @throws InvalidContentException
+     */
     public function getData(Resource $resource)
     {
         $url = $resource->getUri()->toString();
         $title = $this->getTitleByUrl($url) ? : '';
 
-        $tempFile = tempnam(sys_get_temp_dir(), 'doc');
-        if (false === $tempFile) {
-            throw new \Exception("Cannot create tempFile!)");
-        }
-
-        file_put_contents($tempFile, $resource->getResponse()->getBody());
-
-        if (false === $this->reader->canRead($tempFile)) {
-            throw new \Exception("TempFile cannot be read by phpword!)");
-        }
-
-        //remove notice from library
-        $errorReportingLevel = error_reporting();
-        error_reporting($errorReportingLevel ^ E_NOTICE);
-
-        $phpword = $this->reader->load($tempFile);
-
-        unlink($tempFile);
-
-        //back error reporting to previous state
-        error_reporting($errorReportingLevel);
-
-        $writer = new HtmlWriter($phpword);
-
-        $content = strip_tags($this->stripBinaryContent($writer->getContent()));
-
+        $content = $this->extractContentFromResource($resource);
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
@@ -76,7 +53,6 @@ class MsDocx implements DocumentTypeInterface
         } catch (InvalidArgumentException $exc) {
             $sIM_simfaq = ['no'];
         }
-
 
         $data = [
             'document' => [
@@ -126,6 +102,66 @@ class MsDocx implements DocumentTypeInterface
     protected function stripBinaryContent($content)
     {
         return preg_replace('@[\x00-\x08\x0B\x0C\x0E-\x1F]@', '', $content);
+    }
+
+    /**
+     * Extract content from resource
+     *
+     * @param Resource $resource
+     * 
+     * @return string
+     *
+     * @throws Exception
+     */
+    protected function extractContentFromResource(Resource $resource)
+    {
+        $tempFile = tempnam(sys_get_temp_dir(), 'doc');
+        if (false === $tempFile) {
+            throw new Exception("Cannot create tempFile!)");
+        }
+
+        file_put_contents($tempFile, $resource->getResponse()->getBody());
+
+        $reader = $this->getReader();
+
+        if (false === $reader->canRead($tempFile)) {
+            throw new Exception("TempFile cannot be read by phpword!)");
+        }
+
+        //remove notice from library
+        $errorReportingLevel = error_reporting();
+        error_reporting($errorReportingLevel ^ E_NOTICE);
+
+        $phpword = $reader->load($tempFile);
+
+        //back error reporting to previous state
+        error_reporting($errorReportingLevel);
+
+        unlink($tempFile);
+
+        return strip_tags($this->stripBinaryContent($this->getWriter($phpword)->getContent()));
+    }
+
+    /**
+     * Return Reader Object
+     *
+     * @return MsDocReader
+     */
+    protected function getReader()
+    {
+        return new MsDocReader();
+    }
+
+    /**
+     * Return Writer Object
+     *
+     * @param MsDoc $reader
+     *
+     * @return HtmlWriter
+     */
+    protected function getWriter($reader)
+    {
+        return new HtmlWriter($reader);
     }
 
 }
