@@ -21,7 +21,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
 
     /**
      *
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver
      */
     private $documentResolver;
 
@@ -29,7 +29,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
-     * @param Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver $documentResolver
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver $documentResolver
      */
     public function __construct(Queue $queue, DocumentResolver $documentResolver)
     {
