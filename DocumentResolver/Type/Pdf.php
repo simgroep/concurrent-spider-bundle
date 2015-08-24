@@ -10,19 +10,17 @@ use InvalidArgumentException;
 
 /**
  * Pdf type of document
- *
- * @author lkalinka
  */
 class Pdf extends TypeAbstract implements DocumentTypeInterface
 {
     /**
-     * @var Smalot\PdfParser\Parser
+     * @var \Smalot\PdfParser\Parser
      */
     private $pdfParser;
 
     /**
-     * @param Smalot\PdfParser\Parser $pdfParser
-     * @param VDB\Spider\Resource $resource
+     * @param \Smalot\PdfParser\Parser $pdfParser
+     * @param \VDB\Spider\Resource $resource
      */
     public function __construct(Parser $pdfParser)
     {
