@@ -10,8 +10,6 @@ use InvalidArgumentException;
 
 /**
  * Description of Html
- *
- * @author lkalinka
  */
 class Html extends TypeAbstract implements DocumentTypeInterface
 {

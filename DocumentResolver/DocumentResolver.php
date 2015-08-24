@@ -6,38 +6,42 @@ use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc as MsDocType;
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt;
 
 /**
  * Determine and extract document content from resource
- *
- * @author lkalinka
  */
 class DocumentResolver
 {
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html
      */
     private $html;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf
      */
     private $pdf;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc
      */
     private $msdoc;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007
+     */
+    private $word2007;
+
+    /**
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf
      */
     private $rtf;
 
     /**
-     * @var Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt
+     * @var \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt
      */
     private $odt;
 
@@ -55,11 +59,12 @@ class DocumentResolver
      * @param Rtf $rtf
      * @param Odt $odt
      */
-    public function __construct(Html $html, Pdf $pdf, MsDocType $msdoc, Rtf $rtf, Odt $odt)
+    public function __construct(Html $html, Pdf $pdf, MsDocType $msdoc, Word2007 $word2007, Rtf $rtf, Odt $odt)
     {
         $this->html = $html;
         $this->pdf = $pdf;
         $this->msdoc = $msdoc;
+        $this->word2007 = $word2007;
         $this->rtf = $rtf;
         $this->odt = $odt;
     }
@@ -82,6 +87,10 @@ class DocumentResolver
             case 'application/msword' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template' :
+                if (false !== stripos($resource->getUri()->toString(), '.docx')) {
+                    $this->data = $this->word2007->getData($resource);
+                    break;
+                }
                 $this->data = $this->msdoc->getData($resource);
                 break;
 

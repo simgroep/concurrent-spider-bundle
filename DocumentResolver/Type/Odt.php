@@ -12,8 +12,6 @@ use Exception;
 
 /**
  * Description of RTF
- *
- * @author lkalinka
  */
 class Odt extends TypeAbstract implements DocumentTypeInterface
 {
@@ -23,7 +21,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
      * @param Resource $resource
      * @return array
      *
-     * @throws InvalidContentException
+     * @throws \InvalidContentException
      */
     public function getData(Resource $resource)
     {
@@ -83,7 +81,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'doc');
+        $tempFile = tempnam(sys_get_temp_dir(), 'odt');
         if (false === $tempFile) {
             throw new Exception("Cannot create tempFile!)");
         }
@@ -125,7 +123,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
     /**
      * Return Writer Object
      *
-     * @param MsDoc $reader
+     * @param OdtReader $reader
      *
      * @return HtmlWriter
      */

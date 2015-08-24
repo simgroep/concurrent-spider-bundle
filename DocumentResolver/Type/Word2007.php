@@ -4,16 +4,16 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
-use PhpOffice\PhpWord\Reader\MsDoc as MsDocReader;
+use PhpOffice\PhpWord\Reader\Word2007 as Word2007Reader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
 use Exception;
 
 /**
- * Description of MsDoc
+ * Description of Word2007
  */
-class MsDoc extends TypeAbstract implements DocumentTypeInterface
+class Word2007 extends TypeAbstract implements DocumentTypeInterface
 {
 
     /**
@@ -21,7 +21,7 @@ class MsDoc extends TypeAbstract implements DocumentTypeInterface
      * @param Resource $resource
      * @return array
      *
-     * @throws InvalidContentException
+     * @throws \InvalidContentException
      */
     public function getData(Resource $resource)
     {
@@ -81,7 +81,7 @@ class MsDoc extends TypeAbstract implements DocumentTypeInterface
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'doc');
+        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
         if (false === $tempFile) {
             throw new Exception("Cannot create tempFile!)");
         }
@@ -107,24 +107,23 @@ class MsDoc extends TypeAbstract implements DocumentTypeInterface
 
         $writer = $this->getWriter($phpword);
 
-//       to remove strange characters use preg_replace("/[^a-zA-Z0-9\s\,\.\-\n\r\t@\/\_\(\)]/", "", $contentUnescaped);
         return strip_tags($this->stripBinaryContent($writer->getContent()));
     }
 
     /**
      * Return Reader Object
      *
-     * @return \PhpOffice\PhpWord\Reader\MsDoc
+     * @return \PhpOffice\PhpWord\Reader\Word2007
      */
     protected function getReader()
     {
-        return new MsDocReader();
+        return new Word2007Reader();
     }
 
     /**
      * Return Writer Object
      *
-     * @param \PhpOffice\PhpWord\Reader\MsDoc $reader
+     * @param \PhpOffice\PhpWord\Reader\Word2007 $reader
      *
      * @return \PhpOffice\PhpWord\Writer\HTML
      */

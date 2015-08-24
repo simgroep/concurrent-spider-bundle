@@ -4,8 +4,6 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
 /**
  * Collection of abstract methods for handling types
- *
- * @author lkalinka
  */
 abstract class TypeAbstract
 {
