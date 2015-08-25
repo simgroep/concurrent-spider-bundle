@@ -9,7 +9,7 @@ use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
 
 /**
- * Description of Html
+ * Html Resolver Document Type
  */
 class Html extends TypeAbstract implements DocumentTypeInterface
 {

@@ -7,7 +7,7 @@ use VDB\Spider\Resource;
 interface DocumentTypeInterface
 {
     /**
-     * Get data from resource
+     * Returns data extraced from resource
      *
      * @param \VDB\Spider\Resource $resource
      */
@@ -16,8 +16,7 @@ interface DocumentTypeInterface
     /**
      * Extract content field from resource
      *
-     * @param \VDB\Spider\Resource$resource
+     * @param \VDB\Spider\Resource $resource
      */
     public function extractContentFromResource(Resource $resource);
-
 }

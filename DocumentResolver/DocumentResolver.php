@@ -53,11 +53,12 @@ class DocumentResolver
     /**
      * Cosntructor
      *
-     * @param Html $html
-     * @param Pdf $pdf
-     * @param MsDocType $msdoc
-     * @param Rtf $rtf
-     * @param Odt $odt
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html $html
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf $pdf
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc $msdoc
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007 $msdoc
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf $rtf
+     * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt $odt
      */
     public function __construct(Html $html, Pdf $pdf, MsDocType $msdoc, Word2007 $word2007, Rtf $rtf, Odt $odt)
     {
@@ -72,7 +73,7 @@ class DocumentResolver
     /**
      * Determine docuemnt type with mime type from resource
      *
-     * @param Resource $resource
+     * @param VDB\Spider\Resource $resource
      */
     public function resolveTypeFromResource(Resource $resource)
     {
@@ -110,7 +111,7 @@ class DocumentResolver
     }
 
     /**
-     * Data extracted from docuemnts
+     * Data extracted from resource
      *
      * @return array
      */

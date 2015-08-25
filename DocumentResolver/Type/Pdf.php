@@ -7,9 +7,10 @@ use VDB\Spider\Resource;
 use Smalot\PdfParser\Parser;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
+use DateTime;
 
 /**
- * Pdf type of document
+ * Pdf Resolver Document Type
  */
 class Pdf extends TypeAbstract implements DocumentTypeInterface
 {
@@ -48,7 +49,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
             );
         }
 
-        $lastModifiedDateTime = new \DateTime($resource->getResponse()->getLastModified());
+        $lastModifiedDateTime = new DateTime($resource->getResponse()->getLastModified());
         $lastModified = $lastModifiedDateTime->format('Y-m-d\TH:i:s\Z');
 
         try {
@@ -86,7 +87,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      *
      * Extract content from resource
      *
-     * @param Resource $resource
+     * @param \VDB\Spider\Resource $resource
      *
      * @return string
      */
