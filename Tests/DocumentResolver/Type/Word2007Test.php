@@ -35,7 +35,6 @@ function date()
 
 class Word2007Test extends PHPUnit_Framework_TestCase
 {
-
     /**
      * @test
      * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException

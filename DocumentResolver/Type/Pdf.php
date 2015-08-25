@@ -34,6 +34,8 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      * @param \VDB\Spider\Resource $resource
      *
      * @return array
+     *
+     * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
     public function getData(Resource $resource)
     {
@@ -45,7 +47,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+                sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 

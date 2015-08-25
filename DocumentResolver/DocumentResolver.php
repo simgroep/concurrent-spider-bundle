@@ -71,9 +71,9 @@ class DocumentResolver
     }
 
     /**
-     * Determine docuemnt type with mime type from resource
+     * Determine document type with mime type from resource
      *
-     * @param VDB\Spider\Resource $resource
+     * @param \VDB\Spider\Resource $resource
      */
     public function resolveTypeFromResource(Resource $resource)
     {

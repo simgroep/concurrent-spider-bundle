@@ -6,15 +6,16 @@ use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use PhpOffice\PhpWord\Reader\ODText as OdtReader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
+use PhpOffice\PhpWord\PhpWord as PhpWord;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
+use DateTime;
 
 /**
  * RTF Html Resolver Document Type
  */
 class Odt extends TypeAbstract implements DocumentTypeInterface
 {
-
     /**
      * Extracts content from a odt and returns document data.
      *
@@ -22,7 +23,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
      *
      * @return array
      *
-     * @throws \InvalidContentException
+     * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
     public function getData(Resource $resource)
     {
@@ -33,11 +34,11 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("Odt didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+                sprintf("Odt didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
-        $lastModifiedDateTime = new \DateTime($resource->getResponse()->getLastModified());
+        $lastModifiedDateTime = new DateTime($resource->getResponse()->getLastModified());
         $lastModified = $lastModifiedDateTime->format('Y-m-d\TH:i:s\Z');
 
         try {
@@ -115,13 +116,13 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
     /**
      * Return Writer Object
      *
-     * @param \PhpOffice\PhpWord\Reader\OdText $reader
+     * @param \PhpOffice\PhpWord\PhpWord $phpWord
      *
      * @return \PhpOffice\PhpWord\Writer\HTML
      */
-    protected function getWriter($reader)
+    protected function getWriter(PhpWord $phpWord)
     {
-        return new HtmlWriter($reader);
+        return new HtmlWriter($phpWord);
     }
 
 }
