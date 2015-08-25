@@ -6,15 +6,16 @@ use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use PhpOffice\PhpWord\Reader\Word2007 as Word2007Reader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
+use PhpOffice\PhpWord\PhpWord as PhpWord;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
+use DateTime;
 
 /**
- * Description of Word2007
+ * Word2007 Resolver Document Type
  */
 class Word2007 extends TypeAbstract implements DocumentTypeInterface
 {
-
     /**
      * Extracts content from a word2007 and returns document data.
      *
@@ -22,7 +23,7 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
      *
      * @return array
      *
-     * @throws \InvalidContentException
+     * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
     public function getData(Resource $resource)
     {
@@ -33,11 +34,11 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("Word2007 didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+                sprintf("Word2007 didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
-        $lastModifiedDateTime = new \DateTime($resource->getResponse()->getLastModified());
+        $lastModifiedDateTime = new DateTime($resource->getResponse()->getLastModified());
         $lastModified = $lastModifiedDateTime->format('Y-m-d\TH:i:s\Z');
 
         try {
@@ -74,7 +75,7 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
     /**
      * Extract content from resource
      *
-     * @param VDB\Spider\Resource $resource
+     * @param \VDB\Spider\Resource $resource
      *
      * @return string
      */
@@ -115,13 +116,13 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
     /**
      * Return Writer Object
      *
-     * @param \PhpOffice\PhpWord\Reader\Word2007 $reader
+     * @param \PhpOffice\PhpWord\PhpWord $phpWord
      *
      * @return \PhpOffice\PhpWord\Writer\HTML
      */
-    protected function getWriter($reader)
+    protected function getWriter(PhpWord $phpWord)
     {
-        return new HtmlWriter($reader);
+        return new HtmlWriter($phpWord);
     }
 
 }

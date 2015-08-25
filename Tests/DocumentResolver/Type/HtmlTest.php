@@ -40,7 +40,6 @@ class HtmlTest extends PHPUnit_Framework_TestCase
      */
     public function isBlacklistFilterApplied()
     {
-
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
                 ->disableOriginalConstructor()
                 ->setMethods(['getContentType', 'getLastModified'])
@@ -91,7 +90,6 @@ class HtmlTest extends PHPUnit_Framework_TestCase
      */
     public function persistRetrieveValidDataFromWebPageWithAllDefaultValuesInFields()
     {
-
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
                 ->disableOriginalConstructor()
                 ->setMethods(['getContentType', 'getLastModified'])
@@ -171,7 +169,6 @@ class HtmlTest extends PHPUnit_Framework_TestCase
      */
     public function persistRetrieveValidDataFromWebPageWithDateAvailableAndModifiedValuesSetInFields()
     {
-
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
                 ->disableOriginalConstructor()
                 ->setMethods(['getContentType', 'getLastModified'])
