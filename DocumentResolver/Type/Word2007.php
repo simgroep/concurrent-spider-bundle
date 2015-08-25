@@ -8,7 +8,6 @@ use PhpOffice\PhpWord\Reader\Word2007 as Word2007Reader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
-use Exception;
 
 /**
  * Description of Word2007
@@ -17,8 +16,10 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
 {
 
     /**
+     * Extracts content from a word2007 and returns document data.
      *
-     * @param Resource $resource
+     * @param \VDB\Spider\Resource $resource
+     *
      * @return array
      *
      * @throws \InvalidContentException
@@ -32,7 +33,7 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            sprintf("Word2007 didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
@@ -73,26 +74,17 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
     /**
      * Extract content from resource
      *
-     * @param Resource $resource
+     * @param VDB\Spider\Resource $resource
      *
      * @return string
-     *
-     * @throws Exception
      */
     public function extractContentFromResource(Resource $resource)
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'docx');
-        if (false === $tempFile) {
-            throw new Exception("Cannot create tempFile!)");
-        }
 
         file_put_contents($tempFile, $resource->getResponse()->getBody());
 
         $reader = $this->getReader();
-
-        if (false === $reader->canRead($tempFile)) {
-            throw new Exception("TempFile cannot be read by phpword!)");
-        }
 
         //remove notice from library
         $errorReportingLevel = error_reporting();

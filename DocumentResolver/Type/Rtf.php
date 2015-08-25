@@ -8,10 +8,9 @@ use PhpOffice\PhpWord\Reader\RTF as RtfReader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use InvalidArgumentException;
-use Exception;
 
 /**
- * Description of RTF
+ * RTF Resolver Document Type
  */
 class Rtf extends TypeAbstract implements DocumentTypeInterface
 {
@@ -32,7 +31,7 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("PDF didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+            sprintf("Rtf didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
@@ -82,17 +81,10 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
     public function extractContentFromResource(Resource $resource)
     {
         $tempFile = tempnam(sys_get_temp_dir(), 'rtf');
-        if (false === $tempFile) {
-            throw new Exception("Cannot create tempFile!)");
-        }
 
         file_put_contents($tempFile, $resource->getResponse()->getBody());
 
         $reader = $this->getReader();
-
-        if (false === $reader->canRead($tempFile)) {
-            throw new Exception("TempFile cannot be read by phpword!)");
-        }
 
         //remove notice from library
         $errorReportingLevel = error_reporting();
@@ -113,7 +105,7 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
     /**
      * Return Reader Object
      *
-     * @return RtfReader
+     * @return PhpOffice\PhpWord\Reader\RTF
      */
     protected function getReader()
     {
@@ -123,9 +115,9 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
     /**
      * Return Writer Object
      *
-     * @param RtfReader $reader
+     * @param PhpOffice\PhpWord\Reader\RTF $reader
      *
-     * @return HtmlWriter
+     * @return PhpOffice\PhpWord\Writer\HTML
      */
     protected function getWriter($reader)
     {
