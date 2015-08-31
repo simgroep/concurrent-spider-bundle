@@ -64,13 +64,12 @@ class Indexer
      * Make a document ready to be indexed.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
-     * @param array $metadata
      */
-    public function prepareDocument(AMQPMessage $message, array $metadata = [])
+    public function prepareDocument(AMQPMessage $message)
     {
         $data = json_decode($message->body, true);
 
-        $this->setCoreNameFromMetadata($metadata);
+        $this->setCoreNameFromMetadata($data['metadata']);
 
         $updateQuery = $this->client->createUpdate();
         $document = $updateQuery->createDocument();
@@ -106,6 +105,26 @@ class Indexer
     }
 
     /**
+     * Remove document from solr.
+     *
+     * @param \PhpAmqpLib\Message\AMQPMessage $message
+     * @param array $metadata
+     */
+    public function deleteDocument(AMQPMessage $message)
+    {
+        $data = json_decode($message->body, true);
+
+        $this->setCoreNameFromMetadata($data['metadata']);
+
+        $updateQuery = $this->client->createUpdate();
+        $updateQuery->addDeleteQuery(sprintf('url:%s', urlencode($data['url'])));
+        $updateQuery->addCommit();
+
+        $this->client->update($updateQuery);
+    }
+
+
+    /**
      * Set Core Name to write/read data
      *
      * @param array $metadata
@@ -122,9 +141,8 @@ class Indexer
      *
      * @param \Solarium\QueryType\Update\Query\Query $updateQuery
      * @param array $documents
-     * @param array $metadata
      */
-    protected function addDocuments(Query $updateQuery, array $documents, array $metadata = [])
+    protected function addDocuments(Query $updateQuery, array $documents)
     {
         $updateQuery->addDocuments($documents);
         $updateQuery->addCommit();
