@@ -99,7 +99,7 @@ class Indexer
         $this->documents[] = $document;
 
         if (count($this->documents) >= 10) {
-            $this->addDocuments($updateQuery, $this->documents, $metadata);
+            $this->addDocuments($updateQuery, $this->documents);
             $this->documents = [];
         }
     }
@@ -117,7 +117,7 @@ class Indexer
         $this->setCoreNameFromMetadata($data['metadata']);
 
         $updateQuery = $this->client->createUpdate();
-        $updateQuery->addDeleteQuery(sprintf('url:%s', urlencode($data['url'])));
+        $updateQuery->addDeleteById(sha1($data['url']));
         $updateQuery->addCommit();
 
         $this->client->update($updateQuery);
