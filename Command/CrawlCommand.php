@@ -169,8 +169,7 @@ class CrawlCommand extends Command
      */
     public function logMessage($level, $message, $url)
     {
-        var_dump($level, $message, parse_url($url, PHP_URL_HOST));
-        //$this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
+        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
     }
 
     /**
