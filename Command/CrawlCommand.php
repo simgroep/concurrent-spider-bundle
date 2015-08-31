@@ -122,6 +122,10 @@ class CrawlCommand extends Command
             } catch (ClientErrorResponseException $e) {
                 if (in_array($e->getResponse()->getStatusCode(), range(400, 418))) {
                     $this->indexer->deleteDocument($message);
+                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+                    $this->queue->rejectMessage($message);
+
+                    return;
                 }
             }
 
@@ -165,7 +169,8 @@ class CrawlCommand extends Command
      */
     public function logMessage($level, $message, $url)
     {
-        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
+        var_dump($level, $message, parse_url($url, PHP_URL_HOST));
+        //$this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
     }
 
     /**
