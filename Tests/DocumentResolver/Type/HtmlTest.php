@@ -55,7 +55,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->once())
+        $uri->expects($this->exactly(3))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
@@ -68,13 +68,13 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(18))
+                ->expects($this->exactly(19))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(3))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -105,12 +105,12 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->once())
+        $uri->expects($this->exactly(3))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
         $crawler = new Crawler('', 'https://github.com');
-        $crawler->addContent('<html><body><p>This is the text value.</p></body></html>');
+        $crawler->addContent('<html><head><meta name="DCTERMS.available" content="2015-06-18T23:49:41Z" /><meta name="DCTERMS.modified" content="2015-06-18T23:49:41Z" /></head><body><p>This is the text value.</p></body></html>');
 
         $resource = $this
                 ->getMockBuilder('VDB\Spider\Resource')
@@ -118,13 +118,13 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(18))
+                ->expects($this->exactly(19))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(3))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -184,12 +184,12 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->once())
+        $uri->expects($this->exactly(2))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
         $crawler = new Crawler('', 'https://github.com');
-        $crawler->addContent('<html><meta name="DCTERMS.available" content="2015-06-18T23:49:41Z"><meta name="DCTERMS.modified" content="2015-06-18T23:49:41Z"><body><p>This is the text value.</p></body></html>');
+        $crawler->addContent('<html><head><title>Site dummy 1</title><meta name="description" content="Dummy description" /><meta name="keywords" content="keyword1,keyword2" /><meta name="author" content="Dummy Author" /><meta name="SIM_archief" content="yes" /><meta name="SIM.simfaq" content="yes" /><meta name="SIM.item_trefwoorden" content="trefwoorden" /><meta name="DCTERMS.title" content="Title 2" /><meta name="DCTERMS.language" content="pl-PL" /><meta name="DCTERMS.type" content="dummytype" /><meta name="SIM.simloket_synoniemen" content="synoniemen" /><meta name="SIM.spatial" content="spatial" /><meta name="DCTERMS.identifier" content="identifierurl" /><meta name="SIM.audience" content="audience" /><meta name="SIM.subject" content="subject" /><meta name="DCTERMS.available" content="2015-06-18T23:49:41Z" /><meta name="DCTERMS.modified" content="2015-06-18T23:49:41Z" /></head><body><p>This is the text value.</p></body></html>');
 
         $resource = $this
                 ->getMockBuilder('VDB\Spider\Resource')
@@ -203,7 +203,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -215,28 +215,33 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
                 'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
                 'content' => 'This is the text value.',
-                'title' => '',
+                'title' => 'Site dummy 1',
                 'tstamp' => date('Y-m-d\TH:i:s\Z'),
                 'type' => ["text/html","text","html"],
                 'contentLength' => 23,
                 'lastModified'=> date('Y-m-d\TH:i:s\Z'),
                 'date' => date('Y-m-d\TH:i:s\Z'),
                 'lang' => 'nl-NL',
-                'author' => '',
+                'author' => 'Dummy Author',
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                 'updatedDate' => date('Y-m-d\TH:i:s\Z'),
                 'strippedContent' => 'This is the text value.',
                 'collection' => ["Alles"],
-                'description' => '',
-                'keywords'=> '',
-                'SIM_archief' => 'no',
-                'SIM.simfaq' => ['no'],
+                'description' => 'Dummy description',
+                'keywords'=> 'keyword1,keyword2',
+                'SIM_archief' => 'yes',
+                'SIM.simfaq' => ['yes'],
                 'DCTERMS.modified' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.identifier'=> 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
-                'DCTERMS.title' => '',
+                'DCTERMS.identifier'=> 'identifierurl',
+                'DCTERMS.title' => 'Title 2',
                 'DCTERMS.available' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.language'=> 'nl-NL',
-                'DCTERMS.type'=> 'webpagina'
+                'DCTERMS.language'=> 'pl-PL',
+                'DCTERMS.type'=> 'dummytype',
+                'SIM.item_trefwoorden' => 'trefwoorden',
+                'SIM.simloket_synoniemen' => 'synoniemen',
+                'DCTERMS.spatial' => 'spatial',
+                'DCTERMS.audience' => 'audience',
+                'DCTERMS.subject' => 'subject'
             ],
         ];
 
@@ -250,26 +255,6 @@ class HtmlTest extends PHPUnit_Framework_TestCase
      */
     public function throwExceptionOnLessThenMinimalContentLength()
     {
-
-        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
-                ->disableOriginalConstructor()
-                ->setMethods(['getContentType', 'getLastModified'])
-                ->getMock();
-        $response->expects($this->once())
-                ->method('getContentType')
-                ->will($this->returnValue('text/html'));
-        $response->expects($this->once())
-                ->method('getLastModified')
-                ->will($this->returnValue('2015-06-18T23:49:41Z'));
-
-        $uri = $this->getMockBuilder('VDB\Uri\Uri')
-                ->disableOriginalConstructor()
-                ->setMethods(['toString'])
-                ->getMock();
-        $uri->expects($this->once())
-                ->method('toString')
-                ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
-
         $crawler = new Crawler('', 'https://github.com');
 
         $resource = $this
@@ -278,15 +263,9 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(13))
+                ->expects($this->exactly(1))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
-        $resource->expects($this->exactly(2))
-                ->method('getResponse')
-                ->will($this->returnValue($response));
-        $resource->expects($this->once())
-                ->method('getUri')
-                ->will($this->returnValue($uri));
 
         $type = new Html(null);
         $type->getData($resource);
