@@ -7,7 +7,6 @@ use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentDataExtractor;
 use Symfony\Component\DomCrawler\Crawler;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
-use InvalidArgumentException;
 
 /**
  * Html Resolver Document Type
@@ -33,6 +32,8 @@ class Html extends TypeAbstract implements DocumentTypeInterface
      * @param \VDB\Spider\Resource $resource
      *
      * @return array
+     *
+     * @throws \Simgroep\ConcurrentSpiderBundle\InvalidContentException
      */
     public function getData(Resource $resource)
     {
