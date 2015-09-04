@@ -4,12 +4,11 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
+use Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentDataExtractor;
 use PhpOffice\PhpWord\Reader\RTF as RtfReader;
 use PhpOffice\PhpWord\Writer\HTML as HtmlWriter;
 use PhpOffice\PhpWord\PhpWord as PhpWord;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
-use InvalidArgumentException;
-use DateTime;
 
 /**
  * RTF Resolver Document Type
@@ -27,9 +26,6 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
      */
     public function getData(Resource $resource)
     {
-        $url = $resource->getUri()->toString();
-        $title = $this->getTitleByUrl($url) ? : '';
-
         $content = $this->extractContentFromResource($resource);
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
@@ -38,34 +34,24 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
             );
         }
 
-        $lastModifiedDateTime = new DateTime($resource->getResponse()->getLastModified());
-        $lastModified = $lastModifiedDateTime->format('Y-m-d\TH:i:s\Z');
+        $dataExtractor = new DocumentDataExtractor($resource);
 
-        try {
-            $sIMArchive = $resource->getCrawler()->filterXPath('//head/meta[@name="SIM_archief"]/@content')->text();
-        } catch (InvalidArgumentException $exc) {
-            $sIMArchive = 'no';
-        }
-
-        try {
-            $sIM_simfaq = $resource->getCrawler()->filterXPath('//head/meta[@name="SIM.simfaq"]/@content')->text();
-        } catch (InvalidArgumentException $exc) {
-            $sIM_simfaq = ['no'];
-        }
+        $url = $dataExtractor->getUrl();
+        $title = $this->getTitleByUrl($url) ? : '';
 
         $data = [
             'document' => [
-                'id' => sha1($url),
+                'id' => $dataExtractor->getId(),
                 'url' => $url,
                 'content' => $content,
                 'title' => $title,
                 'tstamp' => date('Y-m-d\TH:i:s\Z'),
                 'contentLength' => strlen($content),
-                'lastModified' => $lastModified,
+                'lastModified' => $dataExtractor->getLastModified(),
                 'date' => date('Y-m-d\TH:i:s\Z'),
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'SIM_archief' => $sIMArchive,
-                'SIM.simfaq' => $sIM_simfaq,
+                'SIM_archief' => $dataExtractor->getSimArchief(),
+                'SIM.simfaq' => $dataExtractor->getSimfaq(),
             ],
         ];
 
