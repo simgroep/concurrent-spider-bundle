@@ -22,6 +22,7 @@
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.spider" />
+            <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
             <argument type="expression">
                 service(parameter('simgroep_concurrent_spider.logger_service'))
             </argument>
@@ -83,7 +84,6 @@
             <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
             <argument type="service" id="simgroep_concurrent_spider.request_handler" />
             <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
-            <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.solr_client" class="Solarium\Client">
@@ -112,21 +112,6 @@
             <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
 
             <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.post_discover" method="onDiscoverUrl" />
-        </service>
-
-        <service id="simgroep_concurrent_spider.indexed_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\IndexedUrlListener">
-            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
-            <argument type="service" id="simgroep_concurrent_spider.indexer" />
-            <argument type="service" id="simgroep_concurrent_spider.spider" />
-
-            <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.post_request" method="onUrl" />
-        </service>
-
-        <service id="simgroep_concurrent_spider.not_indexed_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\NewUrlListener">
-            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
-            <argument type="service" id="simgroep_concurrent_spider.spider" />
-
-            <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.start" method="onNotIndexedUrl" />
         </service>
 
         <service id="simgroep_concurrent_spider.url_blacklisted_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\UrlBlacklistedListener">

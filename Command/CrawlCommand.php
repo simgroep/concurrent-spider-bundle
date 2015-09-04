@@ -7,12 +7,15 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
+use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use VDB\Spider\Event\SpiderEvents;
-use Symfony\Component\EventDispatcher\GenericEvent as Event;
+use VDB\Uri\Exception\UriSyntaxException;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use VDB\Uri\Uri;
+use Exception;
 
 class CrawlCommand extends Command
 {
@@ -32,6 +35,11 @@ class CrawlCommand extends Command
     private $spider;
 
     /**
+     * @var string
+     */
+    private $userAgent;
+
+    /**
      * @var \Monolog\Logger
      */
     private $logger;
@@ -42,17 +50,20 @@ class CrawlCommand extends Command
      * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
+     * @param string                                   $userAgent
      * @param \Monolog\Logger                          $logger
      */
     public function __construct(
         Queue $queue,
         Indexer $indexer,
         Spider $spider,
+        $userAgent,
         Logger $logger
     ) {
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->spider = $spider;
+        $this->userAgent = $userAgent;
         $this->logger = $logger;
 
         parent::__construct();
@@ -64,8 +75,8 @@ class CrawlCommand extends Command
     public function configure()
     {
         $this
-                ->setName('simgroep:crawl')
-                ->setDescription("This command starts listening to the queue and will accept url's to index.");
+            ->setName('simgroep:crawl')
+            ->setDescription("This command starts listening to the queue and will accept url's to index.");
     }
 
     /**
@@ -104,10 +115,19 @@ class CrawlCommand extends Command
 
         if ($this->indexer->isUrlIndexed($crawlJob->getUrl(), $crawlJob->getMetadata())) {
 
-            $this->spider->getEventDispatcher()->dispatch(
-                SpiderEvents::SPIDER_CRAWL_POST_REQUEST,
-                new Event($this, ['url' => $crawlJob->getUrl(), 'message' => $message])
-            );
+            try {
+                $requestHandler = $this->spider->getRequestHandler();
+                $requestHandler->getClient()->setUserAgent($this->userAgent);
+                $requestHandler->request(new Uri($crawlJob->getUrl()));
+            } catch (ClientErrorResponseException $e) {
+                if (in_array($e->getResponse()->getStatusCode(), range(400, 418))) {
+                    $this->indexer->deleteDocument($message);
+                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+                    $this->queue->rejectMessage($message);
+
+                    return;
+                }
+            }
 
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
@@ -115,12 +135,27 @@ class CrawlCommand extends Command
             return;
         }
 
-        $this->spider->getEventDispatcher()->dispatch(
-            SpiderEvents::SPIDER_CRAWL_START,
-            new Event($this, ['crawlJob' => $crawlJob, 'message' => $message])
-        );
+        try {
+            $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
+            $this->spider->crawl($crawlJob);
 
-        $this->spider->getEventDispatcher()->dispatch(SpiderEvents::SPIDER_CRAWL_END);
+            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+            $this->queue->acknowledge($message);
+        } catch (UriSyntaxException $e) {
+            $this->markAsFailed($crawlJob, 'Invalid URI syntax');
+            $this->queue->rejectMessageAndRequeue($message);
+        } catch (ClientErrorResponseException $e) {
+            if (in_array($e->getResponse()->getStatusCode(), [404, 403, 401, 500])) {
+                $this->queue->rejectMessage($message);
+                $this->markAsSkipped($crawlJob, 'warning');
+            } else {
+                $this->queue->rejectMessageAndRequeue($message);
+                $this->markAsFailed($crawlJob, $e->getResponse()->getStatusCode());
+            }
+        } catch (Exception $e) {
+            $this->queue->rejectMessage($message);
+            $this->markAsFailed($crawlJob, $e->getMessage());
+        }
     }
 
     /**
@@ -178,5 +213,4 @@ class CrawlCommand extends Command
 
         return ($firstHost === $secondHost);
     }
-
 }
