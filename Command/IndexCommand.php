@@ -65,7 +65,7 @@ class IndexCommand extends Command
 
             $data = json_decode($message->body, true);
 
-            $this->indexer->prepareDocument($message, $data['metadata']);
+            $this->indexer->prepareDocument($message);
             $this->queue->acknowledge($message);
         });
 

@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use VDB\Uri\Exception\UriSyntaxException;
 use Guzzle\Http\Exception\ClientErrorResponseException;
+use VDB\Uri\Uri;
 use Exception;
 
 class CrawlCommand extends Command
@@ -113,6 +114,21 @@ class CrawlCommand extends Command
         }
 
         if ($this->indexer->isUrlIndexed($crawlJob->getUrl(), $crawlJob->getMetadata())) {
+
+            try {
+                $requestHandler = $this->spider->getRequestHandler();
+                $requestHandler->getClient()->setUserAgent($this->userAgent);
+                $requestHandler->request(new Uri($crawlJob->getUrl()));
+            } catch (ClientErrorResponseException $e) {
+                if (in_array($e->getResponse()->getStatusCode(), range(400, 418))) {
+                    $this->indexer->deleteDocument($message);
+                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+                    $this->queue->rejectMessage($message);
+
+                    return;
+                }
+            }
+
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
 

@@ -9,9 +9,10 @@ use Simgroep\ConcurrentSpiderBundle\Indexer;
 class IndexerTest extends PHPUnit_Framework_TestCase
 {
     /**
+     * @test
      * @testdox Tests if the given url is checked upon a checksum in Solr.
      */
-    public function testIfUrlIsSha1Checksum()
+    public function ifUrlIsSha1Checksum()
     {
         $url = 'https://github.com';
 
@@ -53,9 +54,10 @@ class IndexerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * @test
      * @testdox Tests if every 10 documents the index saves them.
      */
-    public function testIfEveryTenDocumentsAreSaved()
+    public function ifEveryTenDocumentsAreSaved()
     {
         $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
             ->disableOriginalConstructor()
@@ -94,12 +96,52 @@ class IndexerTest extends PHPUnit_Framework_TestCase
                         'url' => 'https://www.github.com',
                         'SIM.dummyKey1' => 'dummyvalue1',
                         'DCTERMS.dummyKey2' => 'dummyvalue2'
-                    ]
+                    ],
+                    'metadata' => ['core' => 'core1']
                 ]
             );
 
             $message = new AMQPMessage($body);
             $indexer->prepareDocument($message);
         }
+    }
+
+    /**
+     * @test
+     * @testdox Test if docuemnt are deleted from solr
+     */
+    public function ifDocumentAreDeleted()
+    {
+        $url = 'https://www.github.com';
+
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
+            ->disableOriginalConstructor()
+            ->setMethods(['addDeleteById', 'addCommit'])
+            ->getMock();
+        $solrQuery->expects($this->once())
+            ->method('addDeleteById')
+            ->with(sha1($url));
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createUpdate', 'update'])
+            ->getMock();
+        $solrClient->expects($this->any())
+            ->method('createUpdate')
+            ->will($this->returnValue($solrQuery));
+
+        $mapping = [];
+
+        $indexer = new Indexer($solrClient, $mapping);
+
+        $bodyCrawlJob = json_encode(
+            [
+                'url' => $url,
+                'metadata' => ['core' => 'core2']
+            ]
+        );
+
+        $message = new AMQPMessage($bodyCrawlJob);
+        $indexer->deleteDocument($message);
     }
 }
