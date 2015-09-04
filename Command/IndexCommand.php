@@ -57,7 +57,14 @@ class IndexCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->queue->listen(function ($message) {
+            if (strlen($message->body) == 0) {
+                $this->queue->rejectMessage($message);
+
+                return;
+            }
+
             $data = json_decode($message->body, true);
+
             $this->indexer->prepareDocument($message, $data['metadata']);
             $this->queue->acknowledge($message);
         });
