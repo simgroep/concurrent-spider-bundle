@@ -71,7 +71,7 @@ class PdfTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->once())
+        $uri->expects($this->exactly(2))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
 
@@ -89,7 +89,7 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->once())
+        $resource->expects($this->exactly(2))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -138,27 +138,14 @@ class PdfTest extends PHPUnit_Framework_TestCase
                 ->method('getBody')
                 ->with(true);
 
-        $uri = $this->getMockBuilder('VDB\Uri\Uri')
-                ->disableOriginalConstructor()
-                ->setMethods(['toString'])
-                ->getMock();
-        $uri->expects($this->once())
-                ->method('toString')
-                ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
-
-        $crawler = new Crawler ('', 'http://blabdummy.de/dummydir/dummyfile.pdf');
-
         $resource = $this
                 ->getMockBuilder('VDB\Spider\Resource')
                 ->disableOriginalConstructor()
-                ->setMethods(['getCrawler', 'getResponse', 'getUri', 'getBody'])
+                ->setMethods(['getResponse'])
                 ->getMock();
         $resource->expects($this->once())
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->once())
-                ->method('getUri')
-                ->will($this->returnValue($uri));
 
         $type = new Pdf($pdfType);
         $data = $type->getData($resource);
