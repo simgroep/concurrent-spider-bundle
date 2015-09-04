@@ -28,11 +28,6 @@ class Spider
     private $persistenceHandler;
 
     /**
-     * @var string
-     */
-    private $userAgent;
-
-    /**
      * @var \Simgroep\ConcurrentSpiderBundle\CrawlJob
      */
     private $currentCrawlJob;
@@ -43,18 +38,15 @@ class Spider
      * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface            $eventDispatcher
      * @param \VDB\Spider\RequestHandler\GuzzleRequestHandler                        $requestHandler
      * @param \Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler $persistenceHandler
-     * @param string                                                                 $userAgent
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         GuzzleRequestHandler $requestHandler,
-        PersistenceHandler $persistenceHandler,
-        $userAgent
+        PersistenceHandler $persistenceHandler
     ) {
         $this->eventDispatcher = $eventDispatcher;
         $this->requestHandler = $requestHandler;
         $this->persistenceHandler = $persistenceHandler;
-        $this->userAgent = $userAgent;
     }
 
     /**
@@ -98,21 +90,6 @@ class Spider
     }
 
     /**
-     * Retrieves resource from url
-     * 
-     * Before make a call it set a user agent
-     *
-     * @param string $url
-     *
-     * @return Resource
-     */
-    public function requestResourceFromUrl($url)
-    {
-        $this->requestHandler->getClient()->setUserAgent($this->userAgent);
-        return $this->requestHandler->request(new Uri($url));
-    }
-
-    /**
      * Function that crawls one webpage based on the give url.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
@@ -120,7 +97,7 @@ class Spider
     public function crawl(CrawlJob $crawlJob)
     {
         $this->currentCrawlJob = $crawlJob;
-        $resource = $this->requestResourceFromUrl($crawlJob->getUrl());
+        $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
         $uris = [];
 
         $this->persistenceHandler->persist($resource, $crawlJob);
