@@ -8,6 +8,7 @@ use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler;
 use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver;
+use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 
 /**
  * The content of crawled webpages is saved to a seperate queue that is designed for indexing documents.
@@ -26,15 +27,22 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $documentResolver;
 
     /**
+     * @var integer
+     */
+    private $maximumResourceSize;
+
+    /**
      * Constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue                             $queue
      * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver $documentResolver
+     * @param integer                                                            $maximumResourceSize
      */
-    public function __construct(Queue $queue, DocumentResolver $documentResolver)
+    public function __construct(Queue $queue, DocumentResolver $documentResolver, $maximumResourceSize)
     {
         $this->queue = $queue;
         $this->documentResolver = $documentResolver;
+        $this->maximumResourceSize = self::convertToBytes($maximumResourceSize);
     }
 
     /**
@@ -47,6 +55,10 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      */
     public function persist(Resource $resource, CrawlJob $crawlJob)
     {
+        if (strlen($resource->getResponse()->getBody()) >= $this->maximumResourceSize) {
+            throw new InvalidContentException(sprintf('Resource size exceeds limits (%s bytes)', $this->maximumResourceSize));
+        }
+
         $this->documentResolver->resolveTypeFromResource($resource);
         $data = $this->documentResolver->getData();
 
@@ -57,6 +69,33 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             );
 
             $this->queue->publish($message);
+        }
+    }
+
+    /**
+     * Function that returns the human readable size in bytes.
+     *
+     * @param string $fileSize
+     *
+     * @return integer
+     */
+    public static function convertToBytes($fileSize)
+    {
+        $number = substr($fileSize, 0, -2);
+
+        switch (strtoupper(substr($fileSize,-2))) {
+            case "KB":
+                return $number*1024;
+            case "MB":
+                return $number*pow(1024,2);
+            case "GB":
+                return $number*pow(1024,3);
+            case "TB":
+                return $number*pow(1024,4);
+            case "PB":
+                return $number*pow(1024,5);
+            default:
+                return $fileSize;
         }
     }
 }
