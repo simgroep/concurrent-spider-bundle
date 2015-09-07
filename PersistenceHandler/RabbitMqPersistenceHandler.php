@@ -36,7 +36,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue                             $queue
      * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver $documentResolver
-     * @param integer                                                            $maximumResourceSize
+     * @param string                                                             $maximumResourceSize
      */
     public function __construct(Queue $queue, DocumentResolver $documentResolver, $maximumResourceSize)
     {
@@ -85,15 +85,15 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
 
         switch (strtoupper(substr($fileSize,-2))) {
             case "KB":
-                return $number*1024;
+                return $number * 1024;
             case "MB":
-                return $number*pow(1024,2);
+                return $number * pow(1024,2);
             case "GB":
-                return $number*pow(1024,3);
+                return $number * pow(1024,3);
             case "TB":
-                return $number*pow(1024,4);
+                return $number * pow(1024,4);
             case "PB":
-                return $number*pow(1024,5);
+                return $number * pow(1024,5);
             default:
                 return $fileSize;
         }
