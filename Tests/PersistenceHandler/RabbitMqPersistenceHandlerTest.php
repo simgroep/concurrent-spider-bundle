@@ -20,23 +20,36 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $resource = $this
                 ->getMockBuilder('\VDB\Spider\Resource')
                 ->disableOriginalConstructor()
+                ->setMethods(array('getResponse'))
                 ->getMock();
+
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $resource
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
 
         $documentResolver = $this
                 ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver')
                 ->disableOriginalConstructor()
                 ->setMethods(['resolveTypeFromResource', 'getData'])
                 ->getMock();
+
         $documentResolver
                 ->expects($this->once())
                 ->method('resolveTypeFromResource')
                 ->with($resource);
+
         $documentResolver
                 ->expects($this->once())
                 ->method('getData')
                 ->will($this->returnValue(array(1)));
 
-        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver);
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver, '8MB');
 
         $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
 
