@@ -59,4 +59,50 @@ class IndexCommandTest extends PHPUnit_Framework_TestCase
         $command->run($input, $output);
     }
 
+    /**
+     * @test
+     * @textdox Tests if for some reason the message is empty it's rejected.
+     */
+    public function isEmptyMessageRejected()
+    {
+        $message = $this
+            ->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
+            ->setMethods(null)
+            ->getMock();
+
+        $message->body = '';
+
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['rejectMessage', '__destruct', 'listen'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('listen')
+            ->will($this->returnCallback(function($callback) use($message) {
+                $callback($message);
+            }));
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage');
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\IndexCommand')
+            ->setConstructorArgs([$queue, $indexer, []])
+            ->setMethods(null)
+            ->getMock();
+
+        $input = new StringInput('');
+        $output = new NullOutput();
+        $command->run($input, $output);
+    }
+
 }

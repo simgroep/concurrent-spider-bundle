@@ -21,9 +21,10 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $container
-            ->expects($this->exactly(14))
+            ->expects($this->exactly(15))
             ->method('setParameter')
             ->withConsecutive(
+                [$this->equalTo('simgroep_concurrent_spider.maximum_resource_size'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.http_user_agent'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.host'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.port'), $this->anything()],

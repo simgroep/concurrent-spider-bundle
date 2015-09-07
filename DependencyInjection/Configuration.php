@@ -22,6 +22,7 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+                ->scalarNode('maximum_resource_size')->cannotBeEmpty()->defaultValue('16mb')->end()
                 ->scalarNode('http_user_agent')
                     ->cannotBeEmpty()
                     ->defaultValue('PHP Concurrent Spider')
