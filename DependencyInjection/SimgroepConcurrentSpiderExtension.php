@@ -22,6 +22,7 @@ class SimgroepConcurrentSpiderExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->setParameter('simgroep_concurrent_spider.maximum_resource_size', $config['maximum_resource_size']);
         $container->setParameter('simgroep_concurrent_spider.http_user_agent', $config['http_user_agent']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.host', $config['rabbitmq']['host']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.port', $config['rabbitmq']['port']);
