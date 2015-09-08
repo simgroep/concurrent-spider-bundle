@@ -120,7 +120,12 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $data = $type->getData($resource);
 
         $this->assertEquals(13, count($data['document']));
-        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate', 'SIM_archief', 'SIM.simfaq'];
+        $expectedKeys = [
+            'id', 'url', 'content', 'title',
+            'tstamp', 'contentLength', 'lastModified',
+            'date', 'publishedDate', 'SIM_archief',
+            'SIM.simfaq', 'type', 'strippedContent',
+        ];
 
         foreach ($expectedKeys as $expectedKey) {
             $this->assertArrayHasKey($expectedKey, $data['document']);
