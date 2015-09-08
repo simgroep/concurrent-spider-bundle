@@ -40,65 +40,93 @@ class PdfTest extends PHPUnit_Framework_TestCase
      */
     public function retrieveValidDataFromPdfFile()
     {
+        $document = $this
+            ->getMockBuilder('Smalot\PdfParser\Document')
+            ->setMethods(['getText'])
+            ->getMock();
 
-        $document = $this->getMockBuilder('Smalot\PdfParser\Document')
-                ->setMethods(['getText'])
-                ->getMock();
-        $document->expects($this->once())
-                ->method('getText')
-                ->will($this->returnValue('Dummy Text Occure There!'));
+        $document
+            ->expects($this->once())
+            ->method('getText')
+            ->will($this->returnValue('Dummy Text Occure There!'));
 
-        $pdfType = $this->getMockBuilder('Smalot\PdfParser\Parser')
-                ->disableOriginalConstructor()
-                ->setMethods(['getText', 'parseContent'])
-                ->getMock();
-        $pdfType->expects($this->once())
-                ->method('parseContent')
-                ->will($this->returnValue($document));
+        $pdfType = $this
+            ->getMockBuilder('Smalot\PdfParser\Parser')
+            ->disableOriginalConstructor()
+            ->setMethods(['getText', 'parseContent'])
+            ->getMock();
 
-        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
-                ->disableOriginalConstructor()
-                ->setMethods(['getBody', 'getLastModified'])
-                ->getMock();
-        $response->expects($this->once())
-                ->method('getLastModified')
-                ->will($this->returnValue('2015-06-18T23:49:41Z'));
-        $response->expects($this->once())
-                ->method('getBody')
-                ->with(true);
+        $pdfType
+            ->expects($this->once())
+            ->method('parseContent')
+            ->will($this->returnValue($document));
 
-        $uri = $this->getMockBuilder('VDB\Uri\Uri')
-                ->disableOriginalConstructor()
-                ->setMethods(['toString'])
-                ->getMock();
-        $uri->expects($this->exactly(2))
-                ->method('toString')
-                ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getBody', 'getLastModified', 'getContentDisposition'])
+            ->getMock();
 
-        $crawler = new Crawler ('', 'http://blabdummy.de/dummydir/dummyfile.pdf');
+        $response
+            ->expects($this->once())
+            ->method('getContentDisposition')
+            ->will($this->returnValue(''));
+
+        $response
+            ->expects($this->once())
+            ->method('getLastModified')
+            ->will($this->returnValue('2015-06-18T23:49:41Z'));
+
+        $response
+            ->expects($this->once())
+            ->method('getBody')
+            ->with(true);
+
+        $uri = $this
+            ->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+
+        $uri
+            ->expects($this->exactly(2))
+            ->method('toString')
+            ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
+
+        $crawler = new Crawler('', 'http://blabdummy.de/dummydir/dummyfile.pdf');
 
         $resource = $this
                 ->getMockBuilder('VDB\Spider\Resource')
                 ->disableOriginalConstructor()
                 ->setMethods(['getCrawler', 'getResponse', 'getUri', 'getBody'])
                 ->getMock();
+
         $resource
                 ->expects($this->exactly(2))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
-        $resource->expects($this->exactly(2))
-                ->method('getResponse')
-                ->will($this->returnValue($response));
-        $resource->expects($this->exactly(2))
-                ->method('getUri')
-                ->will($this->returnValue($uri));
+
+        $resource
+            ->expects($this->exactly(3))
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $resource
+            ->expects($this->exactly(2))
+            ->method('getUri')
+            ->will($this->returnValue($uri));
 
         $type = new Pdf($pdfType);
         $data = $type->getData($resource);
 
-        //change that to: $this->assertEquals($expectedData, $data);
-        $this->assertEquals(11, count($data['document']));
-        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate', 'SIM_archief', 'SIM.simfaq'];
+        $this->assertEquals(13, count($data['document']));
+        $expectedKeys = [
+            'id', 'url', 'content', 'title',
+            'tstamp', 'contentLength', 'lastModified',
+            'date', 'publishedDate', 'SIM_archief',
+            'SIM.simfaq', 'type', 'strippedContent',
+        ];
+
         foreach ($expectedKeys as $expectedKey) {
             $this->assertArrayHasKey($expectedKey, $data['document']);
         }

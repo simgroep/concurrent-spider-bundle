@@ -28,6 +28,22 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
     }
 
     /**
+     * Returns the filename of the resource. If not found it returns null.
+     *
+     * @param \VDB\Spider\Resource $resource
+     *
+     * @return string|null
+     */
+    protected function getFileNameFromResource(Resource $resource)
+    {
+        $regex = '/.*filename=[\'\"]([^\'\"]+)/';
+
+        if (preg_match($regex, $resource->getResponse()->getContentDisposition(), $matches)) {
+            return $matches['1'];
+        }
+    }
+
+    /**
      * Extracts content from a PDF File and returns document data.
      *
      * @param \VDB\Spider\Resource $resource
@@ -49,13 +65,18 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
         $dataExtractor = new DocumentDataExtractor($resource);
 
         $url = $dataExtractor->getUrl();
-        $title = $this->getTitleByUrl($url) ? : '';
+        $title = $this->getFileNameFromResource($resource);
+
+        if (null === $title) {
+            $title = $this->getTitleByUrl($url) ? : '';
+        }
 
         $data = [
             'document' => [
                 'id' => $dataExtractor->getId(),
                 'url' => $url,
                 'content' => $content,
+                'strippedContent' => $content,
                 'title' => $title,
                 'tstamp' => date('Y-m-d\TH:i:s\Z'),
                 'contentLength' => strlen($content),
@@ -64,6 +85,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                 'SIM_archief' => $dataExtractor->getSimArchief(),
                 'SIM.simfaq' => $dataExtractor->getSimfaq(),
+                'type' => ['application/pdf']
             ],
         ];
 
