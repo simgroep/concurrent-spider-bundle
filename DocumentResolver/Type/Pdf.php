@@ -32,7 +32,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      *
      * @param \VDB\Spider\Resource $resource
      *
-     * @return string
+     * @return string|null
      */
     protected function getFileNameFromResource(Resource $resource)
     {
@@ -85,7 +85,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
                 'publishedDate' => date('Y-m-d\TH:i:s\Z'),
                 'SIM_archief' => $dataExtractor->getSimArchief(),
                 'SIM.simfaq' => $dataExtractor->getSimfaq(),
-                'type' => ['appliation/pdf']
+                'type' => ['application/pdf']
             ],
         ];
 
