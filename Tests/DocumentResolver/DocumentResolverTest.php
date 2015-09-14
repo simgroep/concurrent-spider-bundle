@@ -10,101 +10,114 @@ class DocumentResolverTest extends PHPUnit_Framework_TestCase
 
     /**
      * @test
+     *
      * @dataProvider documentsProvider
      */
     public function ifDataIsReturnedFromDocuments($mimeType, $resolverType)
     {
-
         $response = $this
-                ->getMockBuilder('Guzzle\Http\Message\Response')
-                ->disableOriginalConstructor()
-                ->setMethods(['getContentType'])
-                ->getMock();
-        $response
-                ->expects($this->once())
-                ->method('getContentType')
-                ->will($this->returnValue($mimeType));
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getContentType'])
+            ->getMock();
 
-        $uri = $this->getMockBuilder('VDB\Uri\Uri')
-                ->disableOriginalConstructor()
-                ->setMethods(['toString'])
-                ->getMock();
+        $response
+            ->expects($this->once())
+            ->method('getContentType')
+            ->will($this->returnValue($mimeType));
+
+        $uri = $this
+            ->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
 
         $resource = $this
-                ->getMockBuilder('\VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getResponse', 'getUri'])
-                ->getMock();
+            ->getMockBuilder('\VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getUri'])
+            ->getMock();
+
         $resource
-                ->expects($this->once())
-                ->method('getResponse')
-                ->will($this->returnValue($response));
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
         $resource
-                ->expects($this->any())
-                ->method('getUri')
-                ->will($this->returnValue($uri));
+            ->expects($this->any())
+            ->method('getUri')
+            ->will($this->returnValue($uri));
 
         $data = ['dummyKey' => 'dummyValue'];
 
-        $htmlType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html')
-                ->disableOriginalConstructor()
-                ->setMethods(['getData'])
-                ->getMock();
-        if ($resolverType === 'html') {
-            $htmlType->expects($this->once())
+        $htmlType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html');
+        $pdfType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf');
+        $msdocType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc');
+        $word2007Type = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007');
+        $rtfType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf');
+        $odtType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt');
+
+        switch($resolverType) {
+            case 'html':
+                $htmlType
+                    ->expects($this->once())
                     ->method('getData')
                     ->with($resource)
                     ->will($this->returnValue($data));
-        }
-
-        $pdfType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf')
-                ->disableOriginalConstructor()
-                ->getMock();
-        if ($resolverType === 'pdf') {
-            $pdfType->expects($this->once())
+                break;
+            case 'pdf':
+                $pdfType
+                    ->expects($this->once())
                     ->method('getData')
                     ->with($resource)
                     ->will($this->returnValue($data));
-        }
-
-        $msdocType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc')
-                ->disableOriginalConstructor()
-                ->getMock();
-        if ($resolverType === 'msdoc') {
-            $msdocType->expects($this->once())
+                break;
+            case 'msdoc':
+                $msdocType
+                    ->expects($this->once())
                     ->method('getData')
                     ->with($resource)
                     ->will($this->returnValue($data));
-        }
-
-        $word2007Type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007')
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $rtfType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf')
-                ->disableOriginalConstructor()
-                ->getMock();
-        if ($resolverType === 'rtf') {
-            $rtfType->expects($this->once())
+                break;
+            case 'rtf':
+                $rtfType
+                    ->expects($this->once())
                     ->method('getData')
                     ->with($resource)
                     ->will($this->returnValue($data));
-        }
-
-        $odtType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt')
-                ->disableOriginalConstructor()
-                ->getMock();
-        if ($resolverType === 'odt') {
-            $odtType->expects($this->once())
+                break;
+            case 'odt':
+                $odtType
+                    ->expects($this->once())
                     ->method('getData')
                     ->with($resource)
                     ->will($this->returnValue($data));
+                break;
         }
 
         $documentResolver = new DocumentResolver($htmlType, $pdfType, $msdocType, $word2007Type, $rtfType, $odtType);
+        $document = $documentResolver->getDocumentByResource($resource);
 
-        $this->assertNull($documentResolver->resolveTypeFromResource($resource));
-        $this->assertEquals($data, $documentResolver->getData());
+        $this->assertInstanceOf('\Simgroep\ConcurrentSpiderBundle\PersistableDocument', $document);
+        $this->assertEquals($data, $document->toArray());
+    }
+
+    /**
+     * Returns a mocked document resolver.
+     *
+     * @param string $type
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentTypeInterface
+     */
+    private function getDocumentResolverMock($type)
+    {
+        $documentResolver = $this
+            ->getMockBuilder($type)
+            ->disableOriginalConstructor()
+            ->setMethods(['getData'])
+            ->getMock();
+
+        return $documentResolver;
     }
 
     /**
@@ -113,73 +126,62 @@ class DocumentResolverTest extends PHPUnit_Framework_TestCase
     public function ifDataIsReturnedFromWord2007Document()
     {
         $response = $this
-                ->getMockBuilder('Guzzle\Http\Message\Response')
-                ->disableOriginalConstructor()
-                ->setMethods(['getContentType'])
-                ->getMock();
-        $response
-                ->expects($this->once())
-                ->method('getContentType')
-                ->will($this->returnValue('application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getContentType'])
+            ->getMock();
 
-        $uri = $this->getMockBuilder('VDB\Uri\Uri')
-                ->disableOriginalConstructor()
-                ->setMethods(['toString'])
-                ->getMock();
+        $response
+            ->expects($this->once())
+            ->method('getContentType')
+            ->will($this->returnValue('application/vnd.openxmlformats-officedocument.wordprocessingml.document'));
+
+        $uri = $this
+            ->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+
         $uri
-                ->expects($this->any())
-                ->method('toString')
-                ->will($this->returnValue('dummyUri/documment.docx'));
+            ->expects($this->any())
+            ->method('toString')
+            ->will($this->returnValue('dummyUri/documment.docx'));
 
         $resource = $this
-                ->getMockBuilder('\VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getResponse', 'getUri'])
-                ->getMock();
+            ->getMockBuilder('\VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getUri'])
+            ->getMock();
+
         $resource
-                ->expects($this->once())
-                ->method('getResponse')
-                ->will($this->returnValue($response));
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
         $resource
-                ->expects($this->any())
-                ->method('getUri')
-                ->will($this->returnValue($uri));
+            ->expects($this->any())
+            ->method('getUri')
+            ->will($this->returnValue($uri));
 
         $data = ['dummyKey' => 'dummyValue'];
 
-        $htmlType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html')
-                ->disableOriginalConstructor()
-                ->setMethods(['getData'])
-                ->getMock();
+        $htmlType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html');
+        $pdfType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf');
+        $msdocType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc');
+        $word2007Type = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007');
+        $word2007Type
+            ->expects($this->once())
+            ->method('getData')
+            ->will($this->returnValue($data));
 
-        $pdfType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf')
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $msdocType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc')
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $word2007Type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007')
-                ->disableOriginalConstructor()
-                ->getMock();
-        $word2007Type->expects($this->once())
-                ->method('getData')
-                ->with($resource)
-                ->will($this->returnValue($data));
-
-        $rtfType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf')
-                ->disableOriginalConstructor()
-                ->getMock();
-
-        $odtType = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt')
-                ->disableOriginalConstructor()
-                ->getMock();
+        $rtfType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf');
+        $odtType = $this->getDocumentResolverMock('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt');
 
         $documentResolver = new DocumentResolver($htmlType, $pdfType, $msdocType, $word2007Type, $rtfType, $odtType);
+        $document = $documentResolver->getDocumentByResource($resource);
 
-        $this->assertNull($documentResolver->resolveTypeFromResource($resource));
-        $this->assertEquals($data, $documentResolver->getData());
+        $this->assertInstanceOf('\Simgroep\ConcurrentSpiderBundle\PersistableDocument', $document);
+        $this->assertEquals($data, $document->toArray());
     }
 
     /**
@@ -203,5 +205,5 @@ class DocumentResolverTest extends PHPUnit_Framework_TestCase
             ['unknown', 'html']
         ];
     }
-
 }
+

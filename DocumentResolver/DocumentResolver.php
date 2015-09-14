@@ -9,9 +9,10 @@ use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc as MsDocType;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Word2007;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Rtf;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt;
+use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
 
 /**
- * Determine and extract document content from resource
+ * Determine and extract document content from resource.
  */
 class DocumentResolver
 {
@@ -46,12 +47,7 @@ class DocumentResolver
     private $odt;
 
     /**
-     * @var string
-     */
-    private $data;
-
-    /**
-     * Cosntructor
+     * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Html $html
      * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf $pdf
@@ -71,53 +67,45 @@ class DocumentResolver
     }
 
     /**
-     * Determine document type with mime type from resource
+     * Returns a document that can be persisted based on the resource.
      *
      * @param \VDB\Spider\Resource $resource
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\PersistableDocument
      */
-    public function resolveTypeFromResource(Resource $resource)
+    public function getDocumentByResource(Resource $resource)
     {
-        $this->data = '';
-
         switch ($resource->getResponse()->getContentType()) {
             case 'application/pdf':
             case 'application/octet-stream' :
-                $this->data = $this->pdf->getData($resource);
+                $data = $this->pdf->getData($resource);
                 break;
 
             case 'application/msword' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' :
             case 'application/vnd.openxmlformats-officedocument.wordprocessingml.template' :
                 if (false !== stripos($resource->getUri()->toString(), '.docx')) {
-                    $this->data = $this->word2007->getData($resource);
+                    $data = $this->word2007->getData($resource);
                     break;
                 }
-                $this->data = $this->msdoc->getData($resource);
+                $data = $this->msdoc->getData($resource);
                 break;
 
             case 'application/rtf' :
-                $this->data = $this->rtf->getData($resource);
+                $data = $this->rtf->getData($resource);
                 break;
 
             case 'application/vnd.oasis.opendocument.text' :
-                $this->data = $this->odt->getData($resource);
+                $data = $this->odt->getData($resource);
                 break;
 
             case 'text/html':
             default:
-                $this->data = $this->html->getData($resource);
+                $data = $this->html->getData($resource);
                 break;
         }
-    }
 
-    /**
-     * Data extracted from resource
-     *
-     * @return array
-     */
-    public function getData()
-    {
-        return $this->data;
+        return new PersistableDocument($data);
     }
-
 }
+

@@ -5,6 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle\PersistenceHandler;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
+use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
 
 class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
 {
@@ -40,20 +41,22 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
         $documentResolver = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver')
             ->disableOriginalConstructor()
-            ->setMethods(['resolveTypeFromResource', 'getData'])
+            ->setMethods(['getDocumentByResource'])
             ->getMock();
 
         $documentResolver
             ->expects($this->once())
-            ->method('resolveTypeFromResource')
-            ->with($resource);
+            ->method('getDocumentByResource')
+            ->with($resource)
+            ->will($this->returnValue(new PersistableDocument()));
 
-        $documentResolver
-            ->expects($this->once())
-            ->method('getData')
-            ->will($this->returnValue(array(1)));
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
 
-        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver, '8MB');
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver, '8MB', $eventDispatcher);
         $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
         $this->assertNull($persistenceHandler->persist($resource, $crawlJob));
     }
@@ -99,7 +102,13 @@ class RabbitMqPersistenceHandlerTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver, '1KB');
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
+
+        $persistenceHandler = new RabbitMqPersistenceHandler($queue, $documentResolver, '1KB', $eventDispatcher);
 
         $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
         $persistenceHandler->persist($resource, $crawlJob);
