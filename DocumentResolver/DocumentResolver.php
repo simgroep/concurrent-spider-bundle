@@ -67,9 +67,11 @@ class DocumentResolver
     }
 
     /**
-     * Determine document type with mime type from resource
+     * Returns a document that can be persisted based on the resource.
      *
      * @param \VDB\Spider\Resource $resource
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\PersistableDocument
      */
     public function getDocumentByResource(Resource $resource)
     {
