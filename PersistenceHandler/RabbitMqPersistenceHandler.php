@@ -6,9 +6,12 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler;
-use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
+use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvents;
+use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use VDB\Spider\Resource;
 
 /**
  * The content of crawled webpages is saved to a seperate queue that is designed for indexing documents.
@@ -32,17 +35,28 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
     private $maximumResourceSize;
 
     /**
+     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     */
+    private $eventDispatcher;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue                             $queue
      * @param \Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentResolver $documentResolver
      * @param string                                                             $maximumResourceSize
+     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface        $eventDispatcher
      */
-    public function __construct(Queue $queue, DocumentResolver $documentResolver, $maximumResourceSize)
-    {
+    public function __construct(
+        Queue $queue,
+        DocumentResolver $documentResolver,
+        $maximumResourceSize,
+        EventDispatcherInterface $eventDispatcher
+    ) {
         $this->queue = $queue;
         $this->documentResolver = $documentResolver;
         $this->maximumResourceSize = self::convertToBytes($maximumResourceSize);
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -59,17 +73,17 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
             throw new InvalidContentException(sprintf('Resource size exceeds limits (%s bytes)', $this->maximumResourceSize));
         }
 
-        $this->documentResolver->resolveTypeFromResource($resource);
-        $data = $this->documentResolver->getData();
+        $document = $this->documentResolver->getDocumentByResource($resource);
+        $persistenceEvent = new PersistenceEvent($document, $resource);
 
-        if (isset($data)) {
-            $message = new AMQPMessage(
-                json_encode(array_merge($data, ['metadata' => $crawlJob->getMetadata()])),
-                ['delivery_mode' => 1]
-            );
+        $this->eventDispatcher->dispatch(PersistenceEvents::PRE_PERSIST, $persistenceEvent);
 
-            $this->queue->publish($message);
-        }
+        $message = new AMQPMessage(
+            json_encode(array_merge($document->toArray(), ['metadata' => $crawlJob->getMetadata()])),
+            ['delivery_mode' => 1]
+        );
+
+        $this->queue->publish($message);
     }
 
     /**
