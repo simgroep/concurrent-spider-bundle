@@ -22,6 +22,8 @@
             <directory suffix=".php">../DependencyInjection/</directory>
             <directory suffix=".php">../EventListener/</directory>
             <directory suffix=".php">../PersistenceHandler/</directory>
+            <directory suffix=".php">../Event/</directory>
+            <file>../PersistableDocument.php</file>
             <file>../Indexer.php</file>
             <file>../CrawlJob.php</file>
             <file>../Queue.php</file>
