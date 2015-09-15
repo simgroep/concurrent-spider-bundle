@@ -79,7 +79,12 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         $this->eventDispatcher->dispatch(PersistenceEvents::PRE_PERSIST, $persistenceEvent);
 
         $message = new AMQPMessage(
-            json_encode(array_merge($document->toArray(), ['metadata' => $crawlJob->getMetadata()])),
+            json_encode(
+                array_merge(
+                    ['document' => $document->toArray()],
+                    ['metadata' => $crawlJob->getMetadata()]
+                )
+            ),
             ['delivery_mode' => 1]
         );
 

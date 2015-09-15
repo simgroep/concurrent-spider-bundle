@@ -72,21 +72,17 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
         }
 
         $data = [
-            'document' => [
-                'id' => $dataExtractor->getId(),
-                'url' => $url,
-                'content' => $content,
-                'strippedContent' => $content,
-                'title' => $title,
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'contentLength' => strlen($content),
-                'lastModified' => $dataExtractor->getLastModified(),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'SIM_archief' => $dataExtractor->getSimArchief(),
-                'SIM.simfaq' => $dataExtractor->getSimfaq(),
-                'type' => ['application/pdf']
-            ],
+            'id' => $dataExtractor->getId(),
+            'url' => $url,
+            'content' => $content,
+            'strippedContent' => $content,
+            'title' => $title,
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'contentLength' => strlen($content),
+            'lastModified' => $dataExtractor->getLastModified(),
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'type' => ['application/pdf']
         ];
 
         return $data;

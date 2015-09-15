@@ -40,19 +40,15 @@ class MsDoc extends TypeAbstract implements DocumentTypeInterface
         $title = $this->getTitleByUrl($url) ? : '';
 
         $data = [
-            'document' => [
-                'id' => $dataExtractor->getId(),
-                'url' => $url,
-                'content' => $content,
-                'title' => $title,
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'contentLength' => strlen($content),
-                'lastModified' => $dataExtractor->getLastModified(),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'SIM_archief' => $dataExtractor->getSimArchief(),
-                'SIM.simfaq' => $dataExtractor->getSimfaq(),
-            ],
+            'id' => $dataExtractor->getId(),
+            'url' => $url,
+            'content' => $content,
+            'title' => $title,
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'contentLength' => strlen($content),
+            'lastModified' => $dataExtractor->getLastModified(),
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
         ];
 
         return $data;
