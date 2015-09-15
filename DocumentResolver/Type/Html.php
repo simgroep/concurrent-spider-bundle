@@ -41,66 +41,31 @@ class Html extends TypeAbstract implements DocumentTypeInterface
 
         if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
             throw new InvalidContentException(
-            sprintf("Webpage didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
+                sprintf("Webpage didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
             );
         }
 
         $dataExtractor = new DocumentDataExtractor($resource);
 
         $data = [
-            'document' => [
-                'id' => $dataExtractor->getId(),
-                'url' => $dataExtractor->getUrl(),
-                'content' => $content,
-                'title' => $dataExtractor->getTitle(),
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'type' => $dataExtractor->getType(),
-                'contentLength' => strlen($content),
-                'lastModified' => $dataExtractor->getLastModified(),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'lang' => 'nl-NL',
-                'author' => $dataExtractor->getAuthor(),
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'updatedDate' => date('Y-m-d\TH:i:s\Z'),
-                'strippedContent' => strip_tags($content),
-                'collection' => ['Alles'],
-                'description' => $dataExtractor->getDescription(),
-                'keywords' => $dataExtractor->getKeywords(),
-                'SIM_archief' => $dataExtractor->getSimArchief(),
-                'SIM.simfaq' => $dataExtractor->getSimfaq(),
-                'DCTERMS.modified' => $dataExtractor->getDctermsModified(),
-                'DCTERMS.identifier' => $dataExtractor->getDctermsIdentifier(),
-                'DCTERMS.title' => $dataExtractor->getDctermsTitle(),
-                'DCTERMS.available' => $dataExtractor->getDctermsAvailable(),
-                'DCTERMS.language' => $dataExtractor->getDctermsLanguage(),
-                'DCTERMS.type' => $dataExtractor->getDctermsType(),
-            ],
+            'id' => $dataExtractor->getId(),
+            'url' => $dataExtractor->getUrl(),
+            'content' => $content,
+            'title' => $dataExtractor->getTitle(),
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'type' => $dataExtractor->getType(),
+            'contentLength' => strlen($content),
+            'lastModified' => $dataExtractor->getLastModified(),
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'lang' => 'nl-NL',
+            'author' => $dataExtractor->getAuthor(),
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
+            'strippedContent' => strip_tags($content),
+            'collection' => ['Alles'],
+            'description' => $dataExtractor->getDescription(),
+            'keywords' => $dataExtractor->getKeywords(),
         ];
-
-        $simItemTrefwoorden = $dataExtractor->getSimItemTrefwoorden();
-        if (!empty($simItemTrefwoorden)) {
-            $data['document']['SIM.item_trefwoorden'] = $simItemTrefwoorden;
-        }
-
-        $simSimloketSynoniemen = $dataExtractor->getSimSimloketSynoniemen();
-        if (!empty($simSimloketSynoniemen)) {
-            $data['document']['SIM.simloket_synoniemen'] = $simSimloketSynoniemen;
-        }
-
-        $spatial = $dataExtractor->getDctermsSpatial();
-        if (!empty($spatial)) {
-            $data['document']['DCTERMS.spatial'] = $spatial;
-        }
-
-        $audience = $dataExtractor->getDctermsAudience();
-        if (!empty($audience)) {
-            $data['document']['DCTERMS.audience'] = $audience;
-        }
-
-        $subject = $dataExtractor->getDctermsSubject();
-        if(!empty($subject)) {
-            $data['document']['DCTERMS.subject'] = $subject;
-        }
 
         return $data;
     }
