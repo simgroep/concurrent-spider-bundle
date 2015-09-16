@@ -62,7 +62,6 @@ class Html extends TypeAbstract implements DocumentTypeInterface
             'publishedDate' => date('Y-m-d\TH:i:s\Z'),
             'updatedDate' => date('Y-m-d\TH:i:s\Z'),
             'strippedContent' => strip_tags($content),
-            'collection' => ['Alles'],
             'description' => $dataExtractor->getDescription(),
             'keywords' => $dataExtractor->getKeywords(),
         ];

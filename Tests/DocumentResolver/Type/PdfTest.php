@@ -98,13 +98,8 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $resource = $this
                 ->getMockBuilder('VDB\Spider\Resource')
                 ->disableOriginalConstructor()
-                ->setMethods(['getCrawler', 'getResponse', 'getUri', 'getBody'])
+                ->setMethods(['getResponse', 'getUri', 'getBody'])
                 ->getMock();
-
-        $resource
-                ->expects($this->exactly(2))
-                ->method('getCrawler')
-                ->will($this->returnValue($crawler));
 
         $resource
             ->expects($this->exactly(3))
@@ -119,20 +114,19 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $type = new Pdf($pdfType);
         $data = $type->getData($resource);
 
-        $this->assertEquals(13, count($data['document']));
+        $this->assertEquals(11, count($data));
         $expectedKeys = [
             'id', 'url', 'content', 'title',
             'tstamp', 'contentLength', 'lastModified',
-            'date', 'publishedDate', 'SIM_archief',
-            'SIM.simfaq', 'type', 'strippedContent',
+            'date', 'publishedDate', 'type', 'strippedContent',
         ];
 
         foreach ($expectedKeys as $expectedKey) {
-            $this->assertArrayHasKey($expectedKey, $data['document']);
+            $this->assertArrayHasKey($expectedKey, $data);
         }
 
-        $this->assertEquals('dummyfile.pdf', $data['document']['title']);
-        $this->assertNotEmpty($data, $data['document']['content']);
+        $this->assertEquals('dummyfile.pdf', $data['title']);
+        $this->assertNotEmpty($data, $data['content']);
     }
 
     /**
@@ -179,14 +173,14 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $data = $type->getData($resource);
 
         //change that to: $this->assertEquals($expectedData, $data);
-        $this->assertEquals(11, count($data['document']));
-        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate', 'SIM_archief', 'SIM.simfaq'];
+        $this->assertEquals(9, count($data));
+        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate'];
         foreach ($expectedKeys as $expectedKey) {
-            $this->assertArrayHasKey($expectedKey, $data['document']);
+            $this->assertArrayHasKey($expectedKey, $data);
         }
 
-        $this->assertEquals('dummyfile.pdf', $data['document']['title']);
-        $this->assertNotEmpty($data, $data['document']['content']);
+        $this->assertEquals('dummyfile.pdf', $data['title']);
+        $this->assertNotEmpty($data, $data['content']);
     }
 
 }
