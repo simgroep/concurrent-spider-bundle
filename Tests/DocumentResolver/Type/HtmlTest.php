@@ -55,7 +55,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->exactly(3))
+        $uri->expects($this->exactly(2))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
@@ -68,13 +68,13 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(19))
+                ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->exactly(3))
+        $resource->expects($this->exactly(2))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -82,7 +82,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $data = $type->getData($resource);
 
         $this->assertEquals(0, count($crawler->filter('.test')));
-        $this->assertEquals(25, count($data['document']));
+        $this->assertEquals(16, count($data));
     }
 
     /**
@@ -105,7 +105,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->disableOriginalConstructor()
                 ->setMethods(['toString'])
                 ->getMock();
-        $uri->expects($this->exactly(3))
+        $uri->expects($this->exactly(2))
                 ->method('toString')
                 ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
 
@@ -118,13 +118,13 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(19))
+                ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
         $resource->expects($this->exactly(2))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
-        $resource->expects($this->exactly(3))
+        $resource->expects($this->exactly(2))
                 ->method('getUri')
                 ->will($this->returnValue($uri));
 
@@ -132,33 +132,22 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $data = $type->getData($resource);
 
         $expectedData = [
-            'document' => [
-                'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
-                'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
-                'content' => 'This is the text value.',
-                'title' => '',
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'type' => ["text/html","text","html"],
-                'contentLength' => 23,
-                'lastModified'=> date('Y-m-d\TH:i:s\Z'),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'lang' => 'nl-NL',
-                'author' => '',
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'updatedDate' => date('Y-m-d\TH:i:s\Z'),
-                'strippedContent' => 'This is the text value.',
-                'collection' => ["Alles"],
-                'description' => '',
-                'keywords'=> '',
-                'SIM_archief' => 'no',
-                'SIM.simfaq' => ['no'],
-                'DCTERMS.modified' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.identifier'=> 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
-                'DCTERMS.title' => '',
-                'DCTERMS.available' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.language'=> 'nl-NL',
-                'DCTERMS.type'=> 'webpagina'
-            ],
+            'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
+            'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
+            'content' => 'This is the text value.',
+            'title' => '',
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'type' => ["text/html","text","html"],
+            'contentLength' => 23,
+            'lastModified'=> date('Y-m-d\TH:i:s\Z'),
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'lang' => 'nl-NL',
+            'author' => '',
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
+            'strippedContent' => 'This is the text value.',
+            'description' => '',
+            'keywords' => '',
         ];
 
         $this->assertEquals($expectedData, $data);
@@ -197,7 +186,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->setMethods(['getCrawler', 'getResponse', 'getUri'])
                 ->getMock();
         $resource
-                ->expects($this->exactly(18))
+                ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
         $resource->expects($this->exactly(2))
@@ -211,38 +200,22 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $data = $type->getData($resource);
 
         $expectedData = [
-            'document' => [
-                'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
-                'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
-                'content' => 'This is the text value.',
-                'title' => 'Site dummy 1',
-                'tstamp' => date('Y-m-d\TH:i:s\Z'),
-                'type' => ["text/html","text","html"],
-                'contentLength' => 23,
-                'lastModified'=> date('Y-m-d\TH:i:s\Z'),
-                'date' => date('Y-m-d\TH:i:s\Z'),
-                'lang' => 'nl-NL',
-                'author' => 'Dummy Author',
-                'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-                'updatedDate' => date('Y-m-d\TH:i:s\Z'),
-                'strippedContent' => 'This is the text value.',
-                'collection' => ["Alles"],
-                'description' => 'Dummy description',
-                'keywords'=> 'keyword1,keyword2',
-                'SIM_archief' => 'yes',
-                'SIM.simfaq' => ['yes'],
-                'DCTERMS.modified' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.identifier'=> 'identifierurl',
-                'DCTERMS.title' => 'Title 2',
-                'DCTERMS.available' => date('Y-m-d\TH:i:s\Z'),
-                'DCTERMS.language'=> 'pl-PL',
-                'DCTERMS.type'=> 'dummytype',
-                'SIM.item_trefwoorden' => 'trefwoorden',
-                'SIM.simloket_synoniemen' => 'synoniemen',
-                'DCTERMS.spatial' => 'spatial',
-                'DCTERMS.audience' => 'audience',
-                'DCTERMS.subject' => 'subject'
-            ],
+            'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
+            'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
+            'content' => 'This is the text value.',
+            'title' => 'Site dummy 1',
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'type' => ["text/html","text","html"],
+            'contentLength' => 23,
+            'lastModified'=> date('Y-m-d\TH:i:s\Z'),
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'lang' => 'nl-NL',
+            'author' => 'Dummy Author',
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
+            'strippedContent' => 'This is the text value.',
+            'description' => 'Dummy description',
+            'keywords'=> 'keyword1,keyword2',
         ];
 
         $this->assertEquals($expectedData, $data);
