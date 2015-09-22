@@ -7,7 +7,6 @@ use PhpAmqpLib\Message\AMQPMessage;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
-use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
