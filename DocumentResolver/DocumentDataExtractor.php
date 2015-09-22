@@ -65,7 +65,8 @@ class DocumentDataExtractor
             $type = array_merge($contentType, explode('/', $contentType[0]));
         }
 
-        return $type;
+        //remove duplicates and empty values
+        return array_filter($type);
     }
 
     /**
