@@ -74,7 +74,7 @@ class RabbitMqPersistenceHandler implements PersistenceHandler
         }
 
         $document = $this->documentResolver->getDocumentByResource($resource);
-        $persistenceEvent = new PersistenceEvent($document, $resource);
+        $persistenceEvent = new PersistenceEvent($document, $resource, $crawlJob->getMetadata());
 
         $this->eventDispatcher->dispatch(PersistenceEvents::PRE_PERSIST, $persistenceEvent);
 
