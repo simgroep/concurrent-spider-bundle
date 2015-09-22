@@ -19,15 +19,22 @@ class PersistenceEvent extends Event
     private $resource;
 
     /**
+     * @var array
+     */
+    private $metadata;
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\PersistableDocument $document
      * @param \VDB\Spider\Resource                                 $resource
+     * @param array                                                $metadata
      */
-    public function __construct(PersistableDocument $document, Resource $resource)
+    public function __construct(PersistableDocument $document, Resource $resource, array $metadata)
     {
         $this->document = $document;
         $this->resource = $resource;
+        $this->metadata = $metadata;
     }
 
     /**
@@ -48,6 +55,16 @@ class PersistenceEvent extends Event
     public function getResource()
     {
         return $this->resource;
+    }
+
+    /**
+     * Returns metadata from crawljob.
+     *
+     * @return array
+     */
+    public function getMetadata()
+    {
+        return $this->metadata;
     }
 }
 
