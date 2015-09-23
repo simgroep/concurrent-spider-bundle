@@ -5,12 +5,12 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests\Event;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
 
-class PersistanceEventTest extends PHPUnit_Framework_TestCase
+class PersistenceEventTest extends PHPUnit_Framework_TestCase
 {
     /**
      * @test
      */
-    public function ifPersistanceEventReturnsCorrectObjects()
+    public function ifPersistenceEventReturnsCorrectObjects()
     {
         $document = $this->getMock('Simgroep\ConcurrentSpiderBundle\PersistableDocument');
 
