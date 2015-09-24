@@ -2,7 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
-use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 /**
@@ -28,10 +28,10 @@ class Queue
     /**
      * Constructor.
      *
-     * @param \PhpAmqpLib\Connection\AMQPConnection $connection
+     * @param \PhpAmqpLib\Connection\AbstractConnection $connection
      * @param string                                $queueName
      */
-    public function __construct(AMQPConnection $connection, $queueName)
+    public function __construct(AbstractConnection $connection, $queueName)
     {
         $this->connection = $connection;
         $this->queueName = $queueName;
