@@ -5,6 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle;
 use PhpAmqpLib\Message\AMQPMessage;
 use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
+use DateTime;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -48,12 +49,21 @@ class Indexer
      *
      * @return boolean
      */
-    public function isUrlIndexed($uri, array $metadata = [])
+    public function isUrlIndexedandNotExpired($uri, array $metadata = [])
     {
         $this->setCoreNameFromMetadata($metadata);
 
+        $expiresBeforeDate = new DateTime();
+        $expiresBeforeDate->modify('-8 hour');
+
+        $queryPhrase = sprintf(
+            "id:%s AND updatedDate:[%s TO NOW]",
+            sha1($uri),
+            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z')
+        );
+
         $query = $this->client->createSelect();
-        $query->setQuery(sprintf("id:%s", sha1($uri)));
+        $query->setQuery($queryPhrase);
 
         $result = $this->client->select($query);
 

@@ -25,12 +25,12 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(true));
 
@@ -75,12 +75,12 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -121,12 +121,12 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com/test/'))
             ->will($this->returnValue(true));
 
@@ -171,7 +171,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $eventDispatcher = $this
@@ -218,11 +218,11 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo($url))
             ->will($this->returnValue(true));
 
