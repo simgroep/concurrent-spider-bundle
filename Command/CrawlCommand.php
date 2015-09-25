@@ -112,7 +112,7 @@ class CrawlCommand extends Command
             return;
         }
 
-        if ($this->indexer->isUrlIndexed($crawlJob->getUrl(), $crawlJob->getMetadata())) {
+        if ($this->indexer->isUrlIndexedAndNotExpired($crawlJob->getUrl(), $crawlJob->getMetadata())) {
 
             try {
                 $requestHandler = $this->spider->getRequestHandler();

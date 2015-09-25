@@ -90,7 +90,7 @@ class DiscoverUrlListener
                 continue;//url blacklisted, so go to next one
             }
 
-            if (!$this->indexer->isUrlIndexed($uri->toString(), $crawlJob->getMetadata())) {
+            if (!$this->indexer->isUrlIndexedandNotExpired($uri->toString(), $crawlJob->getMetadata())) {
                 $job = new CrawlJob(
                     $uri->normalize()->toString(),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
