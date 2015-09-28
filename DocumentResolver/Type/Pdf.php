@@ -82,7 +82,8 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
             'lastModified' => $dataExtractor->getLastModified(),
             'date' => date('Y-m-d\TH:i:s\Z'),
             'publishedDate' => date('Y-m-d\TH:i:s\Z'),
-            'type' => ['application/pdf']
+            'type' => ['application/pdf'],
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
         ];
 
         return $data;

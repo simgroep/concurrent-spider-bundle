@@ -114,11 +114,11 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $type = new Pdf($pdfType);
         $data = $type->getData($resource);
 
-        $this->assertEquals(11, count($data));
+        $this->assertEquals(12, count($data));
         $expectedKeys = [
             'id', 'url', 'content', 'title',
             'tstamp', 'contentLength', 'lastModified',
-            'date', 'publishedDate', 'type', 'strippedContent',
+            'date', 'publishedDate', 'type', 'strippedContent', 'updatedDate',
         ];
 
         foreach ($expectedKeys as $expectedKey) {
@@ -210,7 +210,7 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $type = new Pdf($pdfType);
         $data = $type->getData($resource);
 
-        $this->assertEquals(11, count($data));
+        $this->assertEquals(12, count($data));
         $expectedKeys = [
             'id', 'url', 'content', 'title',
             'tstamp', 'contentLength', 'lastModified',
