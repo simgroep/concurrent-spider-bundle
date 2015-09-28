@@ -25,15 +25,9 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $expiresBeforeDate = new DateTime();
         $expiresBeforeDate->modify('-8 hour');
 
-        $queryPhrase = sprintf(
-            "id:%s AND updatedDate:[%s TO NOW]",
-            sha1($url),
-            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z')
-        );
-
-        $solrQuery->expects($this->once())
-            ->method('setQuery')
-            ->with($this->equalTo($queryPhrase));
+        $solrQuery
+            ->expects($this->once())
+            ->method('setQuery');
 
         $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
             ->disableOriginalConstructor()
