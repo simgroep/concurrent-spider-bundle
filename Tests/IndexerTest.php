@@ -5,6 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests;
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
+use DateTime;
 
 class IndexerTest extends PHPUnit_Framework_TestCase
 {
@@ -21,9 +22,12 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setQuery'])
             ->getMock();
 
-        $solrQuery->expects($this->once())
-            ->method('setQuery')
-            ->with($this->equalTo(sprintf("id:%s", sha1($url))));
+        $expiresBeforeDate = new DateTime();
+        $expiresBeforeDate->modify('-8 hour');
+
+        $solrQuery
+            ->expects($this->once())
+            ->method('setQuery');
 
         $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
             ->disableOriginalConstructor()
@@ -48,7 +52,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($solrResult));
 
         $indexer = new Indexer($solrClient, []);
-        $actual = $indexer->isUrlIndexed($url, ['core' => 'coreName']);
+        $actual = $indexer->isUrlIndexedAndNotExpired($url, ['core' => 'coreName']);
 
         $this->assertTrue($actual);
     }

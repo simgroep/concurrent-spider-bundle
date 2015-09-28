@@ -49,6 +49,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
             'lastModified' => $dataExtractor->getLastModified(),
             'date' => date('Y-m-d\TH:i:s\Z'),
             'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
         ];
 
         return $data;

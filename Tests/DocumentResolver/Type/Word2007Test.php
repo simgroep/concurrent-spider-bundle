@@ -99,8 +99,8 @@ class Word2007Test extends PHPUnit_Framework_TestCase
         $type = new Word2007();
         $data = $type->getData($resource);
 
-        $this->assertEquals(9, count($data));
-        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate'];
+        $this->assertEquals(10, count($data));
+        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate', 'updatedDate'];
         foreach ($expectedKeys as $expectedKey) {
             $this->assertArrayHasKey($expectedKey, $data);
         }

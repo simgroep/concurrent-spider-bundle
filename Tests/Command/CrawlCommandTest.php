@@ -32,11 +32,11 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed', 'deleteDocument'])
+            ->setMethods(['isUrlIndexedAndNotExpired', 'deleteDocument'])
             ->getMock();
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'), ['core' => 'corename'])
             ->will($this->returnValue(true));
         $indexer
@@ -150,11 +150,11 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'), ['core' => 'corename'])
             ->will($this->returnValue(true));
 
@@ -245,12 +245,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -344,12 +344,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->never())
-            ->method('isUrlIndexed');
+            ->method('isUrlIndexedAndNotExpired');
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -425,12 +425,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -534,12 +534,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -648,12 +648,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -740,12 +740,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
@@ -832,12 +832,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['isUrlIndexed'])
+            ->setMethods(['isUrlIndexedAndNotExpired'])
             ->getMock();
 
         $indexer
             ->expects($this->once())
-            ->method('isUrlIndexed')
+            ->method('isUrlIndexedAndNotExpired')
             ->with($this->equalTo('https://github.com'))
             ->will($this->returnValue(false));
 
