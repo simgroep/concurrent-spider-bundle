@@ -213,6 +213,14 @@ class CrawlCommand extends Command
         return ($firstHost === $secondHost);
     }
 
+    /**
+     * Check if given url is whitelisted
+     *
+     * @param string $url
+     * @param array $whitelist
+     *
+     * @return boolean
+     */
     private function isUrlWhitelisted($url, array $whitelist)
     {
         $isWhitelisted = false;
