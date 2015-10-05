@@ -30,6 +30,11 @@ class Indexer
     private $mapping;
 
     /**
+     * @var integer
+     */
+    private $hoursBeforeExpired = 8;
+
+    /**
      * Constructor.
      *
      * @param \Solarium\Client $client
@@ -54,7 +59,7 @@ class Indexer
         $this->setCoreNameFromMetadata($metadata);
 
         $expiresBeforeDate = new DateTime();
-        $expiresBeforeDate->modify('-8 hour');
+        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
 
         $queryPhrase = sprintf(
             "id:%s AND updatedDate:[%s TO NOW]",
@@ -68,6 +73,28 @@ class Indexer
         $result = $this->client->select($query);
 
         return ($result->getNumFound() > 0);
+    }
+
+    /**
+     * Returns url's that are expired.
+     *
+     * @param string $core
+     *
+     * @return \Solarium\QueryType\Select\Result\Result
+     */
+    public function findExpiredUrls($core)
+    {
+        $this->client->getEndpoint()->setCore($core);
+
+        $expiresBeforeDate = new DateTime();
+        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
+
+        $queryPhrase = sprintf("updatedDate:[* TO %s]", $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'));
+
+        $query = $this->client->createSelect();
+        $query->setQuery($queryPhrase);
+
+        return $this->client->select($query);
     }
 
     /**

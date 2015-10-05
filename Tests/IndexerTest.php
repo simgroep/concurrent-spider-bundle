@@ -148,4 +148,36 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $message = new AMQPMessage($bodyCrawlJob);
         $indexer->deleteDocument($message);
     }
+
+    /**
+     * @test
+     * @testdox Tests the structure of the query phrase to see if it's looking for a date range.
+     */
+    public function isQueryPhraseADateRangeWhenSearchingForExpiredUrls()
+    {
+        $selectQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $selectQuery
+            ->expects($this->once())
+            ->method('setQuery')
+            ->with($this->callback(function($subject) {
+                return preg_match('/^updatedDate:\[\* TO .*\]$/', $subject);
+            }));
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient
+            ->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($selectQuery));
+
+        $indexer = new Indexer($solrClient, []);
+        $indexer->findExpiredUrls('test');
+    }
 }
