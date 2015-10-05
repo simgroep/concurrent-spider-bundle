@@ -94,9 +94,7 @@ class Indexer
         $query = $this->client->createSelect();
         $query->setQuery($queryPhrase);
 
-        $result = $this->client->select($query);
-
-        return $result;
+        return $this->client->select($query);
     }
 
     /**
