@@ -105,7 +105,7 @@ class CrawlCommand extends Command
     {
         $crawlJob = CrawlJob::create($message);
 
-        if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl()) && !$this->isUrlWhitelisted($crawlJob->getUrl(), $crawlJob->getWhitelist())) {
+        if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl()) && !CrawlJob::isUrlWhitelisted($crawlJob->getUrl(), $crawlJob->getWhitelist())) {
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
 
@@ -213,27 +213,4 @@ class CrawlCommand extends Command
         return ($firstHost === $secondHost);
     }
 
-    /**
-     * Check if given url is whitelisted
-     *
-     * @param string $url
-     * @param array $whitelist
-     *
-     * @return boolean
-     */
-    private function isUrlWhitelisted($url, array $whitelist)
-    {
-        $isWhitelisted = false;
-
-        array_walk(
-            $whitelist,
-            function ($whitelistUrl) use ($url, &$isWhitelisted) {
-                if (@preg_match('#' . $whitelistUrl . '#', $url)) {
-                    $isWhitelisted = true;
-                }
-            }
-        );
-
-        return $isWhitelisted;
-    }
 }
