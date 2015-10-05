@@ -24,6 +24,11 @@ class CrawlJob
     /**
      * @var array
      */
+    private $whitelist;
+
+    /**
+     * @var array
+     */
     private $metadata;
 
     /**
@@ -32,13 +37,15 @@ class CrawlJob
      * @var string $url
      * @var string $baseUrl
      * @var array  $blacklist
+     * @var array  $whitelist
      * @var array  $metadata
      */
-    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [])
+    public function __construct($url, $baseUrl, array $blacklist = [], array $whitelist = [], array $metadata = [])
     {
         $this->url = $url;
         $this->baseUrl = $baseUrl;
         $this->blacklist = $blacklist;
+        $this->whitelist = $whitelist;
         $this->metadata = $metadata;
     }
 
@@ -54,9 +61,10 @@ class CrawlJob
         $urlToCrawl = $data['url'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
+        $whitelist = $data['whitelist'];
         $metadata = $data['metadata'];
 
-        return new static($urlToCrawl, $baseUrl, $blacklist, $metadata);
+        return new static($urlToCrawl, $baseUrl, $blacklist, $whitelist, $metadata);
     }
 
     /**
@@ -70,6 +78,7 @@ class CrawlJob
             'url' => $this->url,
             'base_url' => $this->baseUrl,
             'blacklist' => $this->blacklist,
+            'whitelist' => $this->whitelist,
             'metadata' => $this->metadata,
         ];
     }
@@ -112,5 +121,15 @@ class CrawlJob
     public function getBlacklist()
     {
         return $this->blacklist;
+    }
+
+    /**
+     * Returns the whitelist that belongs to this job.
+     *
+     * @return array
+     */
+    public function getWhitelist()
+    {
+        return $this->whitelist;
     }
 }
