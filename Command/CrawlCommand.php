@@ -109,8 +109,8 @@ class CrawlCommand extends Command
             $data['url'],
             $data['base_url'],
             $data['blacklist'],
-            $data['whitelist'],
-            $data['metadata']
+            $data['metadata'],
+            $data['whitelist']
         );
 
         if (false === $crawlJob->isAllowedToCrawl()) {

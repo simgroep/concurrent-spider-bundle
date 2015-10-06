@@ -95,8 +95,8 @@ class DiscoverUrlListener
                     $uri->normalize()->toString(),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
-                    $crawlJob->getWhitelist(),
-                    $crawlJob->getMetadata()
+                    $crawlJob->getMetadata(),
+                    $crawlJob->getWhitelist()
                 );
 
                 $this->queue->publishJob($job);

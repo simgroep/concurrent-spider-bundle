@@ -124,8 +124,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -220,8 +220,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -320,8 +320,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -402,8 +402,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'gibberish',
                 'base_url' => 'gibberish',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -512,8 +512,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -627,8 +627,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'whitelist' => [],
                 'metadata' => ['core' => 'corename'],
+                'whitelist' => [],
             ]
         );
 
@@ -720,8 +720,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -813,8 +813,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
-                'metadata' => ['core' => 'corename']
             ]
         );
 
@@ -901,8 +901,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'http://ggg.nl',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => [],
                 'whitelist' => ['http://ggg.nl'],
-                'metadata' => []
             ]
         );
 
@@ -988,8 +988,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
+                'metadata' => [],
                 'whitelist' => [],
-                'metadata' => []
             ]
         );
 

@@ -17,8 +17,8 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'url' => 'http://simgroep.nl',
             'base_url' => 'http://simgroep.nl',
             'blacklist' => [],
-            'whitelist' => [],
             'metadata' => [],
+            'whitelist' => [],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -53,8 +53,8 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'url' => 'https://github.com',
             'base_url' => 'https://github.com',
             'blacklist' => [],
-            'whitelist' => [],
             'metadata' => ['core' => 'github'],
+            'whitelist' => [],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
