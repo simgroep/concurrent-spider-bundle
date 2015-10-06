@@ -24,12 +24,12 @@ class CrawlJob
     /**
      * @var array
      */
-    private $whitelist;
+    private $metadata;
 
     /**
      * @var array
      */
-    private $metadata;
+    private $whitelist;
 
     /**
      * Constrcutor.
@@ -37,16 +37,16 @@ class CrawlJob
      * @var string $url
      * @var string $baseUrl
      * @var array  $blacklist
-     * @var array  $whitelist
      * @var array  $metadata
+     * @var array  $whitelist
      */
-    public function __construct($url, $baseUrl, array $blacklist = [], array $whitelist = [], array $metadata = [])
+    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [], array $whitelist = [])
     {
         $this->url = $url;
         $this->baseUrl = $baseUrl;
         $this->blacklist = $blacklist;
-        $this->whitelist = $whitelist;
         $this->metadata = $metadata;
+        $this->whitelist = $whitelist;
     }
 
     /**
@@ -61,10 +61,10 @@ class CrawlJob
         $urlToCrawl = $data['url'];
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
-        $whitelist = $data['whitelist'];
         $metadata = $data['metadata'];
+        $whitelist = $data['whitelist'];
 
-        return new self($urlToCrawl, $baseUrl, $blacklist, $whitelist, $metadata);
+        return new self($urlToCrawl, $baseUrl, $blacklist, $metadata, $whitelist);
     }
 
     /**
@@ -135,8 +135,8 @@ S     *
             'url' => $this->url,
             'base_url' => $this->baseUrl,
             'blacklist' => $this->blacklist,
-            'whitelist' => $this->whitelist,
             'metadata' => $this->metadata,
+            'whitelist' => $this->whitelist,
         ];
     }
 

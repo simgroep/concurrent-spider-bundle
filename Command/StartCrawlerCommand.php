@@ -60,8 +60,8 @@ class StartCrawlerCommand extends Command
             $input->getArgument('url'),
             $input->getArgument('url'),
             $input->getOption('blacklist'),
-            $input->getOption('whitelist'),
-            $metadata
+            $metadata,
+            $input->getOption('whitelist')
         );
 
         $this->queue->publishJob($job);
