@@ -103,9 +103,17 @@ class CrawlCommand extends Command
      */
     public function crawlUrl(AMQPMessage $message)
     {
-        $crawlJob = CrawlJob::create($message);
+        $data = json_decode($message->body, true);
 
-        if (!$this->areHostsEqual($crawlJob->getUrl(), $crawlJob->getBaseUrl()) && !CrawlJob::isUrlWhitelisted($crawlJob->getUrl(), $crawlJob->getWhitelist())) {
+        $crawlJob = new CrawlJob(
+            $data['url'],
+            $data['base_url'],
+            $data['blacklist'],
+            $data['whitelist'],
+            $data['metadata']
+        );
+
+        if (false === $crawlJob->isAllowedToCrawl()) {
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
 
@@ -191,26 +199,6 @@ class CrawlCommand extends Command
     public function markAsFailed(CrawlJob $crawlJob, $errorMessage)
     {
         $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl());
-    }
-
-    /**
-     * Indicates whether the hostname parts of two urls are equal.
-     *
-     * @param string $firstUrl
-     * @param string $secondUrl
-     *
-     * @return boolean
-     */
-    private function areHostsEqual($firstUrl, $secondUrl)
-    {
-        $firstHost = parse_url($firstUrl, PHP_URL_HOST);
-        $secondHost = parse_url($secondUrl, PHP_URL_HOST);
-
-        if (is_null($firstHost) || is_null($secondHost)) {
-            return false;
-        }
-
-        return ($firstHost === $secondHost);
     }
 
 }
