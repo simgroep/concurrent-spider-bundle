@@ -75,7 +75,7 @@ class CrawlJob
      *
      * @return boolean
      */
-   public function isUrlWhitelisted($url, array $whitelist)
+   public static function isUrlWhitelisted($url, array $whitelist)
     {
         $isWhitelisted = false;
 
