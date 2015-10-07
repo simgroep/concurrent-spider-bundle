@@ -50,6 +50,7 @@ class Configuration implements ConfigurationInterface
                         ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('8080')->end()
                         ->scalarNode('path')->isRequired()->cannotBeEmpty()->defaultValue('/solr')->end()
                         ->scalarNode('proxy')->defaultValue(null)->end()
+                        ->integerNode('timeout')->isRequired()->cannotBeEmpty()->defaultValue(10)->end()
                     ->end()
                 ->end()
                 ->scalarNode('logger_service')
