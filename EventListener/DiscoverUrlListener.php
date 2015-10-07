@@ -99,7 +99,9 @@ class DiscoverUrlListener
                     $crawlJob->getWhitelist()
                 );
 
-                $this->queue->publishJob($job);
+                if ($job->isAllowedToCrawl()) {
+                    $this->queue->publishJob($job);
+                }
             }
         }
     }
