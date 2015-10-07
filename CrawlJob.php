@@ -91,7 +91,7 @@ class CrawlJob
 
     /**
      * Indicates whether the hostname parts of url and base_url are equal.
-S     *
+     * 
      * @return boolean
      */
     private function areHostsEqual()
