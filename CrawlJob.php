@@ -27,19 +27,26 @@ class CrawlJob
     private $metadata;
 
     /**
+     * @var array
+     */
+    private $whitelist;
+
+    /**
      * Constrcutor.
      *
      * @var string $url
      * @var string $baseUrl
      * @var array  $blacklist
      * @var array  $metadata
+     * @var array  $whitelist
      */
-    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [])
+    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [], array $whitelist = [])
     {
         $this->url = $url;
         $this->baseUrl = $baseUrl;
         $this->blacklist = $blacklist;
         $this->metadata = $metadata;
+        $this->whitelist = $whitelist;
     }
 
     /**
@@ -55,8 +62,66 @@ class CrawlJob
         $baseUrl = $data['base_url'];
         $blacklist = $data['blacklist'];
         $metadata = $data['metadata'];
+        $whitelist = $data['whitelist'];
 
-        return new static($urlToCrawl, $baseUrl, $blacklist, $metadata);
+        return new self($urlToCrawl, $baseUrl, $blacklist, $metadata, $whitelist);
+    }
+
+    /**
+     * Check if url is whitelisted
+     *
+     * @return boolean
+     */
+    private function isUrlWhitelisted()
+    {
+        $isWhitelisted = false;
+        $url = $this->url;
+
+        array_walk(
+            $this->whitelist,
+            function ($whitelistUrl) use ($url, &$isWhitelisted) {
+                if (@preg_match('#' . $whitelistUrl . '#', $url)) {
+                    $isWhitelisted = true;
+                }
+            }
+        );
+
+        return $isWhitelisted;
+    }
+
+    /**
+     * Indicates whether the hostname parts of url and base_url are equal.
+     * 
+     * @return boolean
+     */
+    private function areHostsEqual()
+    {
+        $firstHost = parse_url($this->url, PHP_URL_HOST);
+        $secondHost = parse_url($this->baseUrl, PHP_URL_HOST);
+
+        if (is_null($firstHost) || is_null($secondHost)) {
+            return false;
+        }
+
+        return ($firstHost === $secondHost);
+    }
+
+    /**
+     * Check if url form job is allowed to be crawled
+     *
+     * @return boolean
+     */
+    public function isAllowedToCrawl()
+    {
+        if (true === $this->isUrlWhitelisted()) {
+            return true;
+        }
+
+        if (true === $this->areHostsEqual()) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -71,6 +136,7 @@ class CrawlJob
             'base_url' => $this->baseUrl,
             'blacklist' => $this->blacklist,
             'metadata' => $this->metadata,
+            'whitelist' => $this->whitelist,
         ];
     }
 
@@ -112,5 +178,15 @@ class CrawlJob
     public function getBlacklist()
     {
         return $this->blacklist;
+    }
+
+    /**
+     * Returns the whitelist that belongs to this job.
+     *
+     * @return array
+     */
+    public function getWhitelist()
+    {
+        return $this->whitelist;
     }
 }

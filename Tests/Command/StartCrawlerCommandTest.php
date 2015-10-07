@@ -18,6 +18,7 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'base_url' => 'http://simgroep.nl',
             'blacklist' => [],
             'metadata' => [],
+            'whitelist' => [],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -53,6 +54,7 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'base_url' => 'https://github.com',
             'blacklist' => [],
             'metadata' => ['core' => 'github'],
+            'whitelist' => [],
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
