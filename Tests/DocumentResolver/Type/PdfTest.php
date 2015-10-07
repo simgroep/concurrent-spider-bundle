@@ -64,13 +64,10 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $response = $this
             ->getMockBuilder('Guzzle\Http\Message\Response')
             ->disableOriginalConstructor()
-            ->setMethods(['getBody', 'getLastModified', 'getContentDisposition'])
+            ->setMethods(['getBody', 'getLastModified'])
             ->getMock();
 
-        $response
-            ->expects($this->once())
-            ->method('getContentDisposition')
-            ->will($this->returnValue('filename="dummyfileFromContent.pdf"'));
+        $response->addHeader('Content-Disposition', 'filename="dummyfileFromContent.pdf"');
 
         $response
             ->expects($this->once())
@@ -160,13 +157,8 @@ class PdfTest extends PHPUnit_Framework_TestCase
         $response = $this
             ->getMockBuilder('Guzzle\Http\Message\Response')
             ->disableOriginalConstructor()
-            ->setMethods(['getBody', 'getLastModified', 'getContentDisposition'])
+            ->setMethods(['getBody', 'getLastModified'])
             ->getMock();
-
-        $response
-            ->expects($this->once())
-            ->method('getContentDisposition')
-            ->will($this->returnValue(''));
 
         $response
             ->expects($this->once())

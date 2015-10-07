@@ -37,8 +37,13 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
     protected function getFileNameFromResource(Resource $resource)
     {
         $regex = '/.*filename=[\'\"]([^\'\"]+)/';
+        $response = $resource->getResponse();
 
-        if (preg_match($regex, $resource->getResponse()->getContentDisposition(), $matches)) {
+        if (!$response->hasHeader('Content-Disposition')) {
+            return null;
+        }
+
+        if (preg_match($regex, $response->getContentDisposition(), $matches)) {
             return $matches['1'];
         }
     }
