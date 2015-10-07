@@ -95,6 +95,7 @@
                         <argument key="host">%simgroep_concurrent_spider.solr.host%</argument>
                         <argument key="port">%simgroep_concurrent_spider.solr.port%</argument>
                         <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
+                        <argument key="path">%simgroep_concurrent_spider.solr.timeout%</argument>
                     </argument>
                 </argument>
                 <argument key="adapteroptions" type="collection">
