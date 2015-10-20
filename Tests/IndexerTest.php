@@ -165,7 +165,8 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('setQuery')
             ->with($this->callback(function($subject) {
                 return preg_match('/^updatedDate:\[\* TO .*\]$/', $subject);
-            }));
+            }))
+            ->will($this->returnValue($selectQuery));
 
         $solrClient = $this
             ->getMockBuilder('Solarium\Client')
