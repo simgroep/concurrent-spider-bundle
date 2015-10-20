@@ -93,8 +93,9 @@ class Indexer
 
         $queryPhrase = sprintf("updatedDate:[* TO %s]", $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'));
 
-        $query = $this->client->createSelect();
-        $query->setQuery($queryPhrase);
+        $query = $this->client->createSelect()
+            ->setQuery($queryPhrase)
+            ->setRows(1000);
 
         return $this->client->select($query);
     }
