@@ -58,13 +58,15 @@ class Indexer
     {
         $this->setCoreNameFromMetadata($metadata);
 
+        $currentDate = new DateTime();
         $expiresBeforeDate = new DateTime();
         $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
 
         $queryPhrase = sprintf(
-            "id:%s AND updatedDate:[%s TO NOW]",
+            "id:%s AND updatedDate:[%s TO %s]",
             sha1($uri),
-            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z')
+            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'),
+            $currentDate->format('Y-m-d\TH:i:s\Z')
         );
 
         $query = $this->client->createSelect();
