@@ -23,6 +23,10 @@
         {
             "type": "vcs",
             "url": "https://github.com/keesschepers/solarium.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/keesschepers/NelmioSolariumBundle.git"
         }
     ],
     "license": "MIT",
