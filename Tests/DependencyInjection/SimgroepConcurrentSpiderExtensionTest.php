@@ -21,7 +21,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $container
-            ->expects($this->exactly(16))
+            ->expects($this->exactly(12))
             ->method('setParameter')
             ->withConsecutive(
                 [$this->equalTo('simgroep_concurrent_spider.maximum_resource_size'), $this->anything()],
@@ -32,11 +32,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.password'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.discoveredurls_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.indexer_queue'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solr.host'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solr.port'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solr.path'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solr.timeout'), $this->anything()],
-                [$this->equalTo('simgroep_concurrent_spider.solr.proxy'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.solr_client'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.css_blacklist'), $this->anything()]
@@ -55,13 +51,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                     'discoveredurls_queue' => 'discovered_urls',
                     'indexer_queue' => 'indexer',
                 ],
-                'solr' => [
-                    'host' => 'localhost',
-                    'port' => 8080,
-                    'path' => '/solr',
-                    'timeout' => 5,
-                    'proxy' => '127.0.0.1:808080',
-                ],
+                'solr_client' => 'default',
                 'mapping' => [
                     'id' => 'id',
                     'url' => 'url',
