@@ -88,24 +88,10 @@
             <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
         </service>
 
-        <service id="simgroep_concurrent_spider.solr_client" class="Solarium\Client">
-            <argument type="collection">
-                <argument key="endpoint" type="collection">
-                    <argument key="solr_server" type="collection">
-                        <argument key="host">%simgroep_concurrent_spider.solr.host%</argument>
-                        <argument key="port">%simgroep_concurrent_spider.solr.port%</argument>
-                        <argument key="path">%simgroep_concurrent_spider.solr.path%</argument>
-                        <argument key="timeout">%simgroep_concurrent_spider.solr.timeout%</argument>
-                    </argument>
-                </argument>
-                <argument key="adapteroptions" type="collection">
-                    <argument key="proxy">%simgroep_concurrent_spider.solr.proxy%</argument><!-- solr curl adapter proxy setting -->
-                </argument>
-            </argument>
-        </service>
-
         <service id="simgroep_concurrent_spider.indexer" class="Simgroep\ConcurrentSpiderBundle\Indexer">
-            <argument type="service" id="simgroep_concurrent_spider.solr_client" />
+            <argument type="expression">
+                service(parameter('simgroep_concurrent_spider.solr_client'))
+            </argument>
             <argument>%simgroep_concurrent_spider.mapping%</argument>
         </service>
 
