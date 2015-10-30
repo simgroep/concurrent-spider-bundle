@@ -22,23 +22,23 @@
         },
         {
             "type": "vcs",
-            "url": "https://github.com/keesschepers/solarium.git"
+            "url": "https://github.com/lkalinka/solarium.git"
         },
         {
             "type": "vcs",
-            "url": "https://github.com/keesschepers/NelmioSolariumBundle.git"
+            "url": "https://github.com/lkalinka/NelmioSolariumBundle.git"
         }
     ],
     "license": "MIT",
     "require": {
         "php": ">=5.4.0",
         "vdb/php-spider": "dev-master",
-        "solarium/solarium": "~3",
+        "solarium/solarium": "dev-master",
         "videlalvaro/php-amqplib": "~2",
         "smalot/pdfparser": "dev-master",
         "symfony/symfony": ">=2.4,<3",
         "phpoffice/phpword": "dev-master",
-        "nelmio/solarium-bundle": "^2.2@dev"
+        "nelmio/solarium-bundle": "dev-master"
     },
     "require-dev": {
         "phpunit/phpunit": "~4",
