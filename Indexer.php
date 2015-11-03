@@ -86,7 +86,7 @@ class Indexer
      */
     public function findExpiredUrls($core)
     {
-        $this->client->getEndpoint()->setCore($core);
+        $this->setCoreNameFromMetadata(['core' => $core]);
 
         $expiresBeforeDate = new DateTime();
         $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
@@ -172,7 +172,9 @@ class Indexer
     protected function setCoreNameFromMetadata(array $metadata)
     {
         if (array_key_exists('core', $metadata)) {
-            $this->client->getEndpoint()->setCore($metadata['core']);
+            foreach($this->client->getEndPoints() as $endpoint) {
+                $endpoint->setCore($metadata['core']);
+            }
         }
     }
 
