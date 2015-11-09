@@ -143,7 +143,7 @@ class Indexer
             }
         }
 
-        $this->documents[$core] = $document;
+        $this->documents[$core][] = $document;
 
         if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
             foreach (array_keys($this->documents) as $core) {
