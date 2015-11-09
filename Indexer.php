@@ -148,6 +148,7 @@ class Indexer
         if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
             foreach (array_keys($this->documents) as $core) {
                 $this->setCoreNameFromMetadata(['core' => $core]);
+                $updateQuery = $this->client->createUpdate();
                 $this->addDocuments($updateQuery, $this->documents[$core]);
             }
 
