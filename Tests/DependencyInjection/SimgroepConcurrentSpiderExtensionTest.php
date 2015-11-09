@@ -21,7 +21,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $container
-            ->expects($this->exactly(12))
+            ->expects($this->exactly(13))
             ->method('setParameter')
             ->withConsecutive(
                 [$this->equalTo('simgroep_concurrent_spider.maximum_resource_size'), $this->anything()],
@@ -34,6 +34,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.queue.indexer_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.solr_client'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.minimal_document_save_amount'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.css_blacklist'), $this->anything()]
             );
@@ -52,6 +53,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                     'indexer_queue' => 'indexer',
                 ],
                 'solr_client' => 'default',
+                'minimal_document_save_amount' => 50,
                 'mapping' => [
                     'id' => 'id',
                     'url' => 'url',
