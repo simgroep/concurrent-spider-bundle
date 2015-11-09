@@ -51,7 +51,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('select')
             ->will($this->returnValue($solrResult));
 
-        $indexer = new Indexer($solrClient, []);
+        $indexer = new Indexer($solrClient, [], 50);
         $actual = $indexer->isUrlIndexedAndNotExpired($url, ['core' => 'coreName']);
 
         $this->assertTrue($actual);
@@ -61,9 +61,10 @@ class IndexerTest extends PHPUnit_Framework_TestCase
      * @test
      * @testdox Tests if every 10 documents the index saves them.
      */
-    public function ifEveryTenDocumentsAreSaved()
+    public function ifEveryFiftyDocumentsAreSaved()
     {
-        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Update\Query\Query')
+        $solrQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Update\Query\Query')
             ->disableOriginalConstructor()
             ->setMethods(null)
             ->getMock();
@@ -72,7 +73,9 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder('Solarium\Client')
             ->setMethods(['createUpdate', 'update'])
             ->getMock();
-        $solrClient->expects($this->any())
+
+        $solrClient
+            ->expects($this->any())
             ->method('createUpdate')
             ->will($this->returnValue($solrQuery));
 
@@ -85,9 +88,9 @@ class IndexerTest extends PHPUnit_Framework_TestCase
                 ]
         ];
 
-        $indexer = new Indexer($solrClient, $mapping);
+        $indexer = new Indexer($solrClient, $mapping, 50);
 
-        for ($i = 0; $i <= 9; $i++) {
+        for ($i = 0; $i <= 49; $i++) {
             $body = json_encode(
                 [
                     'document' => [
@@ -136,7 +139,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $mapping = [];
 
-        $indexer = new Indexer($solrClient, $mapping);
+        $indexer = new Indexer($solrClient, $mapping, 50);
 
         $bodyCrawlJob = json_encode(
             [
@@ -178,7 +181,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('createSelect')
             ->will($this->returnValue($selectQuery));
 
-        $indexer = new Indexer($solrClient, []);
+        $indexer = new Indexer($solrClient, [], 50);
         $indexer->findExpiredUrls('test');
     }
 }
