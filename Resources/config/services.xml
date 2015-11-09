@@ -93,6 +93,7 @@
                 service(parameter('simgroep_concurrent_spider.solr_client'))
             </argument>
             <argument>%simgroep_concurrent_spider.mapping%</argument>
+            <argument>%simgroep_concurrent_spider.minimal_document_save_amount%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.discover_url_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener">
