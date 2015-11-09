@@ -51,7 +51,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('select')
             ->will($this->returnValue($solrResult));
 
-        $indexer = new Indexer($solrClient, []);
+        $indexer = new Indexer($solrClient, [], 50);
         $actual = $indexer->isUrlIndexedAndNotExpired($url, ['core' => 'coreName']);
 
         $this->assertTrue($actual);
@@ -85,7 +85,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
                 ]
         ];
 
-        $indexer = new Indexer($solrClient, $mapping);
+        $indexer = new Indexer($solrClient, $mapping, 50);
 
         for ($i = 0; $i <= 9; $i++) {
             $body = json_encode(
@@ -136,7 +136,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $mapping = [];
 
-        $indexer = new Indexer($solrClient, $mapping);
+        $indexer = new Indexer($solrClient, $mapping, 50);
 
         $bodyCrawlJob = json_encode(
             [
@@ -178,7 +178,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->method('createSelect')
             ->will($this->returnValue($selectQuery));
 
-        $indexer = new Indexer($solrClient, []);
+        $indexer = new Indexer($solrClient, [], 50);
         $indexer->findExpiredUrls('test');
     }
 }

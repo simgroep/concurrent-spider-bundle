@@ -34,16 +34,20 @@ class Indexer
      */
     private $hoursBeforeExpired = 8;
 
+    private $minimalDocumentSaveAmount;
+
     /**
      * Constructor.
      *
      * @param \Solarium\Client $client
-     * @param array $mapping
+     * @param array            $mapping
+     * @param integer          $minimalDocumentSaveAmount
      */
-    public function __construct(Client $client, array $mapping)
+    public function __construct(Client $client, array $mapping, $minimalDocumentSaveAmount)
     {
         $this->client = $client;
         $this->mapping = $mapping;
+        $this->minimalDocumentSaveAmount = $minimalDocumentSaveAmount;
     }
 
     /**
@@ -108,8 +112,11 @@ class Indexer
     public function prepareDocument(AMQPMessage $message)
     {
         $data = json_decode($message->body, true);
+        $core = '';
 
-        $this->setCoreNameFromMetadata($data['metadata']);
+        if (array_key_exists('core', $data['metadata'])) {
+            $core = $data['metadata']['core'];
+        }
 
         $updateQuery = $this->client->createUpdate();
         $document = $updateQuery->createDocument();
@@ -136,10 +143,14 @@ class Indexer
             }
         }
 
-        $this->documents[] = $document;
+        $this->documents[$core] = $document;
 
-        if (count($this->documents) >= 10) {
-            $this->addDocuments($updateQuery, $this->documents);
+        if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
+            foreach (array_keys($this->documents) as $core) {
+                $this->setCoreNameFromMetadata(['core' => $core]);
+                $this->addDocuments($updateQuery, $this->documents[$core]);
+            }
+
             $this->documents = [];
         }
     }
