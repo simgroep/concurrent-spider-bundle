@@ -81,6 +81,19 @@ class Indexer
         return ($result->getNumFound() > 0);
     }
 
+    public function findDocumentByUrl($url, $metadata)
+    {
+        $this->setCoreNameFromMetadata($metadata);
+
+        $query = $this->client->createSelect();
+        $query->setQuery(sprintf('id:%s', sha1($url)));
+
+        $result = $this->client->select($query);
+
+        return ($result->getNumFound() == 0) ? null : $result;
+
+    }
+
     /**
      * Returns url's that are expired.
      *
