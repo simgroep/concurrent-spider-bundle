@@ -29,11 +29,6 @@ class Indexer
      */
     private $mapping;
 
-    /**
-     * @var integer
-     */
-    private $hoursBeforeExpired = 8;
-
     private $minimalDocumentSaveAmount;
 
     /**
@@ -63,13 +58,10 @@ class Indexer
         $this->setCoreNameFromMetadata($metadata);
 
         $currentDate = new DateTime();
-        $expiresBeforeDate = new DateTime();
-        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
 
         $queryPhrase = sprintf(
-            "id:%s AND updatedDate:[%s TO %s]",
+            "id:%s AND revisit_expiration:[%s TO *]",
             sha1($uri),
-            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'),
             $currentDate->format('Y-m-d\TH:i:s\Z')
         );
 
@@ -90,7 +82,7 @@ class Indexer
 
         $result = $this->client->select($query);
 
-        return ($result->getNumFound() == 0) ? null : $result;
+        return ($result->getNumFound() == 0) ? null : $result->getDocumentS()[0];
 
     }
 
@@ -105,10 +97,9 @@ class Indexer
     {
         $this->setCoreNameFromMetadata(['core' => $core]);
 
-        $expiresBeforeDate = new DateTime();
-        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
+        $now = new DateTime();
 
-        $queryPhrase = sprintf("updatedDate:[* TO %s]", $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'));
+        $queryPhrase = sprintf("revisit_expiration:[* TO %s]", $now->format('Y-m-d\TH:i:s\Z'));
 
         $query = $this->client->createSelect()
             ->setQuery($queryPhrase)
