@@ -107,10 +107,10 @@
         <service id="simgroep_concurrent_spider.persistence_event_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\PersistenceEventListener">
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument>%simgroep_concurrent_spider.minimal_revisit_factor%</argument>
-            <argument>%simgroep_concurrent_spider.maximal_revisit_factor%</argument>
+            <argument>%simgroep_concurrent_spider.maximum_revisit_factor%</argument>
             <argument>%simgroep_concurrent_spider.default_revisit_factor%</argument>
 
-            <tag name="simgroep_concurrent_spider.event_listener" event="simgroep_concurrent_spider.pre_persist" method="onPrePersist" />
+            <tag name="simgroep_concurrent_spider.event_listener" event="simgroep_concurrent_spider.pre_persist" method="onPrePersistDocument" />
         </service>
         <service id="simgroep_concurrent_spider.url_blacklisted_listener" class="Simgroep\ConcurrentSpiderBundle\EventListener\UrlBlacklistedListener">
             <argument type="expression">

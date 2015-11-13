@@ -3,7 +3,9 @@
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
 use Simgroep\ConcurrentSpiderBundle\Indexer;
-use Simgroep\ConcurrentSpiderBundle\PersistencEvent;
+use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
+use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
+use DateTime;
 
 class PersistenceEventListener
 {
@@ -51,16 +53,23 @@ class PersistenceEventListener
     public function onPrePersistDocument(PersistenceEvent $event)
     {
         $newDocument = $event->getDocument();
-        $currentDocument = $this->indexer->findDocumentByUrl($newDocument['url']);
+        $currentDocument = $this->indexer->findDocumentByUrl($newDocument['url'], $event->getMetadata());
 
         if (null === $currentDocument) {
-            $document['revisit_after'] = $this->defaultRevisitFactor;
+            $newDocument['revisit_after'] = $this->defaultRevisitFactor;
+
+            $expireDate = new DateTime();
+            $expireDate->modify(sprintf('+%s minute', $newDocument['revisit_after']));
+
+            $newDocument['revisit_expiration'] = $expireDate->format('Y-m-d\TH:i:s\Z');
+
+            return ;
         }
 
-        if ($this->createDocumentChecksum($oldDocument) === $this->createDocumentChecksum($newDocument)) {
-            $this->increaseRevisitFactor($newDocument);
+        if ($this->createDocumentChecksum($currentDocument) === $this->createDocumentChecksum($newDocument)) {
+            $this->increaseRevisitFactor($newDocument, $currentDocument['revisit_after']);
         } else {
-            $this->decreaseRevisitFactor($newDocument);
+            $this->decreaseRevisitFactor($newDocument, $currentDocument['revisit_after']);
         }
     }
 
@@ -109,11 +118,11 @@ class PersistenceEventListener
     /**
      * Creates and returns a unique checksum of the document given.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\PersistableDocument $document
+     * @param mixed $document
      *
      * @return string
      */
-    private function createDocumentChecksum(PersistableDocument $document)
+    private function createDocumentChecksum($document)
     {
         return sha1($document['title'] . $document['strippedContent']);
     }
