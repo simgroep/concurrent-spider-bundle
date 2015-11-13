@@ -36,6 +36,9 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('password')->isRequired()->cannotBeEmpty()->defaultValue('guest')->end()
                     ->end()
                 ->end()
+                ->integerNode('minimal_revisit_factor')->isRequired()->cannotBeEmpty()->defaultValue(60)->end()
+                ->integerNode('maximum_revisit_factor')->isRequired()->cannotBeEmpty()->defaultValue(20160)->end()
+                ->integerNode('default_revisit_factor')->isRequired()->cannotBeEmpty()->defaultValue(1560)->end()
                 ->arrayNode('queue')
                     ->addDefaultsIfNotSet()
                     ->children()
@@ -66,6 +69,8 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('publishedDate')->cannotBeEmpty()->defaultValue('publishedDate')->end()
                         ->scalarNode('content')->isRequired()->cannotBeEmpty()->defaultValue('content')->end()
                         ->scalarNode('url')->isRequired()->cannotBeEmpty()->defaultValue('url')->end()
+                        ->scalarNode('revisit_after')->isRequired()->cannotBeEmpty()->defaultValue('revisit_after')->end()
+                        ->scalarNode('revisit_expiration')->isRequired()->cannotBeEmpty()->defaultValue('revisit_expiration')->end()
                         # end of required
                         ->scalarNode('segment')->cannotBeEmpty()->end()
                         ->scalarNode('digest')->cannotBeEmpty()->end()

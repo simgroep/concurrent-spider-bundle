@@ -114,6 +114,8 @@ class CrawlCommand extends Command
         );
 
         if (false === $crawlJob->isAllowedToCrawl()) {
+            $this->indexer->deleteDocument($message);
+
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
 
@@ -121,21 +123,6 @@ class CrawlCommand extends Command
         }
 
         if ($this->indexer->isUrlIndexedAndNotExpired($crawlJob->getUrl(), $crawlJob->getMetadata())) {
-
-            try {
-                $requestHandler = $this->spider->getRequestHandler();
-                $requestHandler->getClient()->setUserAgent($this->userAgent);
-                $requestHandler->request(new Uri($crawlJob->getUrl()));
-            } catch (ClientErrorResponseException $e) {
-                if (in_array($e->getResponse()->getStatusCode(), range(400, 418))) {
-                    $this->indexer->deleteDocument($message);
-                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
-                    $this->queue->rejectMessage($message);
-
-                    return;
-                }
-            }
-
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob);
 
@@ -152,12 +139,24 @@ class CrawlCommand extends Command
             $this->markAsFailed($crawlJob, 'Invalid URI syntax');
             $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
-            if (in_array($e->getResponse()->getStatusCode(), [404, 403, 401, 500])) {
-                $this->queue->rejectMessage($message);
-                $this->markAsSkipped($crawlJob, 'warning');
-            } else {
-                $this->queue->rejectMessageAndRequeue($message);
-                $this->markAsFailed($crawlJob, $e->getResponse()->getStatusCode());
+            switch ($e->getResponse()->getStatusCode()) {
+                case 403:
+                case 401:
+                case 500:
+                    $this->queue->rejectMessage($message);
+                    $this->markAsSkipped($crawlJob, 'warning');
+                    break;
+                case 404:
+                case 418:
+                    $this->indexer->deleteDocument($message);
+                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+                    $this->queue->rejectMessage($message);
+                    break;
+                default:
+                    $this->queue->rejectMessageAndRequeue($message);
+                    $this->markAsFailed($crawlJob, $e->getResponse()->getStatusCode());
+                    break;
+
             }
         } catch (Exception $e) {
             $this->queue->rejectMessage($message);
