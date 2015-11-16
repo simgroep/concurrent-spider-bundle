@@ -29,6 +29,11 @@ class Indexer
      */
     private $mapping;
 
+    /**
+     * Amount of documents that should be kept in memory before they are saved to solr.
+     *
+     * @var integer
+     */
     private $minimalDocumentSaveAmount;
 
     /**
@@ -81,7 +86,7 @@ class Indexer
      *
      * @return array
      */
-    public function findDocumentByUrl($url, $metadata)
+    public function findDocumentByUrl($url, array $metadata = [])
     {
         $this->setCoreNameFromMetadata($metadata);
 
@@ -90,7 +95,7 @@ class Indexer
 
         $result = $this->client->select($query);
 
-        return ($result->getNumFound() == 0) ? null : $result->getDocumentS()[0];
+        return ($result->getNumFound() == 0) ? null : $result->getDocuments()[0];
 
     }
 
