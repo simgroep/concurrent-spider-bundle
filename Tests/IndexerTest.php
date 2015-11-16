@@ -167,7 +167,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('setQuery')
             ->with($this->callback(function($subject) {
-                return preg_match('/^updatedDate:\[\* TO .*\]$/', $subject);
+                return preg_match('/^revisit_expiration:\[\* TO .*\]$/', $subject);
             }))
             ->will($this->returnValue($selectQuery));
 
