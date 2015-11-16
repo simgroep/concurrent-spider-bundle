@@ -21,7 +21,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $container
-            ->expects($this->exactly(13))
+            ->expects($this->atLeastOnce())
             ->method('setParameter')
             ->withConsecutive(
                 [$this->equalTo('simgroep_concurrent_spider.maximum_resource_size'), $this->anything()],
@@ -35,6 +35,9 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.solr_client'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.minimal_document_save_amount'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.minimal_revisit_factor'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.maximum_revisit_factor'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.default_revisit_factor'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.mapping'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.css_blacklist'), $this->anything()]
             );
@@ -54,11 +57,16 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 ],
                 'solr_client' => 'default',
                 'minimal_document_save_amount' => 50,
+                'minimal_revisit_factor' => 10,
+                'maximum_revisit_factor' => 1000,
+                'default_revisit_factor' => 400,
                 'mapping' => [
                     'id' => 'id',
                     'url' => 'url',
                     'content' => 'content',
                     'title' => 'title',
+                    'revisit_after' => 'revisit_after',
+                    'revisit_expiration' => 'revisit_expiration',
                 ]
             ]
         ];

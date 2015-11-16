@@ -30,10 +30,10 @@ class Indexer
     private $mapping;
 
     /**
+     * Amount of documents that should be kept in memory before they are saved to solr.
+     *
      * @var integer
      */
-    private $hoursBeforeExpired = 8;
-
     private $minimalDocumentSaveAmount;
 
     /**
@@ -63,13 +63,10 @@ class Indexer
         $this->setCoreNameFromMetadata($metadata);
 
         $currentDate = new DateTime();
-        $expiresBeforeDate = new DateTime();
-        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
 
         $queryPhrase = sprintf(
-            "id:%s AND updatedDate:[%s TO %s]",
+            "id:%s AND revisit_expiration:[%s TO *]",
             sha1($uri),
-            $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'),
             $currentDate->format('Y-m-d\TH:i:s\Z')
         );
 
@@ -79,6 +76,27 @@ class Indexer
         $result = $this->client->select($query);
 
         return ($result->getNumFound() > 0);
+    }
+
+    /**
+     * Returns a SOLR document based on the given URL.
+     *
+     * @param string $url
+     * @param array  $metadata
+     *
+     * @return array
+     */
+    public function findDocumentByUrl($url, array $metadata = [])
+    {
+        $this->setCoreNameFromMetadata($metadata);
+
+        $query = $this->client->createSelect();
+        $query->setQuery(sprintf('id:%s', sha1($url)));
+
+        $result = $this->client->select($query);
+
+        return ($result->getNumFound() == 0) ? null : $result->getDocuments()[0];
+
     }
 
     /**
@@ -92,10 +110,9 @@ class Indexer
     {
         $this->setCoreNameFromMetadata(['core' => $core]);
 
-        $expiresBeforeDate = new DateTime();
-        $expiresBeforeDate->modify(sprintf('-%s hour', $this->hoursBeforeExpired));
+        $now = new DateTime();
 
-        $queryPhrase = sprintf("updatedDate:[* TO %s]", $expiresBeforeDate->format('Y-m-d\TH:i:s\Z'));
+        $queryPhrase = sprintf("revisit_expiration:[* TO %s]", $now->format('Y-m-d\TH:i:s\Z'));
 
         $query = $this->client->createSelect()
             ->setQuery($queryPhrase)
@@ -148,6 +165,7 @@ class Indexer
         if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
             foreach (array_keys($this->documents) as $core) {
                 $this->setCoreNameFromMetadata(['core' => $core]);
+                $updateQuery = $this->client->createUpdate();
                 $this->addDocuments($updateQuery, $this->documents[$core]);
             }
 
