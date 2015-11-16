@@ -77,6 +77,7 @@ class PersistenceEventListener
      * Increase the time a document should be revisited.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\PersistableDocument $document
+     * @param integer                                              $currentRevisitFactor
      *
      * @return \Simgroep\ConcurrentSpiderBundle\PersistableDocument
      */
@@ -84,9 +85,9 @@ class PersistenceEventListener
     {
         if (($currentRevisitFactor * 2) > $this->maximumRevisitFactor) {
             $document['revisit_after'] = $this->maximumRevisitFactor;
+        } else {
+            $document['revisit_after'] = $currentRevisitFactor * 2;
         }
-
-        $document['revisit_after'] = $currentRevisitFactor * 2;
 
         $expireDate = new DateTime();
         $expireDate->modify(sprintf('+%s minute', $document['revisit_after']));
@@ -98,16 +99,17 @@ class PersistenceEventListener
      * Decrease the time a document should be revisited.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\PersistableDocument $document
+     * @param integer                                              $currentRevisitFactor
      *
      * @return \Simgroep\ConcurrentSpiderBundle\PersistableDocument
      */
     private function decreaseRevisitFactor(PersistableDocument $document, $currentRevisitFactor)
     {
-        if (($currentRevisitFactor / 2) > $this->minimalRevisitFactor) {
+        if (($currentRevisitFactor / 2) < $this->minimalRevisitFactor) {
             $document['revisit_after'] = $this->minimalRevisitFactor;
+        } else {
+            $document['revisit_after'] = $currentRevisitFactor / 2;
         }
-
-        $document['revisit_after'] = $currentRevisitFactor / 2;
 
         $expireDate = new DateTime();
         $expireDate->modify(sprintf('+%s minute', $document['revisit_after']));

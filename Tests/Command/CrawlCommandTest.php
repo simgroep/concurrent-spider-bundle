@@ -743,7 +743,70 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $command->logMessage('error', 'Test', 'https://github.com');
+    }
 
+    /**
+     * @test
+     */
+    public function isDocumentDeletedWhenUrlIsNotAllowedToCrawl()
+    {
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            [
+                'url' => 'https://github.com',
+                'base_url' => 'https://blaat.com',
+                'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
+                'whitelist' => [],
+            ]
+        );
+
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['rejectMessage', '__destruct', 'listen'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage')
+            ->with($message);
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['deleteDocument'])
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('deleteDocument');
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(null)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(['error'])
+            ->getMock();
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setMethods(['markAsSkipped'])
+            ->getMock();
+
+        $command
+            ->expects($this->once())
+            ->method('markAsSkipped');
+
+        $command->crawlUrl($message);
     }
 }
 
