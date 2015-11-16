@@ -73,6 +73,14 @@ class Indexer
         return ($result->getNumFound() > 0);
     }
 
+    /**
+     * Returns a SOLR document based on the given URL.
+     *
+     * @param string $url
+     * @param array  $metadata
+     *
+     * @return array
+     */
     public function findDocumentByUrl($url, $metadata)
     {
         $this->setCoreNameFromMetadata($metadata);

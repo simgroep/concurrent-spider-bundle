@@ -135,9 +135,6 @@ class CrawlCommand extends Command
 
             $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl());
             $this->queue->acknowledge($message);
-        } catch (UriSyntaxException $e) {
-            $this->markAsFailed($crawlJob, 'Invalid URI syntax');
-            $this->queue->rejectMessageAndRequeue($message);
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
                 case 403:

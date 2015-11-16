@@ -55,7 +55,7 @@ class PersistenceEventListener
         $newDocument = $event->getDocument();
         $currentDocument = $this->indexer->findDocumentByUrl($newDocument['url'], $event->getMetadata());
 
-        if (null === $currentDocument) {
+        if (null === $currentDocument || $currentDocument['revisit_after'] == 0) {
             $newDocument['revisit_after'] = $this->defaultRevisitFactor;
 
             $expireDate = new DateTime();
