@@ -167,7 +167,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('setQuery')
             ->with($this->callback(function($subject) {
-                return preg_match('/^updatedDate:\[\* TO .*\]$/', $subject);
+                return preg_match('/^revisit_expiration:\[\* TO .*\]$/', $subject);
             }))
             ->will($this->returnValue($selectQuery));
 
@@ -183,5 +183,49 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $indexer = new Indexer($solrClient, [], 50);
         $indexer->findExpiredUrls('test');
+    }
+
+    /**
+     * @test
+     */
+    public function isNullReturnedWhenNoDocumentFoundByUrl()
+    {
+        $url = 'https://github.com';
+
+        $selectQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $selectQuery
+            ->expects($this->once())
+            ->method('setQuery')
+            ->with($this->callback(function($subject) use ($url) {
+                return preg_match(sprintf('/^id:%s$/', sha1($url)), $subject);
+            }))
+            ->will($this->returnValue($selectQuery));
+
+        $result = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Result\Result')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient
+            ->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($selectQuery));
+
+        $solrClient
+            ->expects($this->once())
+            ->method('select')
+            ->will($this->returnValue($result));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $this->assertNull($indexer->findDocumentByUrl($url));
     }
 }
