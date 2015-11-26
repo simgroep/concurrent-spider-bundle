@@ -5,6 +5,7 @@ namespace Simgroep\ConcurrentSpiderBundle;
 use PhpAmqpLib\Message\AMQPMessage;
 use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
+use Solarium\Exception\HttpException;
 use DateTime;
 
 /**
@@ -76,6 +77,27 @@ class Indexer
         $result = $this->client->select($query);
 
         return ($result->getNumFound() > 0);
+    }
+
+    /**
+     * Returns the amount of documents in a core.
+     *
+     * @param string $core
+     *
+     * @return integer
+     *
+     * @throws Solarium\Exception\HttpException
+     */
+    public function getAmountDocumentsInCore($core)
+    {
+        $this->setCoreNameFromMetadata(['core' => $core]);
+
+        $query = $this->client->createSelect();
+        $query->setQuery('*:*');
+
+        $result = $this->client->select($query);
+
+        return $result->getNumFound();
     }
 
     /**
