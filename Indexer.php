@@ -80,6 +80,21 @@ class Indexer
     }
 
     /**
+     * Removes all documents of a complete core.
+     *
+     * @param string $core
+     */
+    public function emptyCore($core)
+    {
+        $this->setCoreNameFromMetadata(['core' => $core]);
+
+        $update = $this->client->createUpdate();
+        $update->addDeleteQuery('*:*');
+        $update->addCommit();
+        $this->client->update($update);
+    }
+
+    /**
      * Returns the amount of documents in a core.
      *
      * @param string $core

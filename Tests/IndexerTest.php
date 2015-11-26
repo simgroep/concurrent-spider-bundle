@@ -267,6 +267,45 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $indexer = new Indexer($solrClient, [], 50);
         $indexer->getAmountDocumentsInCore('core');
+    }
 
+    /**
+     * @test
+     */
+    public function isCorrectQueryPhraseUsedForDeletingAllDocuments()
+    {
+        $updateQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Update\Query\Query')
+            ->setMethods(['addDeleteQuery', 'addCommit'])
+            ->getMock();
+
+        $updateQuery
+            ->expects($this->once())
+            ->method('addDeleteQuery')
+            ->with($this->equalTo('*:*'))
+            ->will($this->returnValue($updateQuery));
+
+        $result = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Result\Result')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createUpdate', 'update'])
+            ->getMock();
+
+        $solrClient
+            ->expects($this->once())
+            ->method('createUpdate')
+            ->will($this->returnValue($updateQuery));
+
+        $solrClient
+            ->expects($this->once())
+            ->method('update')
+            ->will($this->returnValue($result));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $indexer->emptyCore('core');
     }
 }
