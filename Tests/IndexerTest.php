@@ -228,4 +228,45 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $indexer = new Indexer($solrClient, [], 50);
         $this->assertNull($indexer->findDocumentByUrl($url));
     }
+
+    /**
+     * @test
+     */
+    public function isCorrectQueryPhraseUsedForAmountDocuments()
+    {
+        $selectQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $selectQuery
+            ->expects($this->once())
+            ->method('setQuery')
+            ->with($this->equalTo('*:*'))
+            ->will($this->returnValue($selectQuery));
+
+        $result = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Result\Result')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient
+            ->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($selectQuery));
+
+        $solrClient
+            ->expects($this->once())
+            ->method('select')
+            ->will($this->returnValue($result));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $indexer->getAmountDocumentsInCore('core');
+
+    }
 }
