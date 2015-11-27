@@ -74,6 +74,10 @@ class CrawlJob
      */
     private function isUrlWhitelisted()
     {
+        if (count($this->whitelist) == 0) {
+            return true;
+        }
+
         $isWhitelisted = false;
         $url = $this->url;
 
@@ -107,21 +111,47 @@ class CrawlJob
     }
 
     /**
+     * Indicated wether the url of the crawljob is blacklisted.
+     *
+     * @return boolean
+     */
+    private function isUrlBlacklisted()
+    {
+        $isBlacklisted = false;
+        $url = $this->url;
+
+        array_walk(
+            $this->blacklist,
+            function ($blacklistUrl) use ($url, &$isBlacklisted) {
+                if (@preg_match('#' . $blacklistUrl . '#', $url)) {
+                    $isBlacklisted = true;
+                }
+            }
+        );
+
+        return $isBlacklisted;
+    }
+
+    /**
      * Check if url form job is allowed to be crawled
      *
      * @return boolean
      */
     public function isAllowedToCrawl()
     {
-        if (true === $this->isUrlWhitelisted()) {
-            return true;
+        if (true === $this->isUrlBlacklisted()) {
+            return false;
         }
 
-        if (true === $this->areHostsEqual()) {
-            return true;
+        if (false === $this->isUrlWhitelisted()) {
+            return false;
         }
 
-        return false;
+        if (false === $this->areHostsEqual()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
