@@ -603,7 +603,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $message->body = json_encode(
             [
                 'url' => 'http://ggg.nl',
-                'base_url' => 'https://github.com',
+                'base_url' => 'http://ggg.nl',
                 'blacklist' => [],
                 'metadata' => [],
                 'whitelist' => ['http://ggg.nl'],
