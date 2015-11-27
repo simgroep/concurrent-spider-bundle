@@ -100,7 +100,6 @@ class Spider
         $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
         $uris = [];
 
-        $this->persistenceHandler->persist($resource, $crawlJob);
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
         $crawler = $resource->getCrawler()->filterXPath('//a');
@@ -121,5 +120,7 @@ class Spider
             SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,
             new GenericEvent($this, ['uris' => $uris])
         );
+
+        $this->persistenceHandler->persist($resource, $crawlJob);
     }
 }
