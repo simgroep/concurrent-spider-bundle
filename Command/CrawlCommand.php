@@ -117,14 +117,14 @@ class CrawlCommand extends Command
             $this->indexer->deleteDocument($message);
 
             $this->queue->rejectMessage($message);
-            $this->markAsSkipped($crawlJob);
+            $this->markAsSkipped($crawlJob, 'info', 'Not allowed to crawl');
 
             return;
         }
 
         if ($this->indexer->isUrlIndexedAndNotExpired($crawlJob->getUrl(), $crawlJob->getMetadata())) {
             $this->queue->rejectMessage($message);
-            $this->markAsSkipped($crawlJob);
+            $this->markAsSkipped($crawlJob, 'info', 'Not expired yet');
 
             return;
         }
@@ -141,7 +141,7 @@ class CrawlCommand extends Command
                 case 401:
                 case 500:
                     $this->queue->rejectMessage($message);
-                    $this->markAsSkipped($crawlJob, 'warning');
+                    $this->markAsSkipped($crawlJob, 'warning', 'status: ' . $e->getResponse()->getStatusCode());
                     break;
                 case 404:
                 case 418:
@@ -181,9 +181,17 @@ class CrawlCommand extends Command
      * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
      * @param string                                    $level
      */
-    public function markAsSkipped(CrawlJob $crawlJob, $level = 'info')
+    public function markAsSkipped(CrawlJob $crawlJob, $level = 'info', $reason = 'unknown')
     {
-        $this->logMessage($level, sprintf("Skipped %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+        $this->logMessage(
+            $level,
+            sprintf(
+                "Skipped %s, reason: %s",
+                $crawlJob->getUrl(),
+                $reason
+            ),
+            $crawlJob->getUrl()
+        );
     }
 
     /**
