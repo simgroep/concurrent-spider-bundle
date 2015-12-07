@@ -74,7 +74,12 @@ class DocumentDataExtractor
      */
     public function getLastModified()
     {
-        $lastModifiedDateTime = new DateTime($this->resource->getResponse()->getLastModified());
+        try {
+            $lastModifiedDateTime = new DateTime($this->resource->getResponse()->getLastModified());
+        } catch(Exception $e) {
+            $lastModifiedDateTime = new DateTime();
+        }
+
         return $lastModifiedDateTime->format('Y-m-d\TH:i:s\Z');
     }
 
