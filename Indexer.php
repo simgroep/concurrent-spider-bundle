@@ -253,7 +253,6 @@ class Indexer
     protected function addDocuments(Query $updateQuery, array $documents)
     {
         $updateQuery->addDocuments($documents);
-        $updateQuery->addCommit();
 
         $this->client->update($updateQuery);
     }

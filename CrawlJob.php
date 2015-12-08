@@ -75,7 +75,7 @@ class CrawlJob
     private function isUrlWhitelisted()
     {
         if (count($this->whitelist) == 0) {
-            return true;
+            return false;
         }
 
         $isWhitelisted = false;
@@ -139,19 +139,19 @@ class CrawlJob
      */
     public function isAllowedToCrawl()
     {
-        if (true === $this->isUrlBlacklisted()) {
+        if ($this->isUrlBlacklisted()) {
             return false;
         }
 
-        if (false === $this->isUrlWhitelisted()) {
-            return false;
+        if ($this->areHostsEqual()) {
+            return true;
         }
 
-        if (false === $this->areHostsEqual()) {
-            return false;
+        if (!$this->areHostsEqual() && $this->isUrlWhiteListed()) {
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**
