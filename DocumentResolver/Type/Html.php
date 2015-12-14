@@ -39,12 +39,6 @@ class Html extends TypeAbstract implements DocumentTypeInterface
     {
         $content = $this->extractContentFromResource($resource);
 
-        if (strlen($content) < self::MINIMAL_CONTENT_LENGTH) {
-            throw new InvalidContentException(
-                sprintf("Webpage didn't contain enough content (minimal chars is %s)", self::MINIMAL_CONTENT_LENGTH)
-            );
-        }
-
         $dataExtractor = new DocumentDataExtractor($resource);
 
         $data = [
