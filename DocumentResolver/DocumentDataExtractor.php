@@ -4,6 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver;
 
 use VDB\Spider\Resource;
 use DateTime;
+use Exception;
 
 /**
  * Extract data from given resource
@@ -156,7 +157,11 @@ class DocumentDataExtractor
     {
         $nodeList = $this->resource->getCrawler()->filterXpath('//head/meta[@name="DCTERMS.modified"]/@content');
         if ($nodeList->count() === 1) {
-            $dctermsModifiedDateTime = new DateTime($nodeList->text());
+            try {
+                $dctermsModifiedDateTime = new DateTime($nodeList->text());
+            } catch (Exception $e) {
+                $dctermsModifiedDateTime = new DateTime();
+            }
             return $dctermsModifiedDateTime->format('Y-m-d\TH:i:s\Z');
         }
 
@@ -196,7 +201,12 @@ class DocumentDataExtractor
     {
         $nodeList = $this->resource->getCrawler()->filterXpath('//head/meta[@name="DCTERMS.available"]/@content');
         if ($nodeList->count() === 1) {
-            $dctermsModifiedDateTime = new DateTime($nodeList->text());
+            try {
+                $dctermsModifiedDateTime = new DateTime($nodeList->text());
+            } catch (Exception $e) {
+                $dctermsModifiedDateTime = new DateTime();
+            }
+
             return $dctermsModifiedDateTime->format('Y-m-d\TH:i:s\Z');
         }
 
