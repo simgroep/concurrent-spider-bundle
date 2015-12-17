@@ -221,27 +221,4 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $this->assertEquals($expectedData, $data);
     }
 
-    /**
-     * @test
-     * @expectedException \Simgroep\ConcurrentSpiderBundle\InvalidContentException
-     * @expectedExceptionMessage Webpage didn't contain enough content (minimal chars is 3)
-     */
-    public function throwExceptionOnLessThenMinimalContentLength()
-    {
-        $crawler = new Crawler('', 'https://github.com');
-
-        $resource = $this
-                ->getMockBuilder('VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getCrawler', 'getResponse', 'getUri'])
-                ->getMock();
-        $resource
-                ->expects($this->exactly(1))
-                ->method('getCrawler')
-                ->will($this->returnValue($crawler));
-
-        $type = new Html(null);
-        $type->getData($resource);
-    }
-
 }
