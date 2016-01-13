@@ -831,12 +831,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/simgroep/pdfparser.git",
-                "reference": "8ce24e35ac863eadd07a45521a7da8149e5a7e11"
+                "reference": "d70e371f8ed3a1fd7cd3a0df6120249068957a77"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simgroep/pdfparser/zipball/8ce24e35ac863eadd07a45521a7da8149e5a7e11",
-                "reference": "8ce24e35ac863eadd07a45521a7da8149e5a7e11",
+                "url": "https://api.github.com/repos/simgroep/pdfparser/zipball/d70e371f8ed3a1fd7cd3a0df6120249068957a77",
+                "reference": "d70e371f8ed3a1fd7cd3a0df6120249068957a77",
                 "shasum": ""
             },
             "require": {
@@ -870,7 +870,7 @@
                 "issues": "https://github.com/smalot/pdfparser/issues",
                 "source": "https://github.com/simgroep/pdfparser/tree/master"
             },
-            "time": "2016-01-13 10:05:51"
+            "time": "2016-01-13 12:38:36"
         },
         {
             "name": "solarium/solarium",
