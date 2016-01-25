@@ -90,9 +90,9 @@ class DiscoverUrlListener
                 continue;//url blacklisted, so go to next one
             }
 
-            if (!$this->indexer->isUrlIndexedandNotExpired($uri->toString(), $crawlJob->getMetadata())) {
+            if (!$this->indexer->isUrlIndexedandNotExpired(str_replace(' ', '%20', $uri->toString()), $crawlJob->getMetadata())) {
                 $job = new CrawlJob(
-                    $uri->normalize()->toString(),
+                    str_replace(' ', '%20', $uri->normalize()->toString()),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
                     $crawlJob->getMetadata(),
