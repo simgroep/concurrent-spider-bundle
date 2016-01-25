@@ -277,4 +277,51 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         ];
     }
 
+    public function testUrlWithSpace () {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['publish', '__destruct'])
+            ->getMock();
+
+        $queue
+            ->expects($this->never())
+            ->method('publish');
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['isUrlIndexedAndNotExpired'])
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexedAndNotExpired')
+            ->with($this->equalTo('http://www.socialedienstbommelerwaard.nl/Digitaal%20loket'))
+            ->will($this->returnValue(true));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
+
+        $crawlJob = new CrawlJob('http://www.socialedienstbommelerwaard.nl/Digitaal loket', 'http://www.socialedienstbommelerwaard.nl');
+
+        $spider = $this
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
+        $uri = new Uri('http://www.socialedienstbommelerwaard.nl/Digitaal loket');
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
+        $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher);
+        $listener->onDiscoverUrl($event);
+    }
 }
