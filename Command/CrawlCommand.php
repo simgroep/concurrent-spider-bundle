@@ -159,6 +159,9 @@ class CrawlCommand extends Command
             $this->queue->rejectMessage($message);
             $this->markAsFailed($crawlJob, $e->getMessage());
         }
+
+        unset($crawlJob, $message, $data);
+        gc_collect_cycles();
     }
 
     /**
