@@ -30,6 +30,16 @@
             <tag name="console.command" />
         </service>
 
+        <service id="simgroep_concurrent_spider.recrawl" class="Simgroep\ConcurrentSpiderBundle\Command\RecrawlCommand">
+            <argument type="service" id="simgroep_concurrent_spider.queue.recrawl" />
+            <argument type="service" id="simgroep_concurrent_spider.indexer" />
+            <argument type="expression">
+                service(parameter('simgroep_concurrent_spider.logger_service'))
+            </argument>
+
+            <tag name="console.command" />
+        </service>
+
         <service id="simgroep_concurrent_spider.index" class="Simgroep\ConcurrentSpiderBundle\Command\IndexCommand">
             <argument type="service" id="simgroep_concurrent_spider.queue.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
@@ -78,6 +88,11 @@
         <service id="simgroep_concurrent_spider.queue.indexer" class="Simgroep\ConcurrentSpiderBundle\Queue">
             <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
             <argument>%simgroep_concurrent_spider.queue.indexer_queue%</argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.queue.recrawl" class="Simgroep\ConcurrentSpiderBundle\Queue">
+            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+            <argument>%simgroep_concurrent_spider.queue.recrawl_queue%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.request_handler" class="VDB\Spider\RequestHandler\GuzzleRequestHandler" />

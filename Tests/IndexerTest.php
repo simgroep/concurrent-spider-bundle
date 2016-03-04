@@ -308,4 +308,49 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $indexer = new Indexer($solrClient, [], 50);
         $indexer->emptyCore('core');
     }
+
+    /**
+     * @test
+     */
+    public function isCorrectQueryPhraseUsedForGetDocumentsUrlsInCore()
+    {
+        $selectQuery = $this
+            ->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->setMethods(['setQuery', 'setFields'])
+            ->getMock();
+
+        $selectQuery
+            ->expects($this->once())
+            ->method('setQuery')
+            ->with($this->equalTo('*:*'))
+            ->will($this->returnValue($selectQuery));
+
+        $selectQuery
+            ->expects($this->once())
+            ->method('setFields')
+            ->with($this->equalTo(['url', 'id']))
+            ->will($this->returnValue($selectQuery));
+
+        $prefetch = $this
+            ->getMockBuilder('Solarium\Plugin\PrefetchIterator')
+            ->getMock();
+
+        $solrClient = $this
+            ->getMockBuilder('Solarium\Client')
+            ->setMethods(['createSelect', 'getPlugin'])
+            ->getMock();
+
+        $solrClient
+            ->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($selectQuery));
+
+        $solrClient
+            ->expects($this->once())
+            ->method('getPlugin')
+            ->will($this->returnValue($prefetch));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $indexer->getDocumentUrlsInCore(['core' => 'core']);
+    }
 }
