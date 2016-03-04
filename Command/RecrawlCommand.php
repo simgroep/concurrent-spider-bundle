@@ -88,10 +88,10 @@ class RecrawlCommand extends Command
     public function recrawl(AMQPMessage $message)
     {
         try {
-            $oBody = json_decode($message->body);
+            $body = json_decode($message->body);
             // checking blacklist
-            if (is_array($oBody->blacklist) && count($oBody->blacklist) > 0) {
-                $this->dropBlacklistedDocuments($oBody->blacklist, $oBody->metadata);
+            if (is_array($body->blacklist) && count($body->blacklist) > 0) {
+                $this->dropBlacklistedDocuments($body->blacklist, $body->metadata);
             }
             $this->queue->acknowledge($message);
         } catch (Exception $e) {
@@ -99,7 +99,7 @@ class RecrawlCommand extends Command
             $this->logMessage(
                 "emergency",
                 $e->getMessage(),
-                $oBody->metadata->core
+                $body->metadata->core
             );
         }
 
