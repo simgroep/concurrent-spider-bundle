@@ -31,6 +31,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.user'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.password'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.discoveredurls_queue'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.queue.recrawl_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.indexer_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.solr_client'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.logger_service'), $this->anything()],
@@ -54,6 +55,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 'queue' => [
                     'discoveredurls_queue' => 'discovered_urls',
                     'indexer_queue' => 'indexer',
+                    'recrawl_queue' => 'recrawl',
                 ],
                 'solr_client' => 'default',
                 'minimal_document_save_amount' => 50,

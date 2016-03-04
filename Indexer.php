@@ -95,6 +95,23 @@ class Indexer
     }
 
     /**
+     * Get document urls and id from solr.
+     * @param array $metadata
+     * @return null|\Solarium\Core\Plugin\PluginInterface
+     */
+    public function getDocumentUrlsInCore ($metadata) {
+        $this->setCoreNameFromMetadata($metadata);
+
+        $query = $this->client->createSelect();
+        $query->setQuery('*:*');
+        $query->setFields(['url', 'id']);
+        $prefetch = $this->client->getPlugin('prefetchiterator');
+        $prefetch->setPrefetch(100); //fetch 2 rows per query (for real world use this can be way higher)
+        $prefetch->setQuery($query);
+        return $prefetch;
+    }
+
+    /**
      * Returns the amount of documents in a core.
      *
      * @param string $core
@@ -211,19 +228,27 @@ class Indexer
     }
 
     /**
-     * Remove document from solr.
+     * Remove document from solr by AMQPMessage.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
-     * @param array $metadata
      */
     public function deleteDocument(AMQPMessage $message)
     {
         $data = json_decode($message->body, true);
 
-        $this->setCoreNameFromMetadata($data['metadata']);
+        $this->deleteDocumentById($data['metadata'], sha1($data['url']));
+    }
+
+    /**
+     * Remove document from solr by ID
+     * @param array $metadata
+     * @param string $document_id
+     */
+    public function deleteDocumentById ($metadata, $document_id) {
+        $this->setCoreNameFromMetadata($metadata);
 
         $updateQuery = $this->client->createUpdate();
-        $updateQuery->addDeleteById(sha1($data['url']));
+        $updateQuery->addDeleteById($document_id);
         $updateQuery->addCommit();
 
         $this->client->update($updateQuery);
