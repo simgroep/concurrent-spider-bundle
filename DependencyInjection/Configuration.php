@@ -44,6 +44,7 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('discoveredurls_queue')->isRequired()->cannotBeEmpty()->defaultValue('discovered_urls')->end()
                         ->scalarNode('indexer_queue')->isRequired()->cannotBeEmpty()->defaultValue('indexer')->end()
+                        ->scalarNode('recrawl_queue')->isRequired()->cannotBeEmpty()->defaultValue('recrawl')->end()
                     ->end()
                 ->end()
                 ->scalarNode('solr_client')->isRequired()->cannotBeEmpty()->defaultValue('default')->end()
