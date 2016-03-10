@@ -27,7 +27,7 @@ class DocumentDataExtractor
      */
     public function getId()
     {
-        return sha1($this->getUrl());
+        return sha1(strtolower($this->getUrl()));
     }
 
     /**
