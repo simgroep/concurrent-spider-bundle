@@ -92,10 +92,10 @@ class RecrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $o1indexerResult = new \stdClass();
         $o1indexerResult->url = "http://onet.pl";
-        $o1indexerResult->id = sha1($o1indexerResult->url);
+        $o1indexerResult->id = sha1(strtolower($o1indexerResult->url));
         $o2indexerResult = new \stdClass();
         $o2indexerResult->url = "https://interia.pl";
-        $o2indexerResult->id = sha1($o2indexerResult->url);
+        $o2indexerResult->id = sha1(strtolower($o2indexerResult->url));
         $indexer_result = [$o1indexerResult, $o2indexerResult];
 
         $indexer

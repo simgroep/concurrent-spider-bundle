@@ -139,7 +139,7 @@ class RecrawlCommand extends Command
         array_walk(
             $blacklist,
             function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#', $url)) {
+                if (@preg_match('#' . $blacklistUrl . '#i', $url)) {
                     $isBlacklisted = true;
                 }
             }

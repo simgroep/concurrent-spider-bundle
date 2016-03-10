@@ -84,7 +84,7 @@ class CrawlJob
         array_walk(
             $this->whitelist,
             function ($whitelistUrl) use ($url, &$isWhitelisted) {
-                if (@preg_match('#' . $whitelistUrl . '#', $url)) {
+                if (@preg_match('#' . $whitelistUrl . '#i', $url)) {
                     $isWhitelisted = true;
                 }
             }
@@ -123,7 +123,7 @@ class CrawlJob
         array_walk(
             $this->blacklist,
             function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#', $url)) {
+                if (@preg_match('#' . $blacklistUrl . '#i', $url)) {
                     $isBlacklisted = true;
                 }
             }
