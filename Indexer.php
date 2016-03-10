@@ -67,7 +67,7 @@ class Indexer
 
         $queryPhrase = sprintf(
             "id:%s AND revisit_expiration:[%s TO *]",
-            sha1($uri),
+            sha1(strtolower($uri)),
             $currentDate->format('Y-m-d\TH:i:s\Z')
         );
 
@@ -145,7 +145,7 @@ class Indexer
         $this->setCoreNameFromMetadata($metadata);
 
         $query = $this->client->createSelect();
-        $query->setQuery(sprintf('id:%s', sha1($url)));
+        $query->setQuery(sprintf('id:%s', sha1(strtolower($url))));
 
         $result = $this->client->select($query);
 
@@ -236,7 +236,7 @@ class Indexer
     {
         $data = json_decode($message->body, true);
 
-        $this->deleteDocumentById($data['metadata'], sha1($data['url']));
+        $this->deleteDocumentById($data['metadata'], sha1(strtolower($data['url'])));
     }
 
     /**
