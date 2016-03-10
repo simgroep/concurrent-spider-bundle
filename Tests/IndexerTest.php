@@ -127,7 +127,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->getMock();
         $solrQuery->expects($this->once())
             ->method('addDeleteById')
-            ->with(sha1($url));
+            ->with(sha1(strtolower($url)));
 
         $solrClient = $this
             ->getMockBuilder('Solarium\Client')
