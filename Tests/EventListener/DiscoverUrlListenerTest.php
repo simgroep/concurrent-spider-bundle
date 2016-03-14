@@ -127,7 +127,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com/test/'))
+            ->with($this->equalTo('https://github.com/test'))
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
@@ -270,10 +270,10 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
     public function notBlacklistedDataProvider()
     {
         return [
-            ['http://www.simgroep.nl/internet/medewerkers_41499/', 'http:\/\/www\.simgroep\.nl\/intranet\/.*'],
-            ['http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509/', 'http:\/\/www\.simgroep\.nl\/beheer\/.*'],
+            ['http://www.simgroep.nl/internet/medewerkers_41499', 'http:\/\/www\.simgroep\.nl\/intranet\/.*'],
+            ['http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509', 'http:\/\/www\.simgroep\.nl\/beheer\/.*'],
             ['http://www.simgroep.nl/internet/portfolio_41515/search', 'http:\/\/www\.simgroep\.nl\/internet\/portfolio_41516.*'],
-            ['http://www.simgroep.nl/internet/vacatures_41521/', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'],
+            ['http://www.simgroep.nl/internet/vacatures_41521', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'],
         ];
     }
 
@@ -323,5 +323,31 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher);
         $listener->onDiscoverUrl($event);
+    }
+
+    public function testFixUrl() {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['__destruct'])
+            ->getMock();
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher);
+
+        $this->assertEquals($listener->fixUrl("http://example.com/Some Thing"), "http://example.com/Some%20Thing");
+        $this->assertEquals($listener->fixUrl("http://example.com/Some%20Thing"), "http://example.com/Some%20Thing");
+        $this->assertEquals($listener->fixUrl("http://example.com/SomeThing/"), "http://example.com/SomeThing");
+        $this->assertEquals($listener->fixUrl("http://example.com/SomeThing"), "http://example.com/SomeThing");
+        $this->assertEquals($listener->fixUrl("http://example.com/Some Thing/"), "http://example.com/Some%20Thing");
     }
 }
