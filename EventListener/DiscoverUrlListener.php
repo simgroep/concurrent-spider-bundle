@@ -90,9 +90,9 @@ class DiscoverUrlListener
                 continue;//url blacklisted, so go to next one
             }
 
-            if (!$this->indexer->isUrlIndexedandNotExpired(str_replace(' ', '%20', $uri->toString()), $crawlJob->getMetadata())) {
+            if (!$this->indexer->isUrlIndexedandNotExpired($this->fixUrl($uri->toString()), $crawlJob->getMetadata())) {
                 $job = new CrawlJob(
-                    str_replace(' ', '%20', $uri->normalize()->toString()),
+                    $this->fixUrl($uri->normalize()->toString()),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
                     $crawlJob->getMetadata(),
@@ -104,6 +104,17 @@ class DiscoverUrlListener
                 }
             }
         }
+    }
+
+    /**
+     * Changing url
+     * @param string $url
+     * @return string
+     */
+    public function fixUrl ($url) {
+        $url = str_replace(' ', '%20', $url);
+        $url = preg_replace('#\/$#i', "", $url);
+        return $url;
     }
 
 }

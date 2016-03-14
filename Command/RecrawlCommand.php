@@ -107,20 +107,27 @@ class RecrawlCommand extends Command
 
     public function dropBlacklistedDocuments (array $blacklist, $metadata) {
         $result = $this->indexer->getDocumentUrlsInCore(['core' => $metadata->core]);
-        $i = 0;
+        $toDelete = [];
         foreach ($result as $document) {
             if ($this->isUrlBlacklisted($document->url, $blacklist)) {
-                $this->indexer->deleteDocumentById(['core' => $metadata->core], $document->id);
-                $this->logMessage(
-                    "info",
-                    sprintf(
-                        "Delete document %s. URL: %s",
-                        $document->id,
-                        $document->url
-                    ),
-                    $document->url
-                );
+                $toDelete[] = [
+                    'core' => $metadata->core,
+                    'id' => $document->id,
+                    'url' => $document->url
+                ];
             }
+        }
+        foreach ($toDelete as $document) {
+            $this->indexer->deleteDocumentById(['core' => $document['core']], $document['id']);
+            $this->logMessage(
+                "info",
+                sprintf(
+                    "Delete document %s. URL: %s",
+                    $document['id'],
+                    $document['url']
+                ),
+                $document['url']
+            );
         }
     }
 
