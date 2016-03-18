@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 use VDB\Uri\Uri;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
@@ -39,29 +40,6 @@ class DiscoverUrlListener
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    /**
-     * Check if given url is blacklisted
-     *
-     * @param string $url
-     * @param array $blacklist
-     *
-     * @return boolean
-     */
-    public function isUrlBlacklisted($url, array $blacklist)
-    {
-        $isBlacklisted = false;
-
-        array_walk(
-            $blacklist,
-            function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#i', $url)) {
-                    $isBlacklisted = true;
-                }
-            }
-        );
-
-        return $isBlacklisted;
-    }
 
     /**
      * Writes the found URL as a job on the queue.
@@ -79,7 +57,7 @@ class DiscoverUrlListener
                 $uri = new Uri(substr($uri, 0, $position));
             }
 
-            $isBlacklisted = $this->isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
+            $isBlacklisted = UrlCheck::isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
 
             if ($isBlacklisted) {
                 $this->eventDispatcher->dispatch(
@@ -90,9 +68,9 @@ class DiscoverUrlListener
                 continue;//url blacklisted, so go to next one
             }
 
-            if (!$this->indexer->isUrlIndexedandNotExpired($this->fixUrl($uri->toString()), $crawlJob->getMetadata())) {
+            if (!$this->indexer->isUrlIndexedandNotExpired(UrlCheck::fixUrl($uri->toString()), $crawlJob->getMetadata())) {
                 $job = new CrawlJob(
-                    $this->fixUrl($uri->normalize()->toString()),
+                    UrlCheck::fixUrl($uri->normalize()->toString()),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
                     $crawlJob->getMetadata(),
@@ -104,17 +82,6 @@ class DiscoverUrlListener
                 }
             }
         }
-    }
-
-    /**
-     * Changing url
-     * @param string $url
-     * @return string
-     */
-    public function fixUrl ($url) {
-        $url = str_replace(' ', '%20', $url);
-        $url = preg_replace('#\/$#i', "", $url);
-        return $url;
     }
 
 }
