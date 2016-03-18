@@ -68,90 +68,13 @@ class CrawlJob
     }
 
     /**
-     * Check if url is whitelisted
-     *
-     * @return boolean
-     */
-    private function isUrlWhitelisted()
-    {
-        if (count($this->whitelist) == 0) {
-            return false;
-        }
-
-        $isWhitelisted = false;
-        $url = $this->url;
-
-        array_walk(
-            $this->whitelist,
-            function ($whitelistUrl) use ($url, &$isWhitelisted) {
-                if (@preg_match('#' . $whitelistUrl . '#i', $url)) {
-                    $isWhitelisted = true;
-                }
-            }
-        );
-
-        return $isWhitelisted;
-    }
-
-    /**
-     * Indicates whether the hostname parts of url and base_url are equal.
-     * 
-     * @return boolean
-     */
-    private function areHostsEqual()
-    {
-        $firstHost = parse_url($this->url, PHP_URL_HOST);
-        $secondHost = parse_url($this->baseUrl, PHP_URL_HOST);
-
-        if (is_null($firstHost) || is_null($secondHost)) {
-            return false;
-        }
-
-        return ($firstHost === $secondHost);
-    }
-
-    /**
-     * Indicated wether the url of the crawljob is blacklisted.
-     *
-     * @return boolean
-     */
-    private function isUrlBlacklisted()
-    {
-        $isBlacklisted = false;
-        $url = $this->url;
-
-        array_walk(
-            $this->blacklist,
-            function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#i', $url)) {
-                    $isBlacklisted = true;
-                }
-            }
-        );
-
-        return $isBlacklisted;
-    }
-
-    /**
      * Check if url form job is allowed to be crawled
      *
      * @return boolean
      */
     public function isAllowedToCrawl()
     {
-        if ($this->isUrlBlacklisted()) {
-            return false;
-        }
-
-        if ($this->areHostsEqual()) {
-            return true;
-        }
-
-        if (!$this->areHostsEqual() && $this->isUrlWhiteListed()) {
-            return true;
-        }
-
-        return false;
+        return UrlCheck::isAllowedToCrawl($this->url, $this->baseUrl, $this->blacklist, $this->whitelist);
     }
 
     /**
