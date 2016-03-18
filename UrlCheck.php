@@ -10,13 +10,13 @@ class UrlCheck
      *
      * @param string $url
      * @param string $secondHost
-     * @param array $blcaklist
+     * @param array $blacklist
      * @param array $whitelist
      * @return boolean
      */
-    public static function isAllowedToCrawl($url, $secondHost = "", array $blcaklist = [], array $whitelist = [])
+    public static function isAllowedToCrawl($url, $secondHost = "", array $blacklist = [], array $whitelist = [])
     {
-        if (self::isUrlBlacklisted($url, $blcaklist)) {
+        if (self::isUrlBlacklisted($url, $blacklist)) {
             return false;
         }
 
