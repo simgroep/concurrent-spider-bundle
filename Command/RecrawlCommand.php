@@ -8,6 +8,7 @@ use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
+use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -109,7 +110,7 @@ class RecrawlCommand extends Command
         $result = $this->indexer->getDocumentUrlsInCore(['core' => $metadata->core]);
         $toDelete = [];
         foreach ($result as $document) {
-            if ($this->isUrlBlacklisted($document->url, $blacklist)) {
+            if (UrlCheck::isUrlBlacklisted($document->url, $blacklist)) {
                 $toDelete[] = [
                     'core' => $metadata->core,
                     'id' => $document->id,
@@ -129,30 +130,6 @@ class RecrawlCommand extends Command
                 $document['url']
             );
         }
-    }
-
-    /**
-     * Check if given url is blacklisted
-     *
-     * @param string $url
-     * @param array $blacklist
-     *
-     * @return boolean
-     */
-    public function isUrlBlacklisted($url, array $blacklist)
-    {
-        $isBlacklisted = false;
-
-        array_walk(
-            $blacklist,
-            function ($blacklistUrl) use ($url, &$isBlacklisted) {
-                if (@preg_match('#' . $blacklistUrl . '#i', $url)) {
-                    $isBlacklisted = true;
-                }
-            }
-        );
-
-        return $isBlacklisted;
     }
 
     /**
