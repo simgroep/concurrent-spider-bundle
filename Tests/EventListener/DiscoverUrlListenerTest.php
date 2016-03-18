@@ -324,30 +324,4 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher);
         $listener->onDiscoverUrl($event);
     }
-
-    public function testFixUrl() {
-        $queue = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
-            ->disableOriginalConstructor()
-            ->setMethods(['__destruct'])
-            ->getMock();
-
-        $indexer = $this
-            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $eventDispatcher = $this
-            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher);
-
-        $this->assertEquals($listener->fixUrl("http://example.com/Some Thing"), "http://example.com/Some%20Thing");
-        $this->assertEquals($listener->fixUrl("http://example.com/Some%20Thing"), "http://example.com/Some%20Thing");
-        $this->assertEquals($listener->fixUrl("http://example.com/SomeThing/"), "http://example.com/SomeThing");
-        $this->assertEquals($listener->fixUrl("http://example.com/SomeThing"), "http://example.com/SomeThing");
-        $this->assertEquals($listener->fixUrl("http://example.com/Some Thing/"), "http://example.com/Some%20Thing");
-    }
 }
