@@ -22,10 +22,15 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $node
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(5))
             ->method('getAttribute')
-            ->with($this->equalTo('href'))
-            ->will($this->onConsecutiveCalls('/', 'aboutus'));
+            ->with($this->callback(function($subject) {
+                if ($subject === "rel" || $subject === "href") {
+                    return true;
+                }
+                return false;
+            }))
+            ->will($this->onConsecutiveCalls("", '/', "", 'aboutus', "nofollow"));
 
         $crawler = $this
             ->getMockBuilder('Symfony\Component\DomCrawler\Crawler')
@@ -37,7 +42,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('filterXpath')
             ->with($this->equalTo('//a'))
-            ->will($this->returnValue([$node, $node]));
+            ->will($this->returnValue([$node, $node, $node]));
 
         $uri = new Uri('https://github.com/test');
 
@@ -53,7 +58,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($crawler));
 
         $resource
-            ->expects($this->exactly(2))
+            ->expects($this->once())
             ->method('getUri')
             ->will($this->returnValue($uri));
 
@@ -99,6 +104,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
                         $validUris = [
                             'https://github.com/',
                             'https://github.com/aboutus',
+                            'https://github.com/nofollow',
                         ];
 
                         foreach ($uris as $uri) {
