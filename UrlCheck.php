@@ -107,7 +107,7 @@ class UrlCheck
      */
     public static function fixUrl ($url) {
         $url = str_replace(' ', '%20', $url);
-        $url = preg_replace('#\/$#i', "", $url);
+        $url = preg_replace('#\/\??$#i', "", $url);
         return $url;
     }
 }
