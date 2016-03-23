@@ -133,7 +133,7 @@ class CrawlCommand extends Command
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->crawl($crawlJob);
 
-            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
             $this->queue->acknowledge($message);
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
@@ -146,7 +146,7 @@ class CrawlCommand extends Command
                 case 404:
                 case 418:
                     $this->indexer->deleteDocument($message);
-                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl());
+                    $this->logMessage('warning', sprintf("Deleted %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
                     $this->queue->rejectMessage($message);
                     break;
                 default:
@@ -173,9 +173,9 @@ class CrawlCommand extends Command
      * @param string $message
      * @param string $url
      */
-    public function logMessage($level, $message, $url)
+    public function logMessage($level, $message, $url, $core = 'unknown')
     {
-        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST)]]);
+        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST), $core]]);
     }
 
     /**
@@ -186,6 +186,7 @@ class CrawlCommand extends Command
      */
     public function markAsSkipped(CrawlJob $crawlJob, $level = 'info', $reason = 'unknown')
     {
+        $meta = $crawlJob->getMetadata();
         $this->logMessage(
             $level,
             sprintf(
@@ -193,7 +194,8 @@ class CrawlCommand extends Command
                 $crawlJob->getUrl(),
                 $reason
             ),
-            $crawlJob->getUrl()
+            $crawlJob->getUrl(),
+            $meta['core']
         );
     }
 
@@ -205,7 +207,8 @@ class CrawlCommand extends Command
      */
     public function markAsFailed(CrawlJob $crawlJob, $errorMessage)
     {
-        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl());
+        $meta = $crawlJob->getMetadata();
+        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl(), $meta['core']);
     }
 
 }

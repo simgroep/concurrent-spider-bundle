@@ -74,7 +74,11 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
         $errorReportingLevel = error_reporting();
         error_reporting($errorReportingLevel ^ E_NOTICE);
 
-        $phpword = $reader->load($tempFile);
+        try {
+            $phpword = $reader->load($tempFile);
+        } catch (\Exception $e) {
+            // too bad
+        }
 
         //back error reporting to previous state
         error_reporting($errorReportingLevel);
