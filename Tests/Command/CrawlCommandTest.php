@@ -605,7 +605,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'http://ggg.nl',
                 'base_url' => 'http://ggg.nl',
                 'blacklist' => [],
-                'metadata' => [],
+                'metadata' => [
+                    'core' => 'core1'
+                ],
                 'whitelist' => ['http://ggg.nl'],
             ]
         );
@@ -692,7 +694,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'url' => 'https://github.com',
                 'base_url' => 'https://github.com',
                 'blacklist' => [],
-                'metadata' => [],
+                'metadata' => [
+                    'core' => 'core1'
+                ],
                 'whitelist' => [],
             ]
         );
@@ -742,7 +746,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $command->logMessage('error', 'Test', 'https://github.com');
+        $command->logMessage('error', 'Test', 'https://github.com', 'core');
     }
 
     /**
