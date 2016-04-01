@@ -103,16 +103,25 @@ class Spider
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
         $baseUrl = $resource->getUri()->toString();
-        $crawler = $resource->getCrawler()->filterXPath('//a');
 
+        $crawler = $resource->getCrawler()->filterXPath('//a');
         foreach ($crawler as $node) {
             try {
-
                 if ($node->getAttribute("rel") === "nofollow") {
                     continue;
                 }
-
                 $href = $node->getAttribute('href');
+                $uri = new Uri($href, $baseUrl);
+                $uris[] = $uri;
+            } catch (UriSyntaxException $e) {
+                //too bad
+            }
+        }
+
+        $crawler = $resource->getCrawler()->filterXPath('//loc');
+        foreach ($crawler as $node) {
+            try {
+                $href = $node->nodeValue;
                 $uri = new Uri($href, $baseUrl);
                 $uris[] = $uri;
             } catch (UriSyntaxException $e) {
