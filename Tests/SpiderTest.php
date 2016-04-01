@@ -15,22 +15,13 @@ class SpiderTest extends PHPUnit_Framework_TestCase
      */
     public function isDoubleSlashIsRemoved()
     {
-        $node = $this
-            ->getMockBuilder('DOMNode')
-            ->disableOriginalConstructor()
-            ->setMethods(['getAttribute'])
-            ->getMock();
 
-        $node
-            ->expects($this->exactly(5))
-            ->method('getAttribute')
-            ->with($this->callback(function($subject) {
-                if ($subject === "rel" || $subject === "href") {
-                    return true;
-                }
-                return false;
-            }))
-            ->will($this->onConsecutiveCalls("", '/', "", 'aboutus', "nofollow"));
+        $dom = new \DOMDocument('1.0', 'utf-8');
+
+        $node1 = $dom->createElement('a', 'https://github.com/');
+        $node1->setAttribute("rel", "nofollow");
+        $node2 = $dom->createElement('loc', 'https://github.com/');
+
 
         $crawler = $this
             ->getMockBuilder('Symfony\Component\DomCrawler\Crawler')
@@ -39,10 +30,15 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $crawler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('filterXpath')
-            ->with($this->equalTo('//a'))
-            ->will($this->returnValue([$node, $node, $node]));
+            ->with($this->callback(function($subject) {
+                if ($subject === "//a" || $subject === "//loc") {
+                    return true;
+                }
+                return false;
+            }))
+            ->will($this->returnValue([$node1, $node2, $node2]));
 
         $uri = new Uri('https://github.com/test');
 
@@ -53,7 +49,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $resource
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getCrawler')
             ->will($this->returnValue($crawler));
 
@@ -105,6 +101,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
                             'https://github.com/',
                             'https://github.com/aboutus',
                             'https://github.com/nofollow',
+                            'https://github.com/test'
                         ];
 
                         foreach ($uris as $uri) {
