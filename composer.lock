@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "e3757bb9dd31ea28b37e016055649597",
-    "content-hash": "62d6051820b6b3afe3671f58001818ad",
+    "hash": "370fbb291016a60fa7b2e2010764d3df",
+    "content-hash": "1fc8f40b4bc3dcaa1a6b260802678d84",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -827,21 +827,20 @@
         },
         {
             "name": "smalot/pdfparser",
-            "version": "dev-master",
+            "version": "v0.9.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simgroep/pdfparser.git",
-                "reference": "d70e371f8ed3a1fd7cd3a0df6120249068957a77"
+                "reference": "31590f7938a22f1c7fc4fb292611e3742a62ebaa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simgroep/pdfparser/zipball/d70e371f8ed3a1fd7cd3a0df6120249068957a77",
-                "reference": "d70e371f8ed3a1fd7cd3a0df6120249068957a77",
+                "url": "https://api.github.com/repos/simgroep/pdfparser/zipball/31590f7938a22f1c7fc4fb292611e3742a62ebaa",
+                "reference": "31590f7938a22f1c7fc4fb292611e3742a62ebaa",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0",
-                "tecnickcom/tc-lib-pdf-parser": "2.*",
                 "tecnickcom/tcpdf": ">=6.0.050"
             },
             "require-dev": {
@@ -868,9 +867,9 @@
             "homepage": "http://www.pdfparser.org",
             "support": {
                 "issues": "https://github.com/smalot/pdfparser/issues",
-                "source": "https://github.com/simgroep/pdfparser/tree/master"
+                "source": "https://github.com/simgroep/pdfparser/tree/v0.9.25"
             },
-            "time": "2016-01-13 12:38:36"
+            "time": "2015-09-18 08:29:33"
         },
         {
             "name": "solarium/solarium",
@@ -1049,116 +1048,6 @@
                 "framework"
             ],
             "time": "2015-11-23 11:58:08"
-        },
-        {
-            "name": "tecnickcom/tc-lib-pdf-filter",
-            "version": "1.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tecnickcom/tc-lib-pdf-filter.git",
-                "reference": "c47b2c2f1989a1f7da8aabdb67336b1a04634383"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf-filter/zipball/c47b2c2f1989a1f7da8aabdb67336b1a04634383",
-                "reference": "c47b2c2f1989a1f7da8aabdb67336b1a04634383",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4"
-            },
-            "require-dev": {
-                "apigen/apigen": "^4.1.2",
-                "bartlett/php-compatinfo": "^5.0.0",
-                "pdepend/pdepend": "^2.2.2",
-                "phploc/phploc": "^2.1.5|^3.0.0",
-                "phpmd/phpmd": "^2.3.2",
-                "phpunit/phpunit": "4.8.19|^5.0.0",
-                "sebastian/phpcpd": "^2.0.2",
-                "squizlabs/php_codesniffer": "^2.5.0|^3.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Com\\Tecnick\\Pdf\\Filter\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GNU-LGPL v3"
-            ],
-            "authors": [
-                {
-                    "name": "Nicola Asuni",
-                    "email": "info@tecnick.com",
-                    "role": "lead"
-                }
-            ],
-            "description": "PHP library to decode PDF compression and encryption filters",
-            "homepage": "http://www.tecnick.com",
-            "keywords": [
-                "compression",
-                "encryption",
-                "filter",
-                "pdf",
-                "tc-lib-pdf-filter"
-            ],
-            "time": "2015-12-11 12:59:51"
-        },
-        {
-            "name": "tecnickcom/tc-lib-pdf-parser",
-            "version": "2.2.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tecnickcom/tc-lib-pdf-parser.git",
-                "reference": "6e35159fb22dc0ac051d5d99ee5ff6fe9db7195a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tecnickcom/tc-lib-pdf-parser/zipball/6e35159fb22dc0ac051d5d99ee5ff6fe9db7195a",
-                "reference": "6e35159fb22dc0ac051d5d99ee5ff6fe9db7195a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.4",
-                "tecnickcom/tc-lib-pdf-filter": "^1.2.0"
-            },
-            "require-dev": {
-                "apigen/apigen": "^4.1.2",
-                "bartlett/php-compatinfo": "^5.0.0",
-                "pdepend/pdepend": "^2.2.2",
-                "phploc/phploc": "^2.1.5|^3.0.0",
-                "phpmd/phpmd": "^2.3.2",
-                "phpunit/phpunit": "4.8.19|^5.0.0",
-                "sebastian/phpcpd": "^2.0.2",
-                "squizlabs/php_codesniffer": "^2.5.0|^3.0.0"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Com\\Tecnick\\Pdf\\Parser\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "GNU-LGPL v3"
-            ],
-            "authors": [
-                {
-                    "name": "Nicola Asuni",
-                    "email": "info@tecnick.com",
-                    "role": "lead"
-                }
-            ],
-            "description": "PHP library to parse PDF documents",
-            "homepage": "http://www.tecnick.com",
-            "keywords": [
-                "document",
-                "parser",
-                "pdf",
-                "tc-lib-pdf-parser"
-            ],
-            "time": "2016-01-12 14:42:03"
         },
         {
             "name": "tecnickcom/tcpdf",
@@ -2418,7 +2307,6 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "vdb/php-spider": 20,
-        "smalot/pdfparser": 20,
         "phpoffice/phpword": 20,
         "nelmio/solarium-bundle": 20
     },
