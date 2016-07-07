@@ -249,7 +249,6 @@ class Indexer
 
         $updateQuery = $this->client->createUpdate();
         $updateQuery->addDeleteById($document_id);
-        $updateQuery->addCommit();
 
         $this->client->update($updateQuery);
     }
