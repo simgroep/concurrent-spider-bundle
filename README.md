@@ -16,6 +16,11 @@ Then add it to your `AppKernel.php`
 
     new Simgroep\ConcurrentSpiderBundle\SimgroepConcurrentSpiderBundle(),
 
+It is needed to install http://www.foolabs.com/xpdf/ - only pdftotext is realy to be functional from command line:
+
+    /path_to_command/pdftotext pdffile.pdf
+
+
 ### Configuration
 
 Minimal configuration is necessary. The crawler needs to know the mapping you're using in Solr so it can save documents. The only mandatory part of the config is "mapping". Other values are optional:
