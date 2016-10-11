@@ -34,6 +34,7 @@ class SimgroepConcurrentSpiderExtension extends Extension
         $container->setParameter('simgroep_concurrent_spider.solr_client', $config['solr_client']);
         $container->setParameter('simgroep_concurrent_spider.logger_service', $config['logger_service']);
         $container->setParameter('simgroep_concurrent_spider.minimal_document_save_amount', $config['minimal_document_save_amount']);
+        $container->setParameter('simgroep_concurrent_spider.pdf_to_txt_command', $config['pdf_to_txt_command']);
         $container->setParameter('simgroep_concurrent_spider.minimal_revisit_factor', $config['minimal_revisit_factor']);
         $container->setParameter('simgroep_concurrent_spider.maximum_revisit_factor', $config['maximum_revisit_factor']);
         $container->setParameter('simgroep_concurrent_spider.default_revisit_factor', $config['default_revisit_factor']);
