@@ -51,9 +51,8 @@
             <argument>%simgroep_concurrent_spider.css_blacklist%</argument>
         </service>
 
-        <service id="simgroep_concurrent_spider.pdf_parser" class="Smalot\PdfParser\Parser" />
         <service id="simgroep_concurrent_spider.document_resolver.type_pdf" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf">
-            <argument type="service" id="simgroep_concurrent_spider.pdf_parser"></argument>
+            <argument>%simgroep_concurrent_spider.pdf_to_txt_command%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.document_resolver.type_msdoc" class="Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\MsDoc" />

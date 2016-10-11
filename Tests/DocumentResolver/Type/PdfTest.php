@@ -7,22 +7,6 @@ use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
- * Mock version of json_encode
- *
- * Used for testing an error situation.
- *
- * @param mixed $value
- * @return bool|string
- */
-function json_encode($value)
-{
-    if ($value === 'return-false') {
-        return false;
-    }
-    return \json_encode($value);
-}
-
-/**
  * Date function mock for returning the same date string
  * Fixing problem with generating not the same datetime each call
  *
@@ -40,75 +24,43 @@ class PdfTest extends PHPUnit_Framework_TestCase
      */
     public function retrieveValidDataFromPdfFile()
     {
-        $document = $this
-            ->getMockBuilder('Smalot\PdfParser\Document')
-            ->setMethods(['getText'])
-            ->getMock();
-
-        $document
-            ->expects($this->once())
-            ->method('getText')
-            ->will($this->returnValue('Dummy Text Occure There!'));
-
-        $pdfType = $this
-            ->getMockBuilder('Smalot\PdfParser\Parser')
+        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
             ->disableOriginalConstructor()
-            ->setMethods(['getText', 'parseContent'])
+            ->setMethods(['getLastModified'])
             ->getMock();
-
-        $pdfType
-            ->expects($this->once())
-            ->method('parseContent')
-            ->will($this->returnValue($document));
-
-        $response = $this
-            ->getMockBuilder('Guzzle\Http\Message\Response')
-            ->disableOriginalConstructor()
-            ->setMethods(['getBody', 'getLastModified'])
-            ->getMock();
-
         $response->addHeader('Content-Disposition', 'filename="dummyfileFromContent.pdf"');
-
-        $response
-            ->expects($this->once())
+        $response->expects($this->once())
             ->method('getLastModified')
             ->will($this->returnValue('2015-06-18T23:49:41Z'));
 
-        $response
-            ->expects($this->once())
-            ->method('getBody')
-            ->with(true);
-
-        $uri = $this
-            ->getMockBuilder('VDB\Uri\Uri')
+        $uri = $this->getMockBuilder('VDB\Uri\Uri')
             ->disableOriginalConstructor()
             ->setMethods(['toString'])
             ->getMock();
-
-        $uri
-            ->expects($this->exactly(2))
+        $uri->expects($this->exactly(2))
             ->method('toString')
             ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
 
-        $crawler = new Crawler('', 'http://blabdummy.de/dummydir/dummyfile.pdf');
-
-        $resource = $this
-                ->getMockBuilder('VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getResponse', 'getUri', 'getBody'])
-                ->getMock();
-
-        $resource
-            ->expects($this->exactly(3))
+        $resource = $this->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getUri', 'getResponse'])
+            ->getMock();
+        $resource->expects($this->exactly(2))
             ->method('getResponse')
             ->will($this->returnValue($response));
-
-        $resource
-            ->expects($this->exactly(2))
+        $resource->expects($this->exactly(2))
             ->method('getUri')
             ->will($this->returnValue($uri));
 
-        $type = new Pdf($pdfType);
+        $type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf')
+            ->setConstructorArgs(['/usr/local/sbin/pdftotext'])
+            ->setMethods(['extractContentFromResource'])
+            ->getMock();
+        $type->expects($this->once())
+            ->method('extractContentFromResource')
+            ->with($resource)
+            ->will($this->returnValue('TEST TEXT Content from PDF 1'));
+
         $data = $type->getData($resource);
 
         $this->assertEquals(12, count($data));
@@ -123,6 +75,8 @@ class PdfTest extends PHPUnit_Framework_TestCase
         }
 
         $this->assertEquals('dummyfileFromContent.pdf', $data['title']);
+        $this->assertEquals(28, strlen($data['content']));
+
         //not equals filename taken from url
         $this->assertNotEquals('dummyfile.pdf', $data['title']);
         $this->assertNotEmpty($data, $data['content']);
@@ -133,73 +87,42 @@ class PdfTest extends PHPUnit_Framework_TestCase
      */
     public function retrieveValidDataFromPdfFileWithTitleFromUrl()
     {
-        $document = $this
-            ->getMockBuilder('Smalot\PdfParser\Document')
-            ->setMethods(['getText'])
-            ->getMock();
-
-        $document
-            ->expects($this->once())
-            ->method('getText')
-            ->will($this->returnValue('Dummy Text Occure There!'));
-
-        $pdfType = $this
-            ->getMockBuilder('Smalot\PdfParser\Parser')
+        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
             ->disableOriginalConstructor()
-            ->setMethods(['getText', 'parseContent'])
+            ->setMethods(['getLastModified'])
             ->getMock();
-
-        $pdfType
-            ->expects($this->once())
-            ->method('parseContent')
-            ->will($this->returnValue($document));
-
-        $response = $this
-            ->getMockBuilder('Guzzle\Http\Message\Response')
-            ->disableOriginalConstructor()
-            ->setMethods(['getBody', 'getLastModified'])
-            ->getMock();
-
-        $response
-            ->expects($this->once())
+        $response->expects($this->once())
             ->method('getLastModified')
             ->will($this->returnValue('2015-06-18T23:49:41Z'));
 
-        $response
-            ->expects($this->once())
-            ->method('getBody')
-            ->with(true);
-
-        $uri = $this
-            ->getMockBuilder('VDB\Uri\Uri')
+        $uri = $this->getMockBuilder('VDB\Uri\Uri')
             ->disableOriginalConstructor()
             ->setMethods(['toString'])
             ->getMock();
-
-        $uri
-            ->expects($this->exactly(2))
+        $uri->expects($this->exactly(2))
             ->method('toString')
             ->will($this->returnValue('http://blabdummy.de/dummydir/dummyfile.pdf'));
 
-        $crawler = new Crawler('', 'http://blabdummy.de/dummydir/dummyfile.pdf');
-
-        $resource = $this
-                ->getMockBuilder('VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getResponse', 'getUri', 'getBody'])
-                ->getMock();
-
-        $resource
-            ->expects($this->exactly(3))
+        $resource = $this->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getUri', 'getBody'])
+            ->getMock();
+        $resource->expects($this->exactly(2))
             ->method('getResponse')
             ->will($this->returnValue($response));
-
-        $resource
-            ->expects($this->exactly(2))
+        $resource->expects($this->exactly(2))
             ->method('getUri')
             ->will($this->returnValue($uri));
 
-        $type = new Pdf($pdfType);
+        $type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf')
+            ->setConstructorArgs(['/usr/local/sbin/pdftotext'])
+            ->setMethods(['extractContentFromResource'])
+            ->getMock();
+        $type->expects($this->once())
+            ->method('extractContentFromResource')
+            ->with($resource)
+            ->will($this->returnValue('TEST TEXT Content from PDF 22'));
+
         $data = $type->getData($resource);
 
         $this->assertEquals(12, count($data));
@@ -214,6 +137,8 @@ class PdfTest extends PHPUnit_Framework_TestCase
         }
 
         $this->assertEquals('dummyfile.pdf', $data['title']);
+        $this->assertEquals(29, strlen($data['content']));
+
         //filename taken from url, because no filename in content
         $this->assertNotEquals('dummyfileFromContent.pdf', $data['title']);
         $this->assertNotEmpty($data, $data['content']);
@@ -226,51 +151,23 @@ class PdfTest extends PHPUnit_Framework_TestCase
      */
     public function throwExceptionOnLessThenMinimalContentLength()
     {
+        $resource = $this->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse'])
+            ->getMock();
 
-        $document = $this->getMockBuilder('Smalot\PdfParser\Document')
-                ->setMethods(['getText'])
-                ->getMock();
-        $document->expects($this->once())
-                ->method('getText')
-                ->will($this->returnValue(''));
+        $type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Pdf')
+            ->setConstructorArgs(['/usr/local/sbin/pdftotext'])
+            ->setMethods(['extractContentFromResource'])
+            ->getMock();
+        $type->expects($this->once())
+            ->method('extractContentFromResource')
+            ->with($resource)
+            ->will($this->returnValue('te'));
 
-        $pdfType = $this->getMockBuilder('Smalot\PdfParser\Parser')
-                ->disableOriginalConstructor()
-                ->setMethods(['getText', 'parseContent'])
-                ->getMock();
-        $pdfType->expects($this->once())
-                ->method('parseContent')
-                ->will($this->returnValue($document));
+        //exception is thrown there !
+        $type->getData($resource);
 
-        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
-                ->disableOriginalConstructor()
-                ->setMethods(['getBody'])
-                ->getMock();
-        $response->expects($this->once())
-                ->method('getBody')
-                ->with(true);
-
-        $resource = $this
-                ->getMockBuilder('VDB\Spider\Resource')
-                ->disableOriginalConstructor()
-                ->setMethods(['getResponse'])
-                ->getMock();
-        $resource->expects($this->once())
-                ->method('getResponse')
-                ->will($this->returnValue($response));
-
-        $type = new Pdf($pdfType);
-        $data = $type->getData($resource);
-
-        //change that to: $this->assertEquals($expectedData, $data);
-        $this->assertEquals(9, count($data));
-        $expectedKeys = ['id', 'url', 'content', 'title', 'tstamp', 'contentLength', 'lastModified', 'date', 'publishedDate'];
-        foreach ($expectedKeys as $expectedKey) {
-            $this->assertArrayHasKey($expectedKey, $data);
-        }
-
-        $this->assertEquals('dummyfile.pdf', $data['title']);
-        $this->assertNotEmpty($data, $data['content']);
     }
 
 }
