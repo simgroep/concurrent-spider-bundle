@@ -40,4 +40,15 @@ abstract class TypeAbstract
         return preg_replace('@[\x00-\x08\x0B\x0C\x0E-\x1F]@', '', $content);
     }
 
+    /**
+     * Return Temporary file name with given prefix
+     *
+     * @param string prefix of tempoerary file
+     *
+     * @return string
+     */
+    protected function getTempFileName($prefix)
+    {
+        return tempnam(sys_get_temp_dir(), $prefix);
+    }
 }

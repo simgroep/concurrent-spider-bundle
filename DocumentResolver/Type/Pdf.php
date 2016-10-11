@@ -5,8 +5,9 @@ namespace Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\TypeAbstract;
 use VDB\Spider\Resource;
 use Simgroep\ConcurrentSpiderBundle\DocumentResolver\DocumentDataExtractor;
-use Smalot\PdfParser\Parser;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
+use Symfony\Component\Process\Process;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 /**
  * Pdf Resolver Document Type
@@ -14,17 +15,19 @@ use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 class Pdf extends TypeAbstract implements DocumentTypeInterface
 {
     /**
-     * @var \Smalot\PdfParser\Parser
+     * @var string
      */
-    private $pdfParser;
+    private $pdfToTxtCommand;
+
 
     /**
-     * @param \Smalot\PdfParser\Parser $pdfParser
-     * @param \VDB\Spider\Resource $resource
+     * Constructor
+     *
+     * @param string $pdfToTxtCommand
      */
-    public function __construct(Parser $pdfParser)
+    public function __construct($pdfToTxtCommand)
     {
-        $this->pdfParser = $pdfParser;
+        $this->pdfToTxtCommand = $pdfToTxtCommand;
     }
 
     /**
@@ -101,12 +104,52 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      * @param \VDB\Spider\Resource $resource
      *
      * @return string
+     * @throws InvalidContentException
+     * @throws ProcessFailedException
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $pdf = $this->pdfParser->parseContent($resource->getResponse()->getBody(true));
+        $tempPdfFile = $this->getTempFileName('pdf');
 
-        return $this->stripBinaryContent($pdf->getText());
+        file_put_contents($tempPdfFile, $resource->getResponse()->getBody());
+
+        $command = sprintf('%s %s', $this->pdfToTxtCommand, $tempPdfFile);
+        $process = $this->processCommand($command);
+
+        // executes after the command finishes
+        if (!$process->isSuccessful()) {
+            unlink($tempPdfFile);
+            throw new ProcessFailedException($process);
+        }
+        //remove tempPdf file
+        unlink($tempPdfFile);
+
+        //read txt file created by pdftotext command
+        $tempTxtFile = sprintf('%s.txt', $tempPdfFile);
+        $content = file_get_contents($tempTxtFile);
+        if ($content == false) {
+            unlink($tempTxtFile);
+            throw new InvalidContentException(
+                sprintf("PDF: Cant read temporary txt file converted from pdf: %s", $tempTxtFile)
+            );
+        }
+        //remove tempTxt file
+        unlink($tempTxtFile);
+
+        return $content;
     }
+
+    /**
+     * @param string $command
+     *
+     * @return Process
+     */
+    protected function processCommand($command)
+    {
+        $process = new Process($command);
+        $process->run();
+        return $process;
+    }
+
 
 }
