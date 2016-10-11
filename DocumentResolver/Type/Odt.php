@@ -64,7 +64,7 @@ class Odt extends TypeAbstract implements DocumentTypeInterface
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'odt');
+        $tempFile = $this->getTempFileName('odt');
 
         file_put_contents($tempFile, $resource->getResponse()->getBody());
 

@@ -64,7 +64,7 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'rtf');
+        $tempFile = $this->getTempFileName('rtf');
 
         file_put_contents($tempFile, $resource->getResponse()->getBody());
 

@@ -64,7 +64,7 @@ class Word2007 extends TypeAbstract implements DocumentTypeInterface
      */
     public function extractContentFromResource(Resource $resource)
     {
-        $tempFile = tempnam(sys_get_temp_dir(), 'docx');
+        $tempFile = $this->getTempFileName('docx');
 
         file_put_contents($tempFile, $resource->getResponse()->getBody());
 
