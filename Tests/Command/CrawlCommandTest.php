@@ -3,8 +3,12 @@
 namespace Simgroep\ConcurrentSpiderBundle\Tests\Command;
 
 use Exception;
+use Guzzle\Common\Collection;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
+use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -13,6 +17,247 @@ use VDB\Uri\Exception\UriSyntaxException;
 
 class CrawlCommandTest extends PHPUnit_Framework_TestCase
 {
+
+    /**
+     * @test
+     */
+    public function skipDocumentOnServerError()
+    {
+        $redirect_url = "http://redirect.example.com";
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            [
+                'url' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => [],
+                'metadata' => [
+                    'core' => 'core1'
+                ],
+                'whitelist' => [],
+            ]
+        );
+
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['__destruct', 'listen', 'rejectMessage'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage')
+            ->with($message);
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['isUrlIndexedAndNotExpired'])
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexedAndNotExpired')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(['setUserAgent'])
+            ->getMock();
+
+        $client->setConfig(new Collection());
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(['getClient'])
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->exactly(2))
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $response = $this->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getStatusCode'])
+            ->getMock();
+
+        $response
+            ->expects($this->exactly(2))
+            ->method('getStatusCode')
+            ->will($this->returnValue(500));
+
+
+        $exception = new ClientErrorResponseException( "Internal server error", 500);
+        $exception->setResponse($response);
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(['getRequestHandler', 'crawl'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->exactly(2))
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $spider->expects($this->once())
+            ->method("crawl")
+            ->willThrowException($exception);
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(['info', 'warning', 'emergency'])
+            ->getMock();
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setMethods(null)
+            ->getMock();
+
+        $command->crawlUrl($message);
+    }
+
+    /**
+     * @test
+     */
+    public function deleteDocumentAndCreateNewMessageWhenDocumentIsMoved()
+    {
+        $redirect_url = "http://redirect.example.com";
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            [
+                'url' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => [],
+                'metadata' => [
+                    'core' => 'core1'
+                ],
+                'whitelist' => [],
+            ]
+        );
+
+        $crawlJob = new CrawlJob(
+            $redirect_url,
+            'https://github.com',
+            [],
+            [
+                'core' => 'core1'
+            ],
+            []
+        );
+
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['__destruct', 'listen', 'publishJob'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('publishJob')
+            ->with($this->equalTo($crawlJob));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['isUrlIndexedAndNotExpired', 'deleteDocument'])
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexedAndNotExpired')
+            ->with($this->equalTo('https://github.com'))
+            ->will($this->returnValue(false));
+
+        $indexer
+            ->expects($this->once())
+            ->method('deleteDocument')
+            ->with($this->equalTo($message))
+            ->will($this->returnValue(false));
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(['setUserAgent'])
+            ->getMock();
+
+        $client->setConfig(new Collection());
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(['getClient'])
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->exactly(2))
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $response = $this->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getInfo', 'getStatusCode'])
+            ->getMock();
+
+        $response
+            ->expects($this->once())
+            ->method('getStatusCode')
+            ->will($this->returnValue("301"));
+
+        $response
+            ->expects($this->once())
+            ->method('getInfo')
+            ->with($this->equalTo('redirect_url'))
+            ->will($this->returnValue($redirect_url));
+
+        $exception = new ClientErrorResponseException( sprintf(
+            "Page moved to %s",
+            $redirect_url
+        ), 301);
+        $exception->setResponse($response);
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(['getRequestHandler', 'crawl'])
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $spider
+            ->expects($this->exactly(2))
+            ->method('getRequestHandler')
+            ->will($this->returnValue($requestHandler));
+
+        $spider->expects($this->once())
+            ->method("crawl")
+            ->willThrowException($exception);
+
+        $userAgent = 'I am some agent';
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(['info', 'warning', 'emergency'])
+            ->getMock();
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setMethods(null)
+            ->getMock();
+
+        $command->crawlUrl($message);
+    }
+
     /**
      * @test
      */
@@ -57,6 +302,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $guzzleResponse = $this->getMockBuilder('Guzzle\Http\Message\Response')
             ->setMethods(['getStatusCode'])
             ->disableOriginalConstructor()
@@ -85,7 +332,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -262,6 +509,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -269,7 +518,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -356,6 +605,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -363,7 +614,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -374,7 +625,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -466,6 +717,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -473,7 +726,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -484,7 +737,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -559,6 +812,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -566,7 +821,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -577,7 +832,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -614,6 +869,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command->crawlUrl($message);
     }
+
     /**
      * @test
      */
@@ -648,6 +904,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(['setUserAgent'])
             ->getMock();
 
+        $client->setConfig(new Collection());
+
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
             ->disableOriginalConstructor()
@@ -655,7 +913,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -666,7 +924,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 

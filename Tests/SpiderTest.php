@@ -2,6 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
 use Simgroep\ConcurrentSpiderBundle\Spider;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
@@ -42,10 +44,20 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
         $uri = new Uri('https://github.com/test');
 
+        $response = $this->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getStatusCode'])
+            ->getMock();
+
+        $response
+            ->expects($this->once())
+            ->method('getStatusCode')
+            ->will($this->returnValue(200));
+
         $resource = $this
             ->getMockBuilder('VDB\Spider\Resource')
             ->disableOriginalConstructor()
-            ->setMethods(['getCrawler', 'getUri'])
+            ->setMethods(['getCrawler', 'getUri', 'getResponse'])
             ->getMock();
 
         $resource
@@ -57,6 +69,11 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getUri')
             ->will($this->returnValue($uri));
+
+        $resource
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -120,6 +137,79 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $spider->crawl($crawlJob);
 
         $this->assertEquals('https://github.com/test', $spider->getCurrentCrawlJob()->getUrl());
+    }
+
+    /**
+     * @test
+     */
+    public function responseWith301StatusCode()
+    {
+
+        $url = 'https://github.com/test';
+
+        $response = $this->getMockBuilder(Response::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getStatusCode', 'getInfo'])
+            ->getMock();
+
+        $response
+            ->expects($this->once())
+            ->method('getStatusCode')
+            ->will($this->returnValue(301));
+
+        $response
+            ->expects($this->once())
+            ->method('getInfo')
+            ->with('redirect_url')
+            ->will($this->returnValue($url));
+
+        $resource = $this
+            ->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse'])
+            ->getMock();
+
+        $resource
+            ->expects($this->exactly(3))
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(['request'])
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->once())
+            ->method('request')
+            ->with($this->isInstanceOf('VDB\Uri\Uri'))
+            ->will($this->returnValue($resource));
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(['persist'])
+            ->getMock();
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(['dispatch'])
+            ->getMock();
+
+        /** @var Spider $spider */
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setMethods(null)
+            ->getMock();
+
+
+        $crawlJob = new CrawlJob($url, $url);
+
+        $this->setExpectedException(ClientErrorResponseException::class, sprintf("Page moved to %s", $url));
+        $spider->crawl($crawlJob);
     }
 
     /**
