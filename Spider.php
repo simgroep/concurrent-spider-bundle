@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
+use Guzzle\Http\Exception\ClientErrorResponseException;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
@@ -98,6 +99,16 @@ class Spider
     {
         $this->currentCrawlJob = $crawlJob;
         $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
+
+        if ($resource->getResponse()->getStatusCode() == 301) {
+            $exception = new ClientErrorResponseException( sprintf(
+                "Page moved to %s",
+                $resource->getResponse()->getInfo('redirect_url')
+            ), 301);
+            $exception->setResponse($resource->getResponse());
+            throw $exception;
+        }
+
         $uris = [];
 
         $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
