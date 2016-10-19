@@ -131,12 +131,27 @@ class CrawlCommand extends Command
 
         try {
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
+            $this->spider->getRequestHandler()->getClient()->getConfig()->set('request.params', [
+                'redirect.disable' => true,
+            ]);
             $this->spider->crawl($crawlJob);
 
             $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
             $this->queue->acknowledge($message);
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
+                case 301:
+                    $this->indexer->deleteDocument($message);
+                    $this->markAsSkipped($crawlJob, 'warning', $e->getMessage());
+                    $newCrawlJob = new CrawlJob(
+                        $e->getResponse()->getInfo('redirect_url'),
+                        $crawlJob->getBaseUrl(),
+                        $crawlJob->getBlacklist(),
+                        $crawlJob->getMetadata(),
+                        $crawlJob->getWhitelist()
+                    );
+                    $this->queue->publishJob($newCrawlJob);
+                    break;
                 case 403:
                 case 401:
                 case 500:
