@@ -353,4 +353,52 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $indexer = new Indexer($solrClient, [], 50);
         $indexer->getDocumentUrlsInCore(['core' => 'core']);
     }
+
+    /**
+     * @test
+     * @testdox Tests if the given url is not indexed in solr.
+     */
+    public function ifUrlIsNotIndexedReturnTrue()
+    {
+        $url = 'https://github.com';
+
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->disableOriginalConstructor()
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $expiresBeforeDate = new DateTime();
+        $expiresBeforeDate->modify('-8 hour');
+
+        $solrQuery
+            ->expects($this->once())
+            ->method('setQuery');
+
+        $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
+            ->disableOriginalConstructor()
+            ->setMethods(['getNumFound'])
+            ->getMock();
+
+        $solrResult->expects($this->once())
+            ->method('getNumFound')
+            ->will($this->returnValue(0));
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($solrQuery));
+
+        $solrClient->expects($this->once())
+            ->method('select')
+            ->will($this->returnValue($solrResult));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $actual = $indexer->isUrlNotIndexedOrIndexedAndExpired($url, ['core' => 'coreName']);
+
+        $this->assertTrue($actual);
+    }
 }
