@@ -176,6 +176,48 @@ class Indexer
     }
 
     /**
+     * Returns url's that are not indexed or indexed but expired.
+     *
+     * @param string $uri
+     * @param array  $metadata
+     *
+     * @return boolean
+     */
+    public function isUrlNotIndexedOrIndexedAndExpired($uri, array $metadata = [])
+    {
+        $this->setCoreNameFromMetadata($metadata);
+
+        $uriHash = sha1(strtolower($uri));
+        $queryPhrase = sprintf(
+            "id:%s",
+            $uriHash
+        );
+
+        $query = $this->client->createSelect();
+        $query->setQuery($queryPhrase);
+
+        $result = $this->client->select($query);
+
+        if ($result->getNumFound() < 1) {
+            return true;
+        }
+
+        $now = new DateTime();
+
+        $queryPhrase = sprintf(
+            "id:%s AND revisit_expiration:[* TO %s]",
+            $uriHash,
+            $now->format('Y-m-d\TH:i:s\Z')
+        );
+
+        $query->setQuery($queryPhrase);
+
+        $result = $this->client->select($query);
+
+        return ($result->getNumFound() > 0);
+    }
+
+    /**
      * Make a document ready to be indexed.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
