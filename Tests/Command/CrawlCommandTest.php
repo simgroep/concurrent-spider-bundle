@@ -159,11 +159,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(['__destruct', 'listen', 'publishJob'])
+            ->setMethods(['__destruct', 'listen', 'publishJob', 'rejectMessage'])
             ->getMock();
-
-        $queue
-            ->expects($this->once())
+        $queue->expects($this->once())
+            ->method('rejectMessage')
+            ->with($this->equalTo($message));
+        $queue->expects($this->once())
             ->method('publishJob')
             ->with($this->equalTo($crawlJob));
 
