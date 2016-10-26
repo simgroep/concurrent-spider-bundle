@@ -142,6 +142,8 @@ class CrawlCommand extends Command
             switch ($e->getResponse()->getStatusCode()) {
                 case 301:
                     $this->indexer->deleteDocument($message);
+                    $this->queue->rejectMessage($message);
+
                     $this->markAsSkipped($crawlJob, 'warning', $e->getMessage());
                     $newCrawlJob = new CrawlJob(
                         $e->getResponse()->getInfo('redirect_url'),
