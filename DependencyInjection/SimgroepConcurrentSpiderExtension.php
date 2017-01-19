@@ -24,6 +24,7 @@ class SimgroepConcurrentSpiderExtension extends Extension
 
         $container->setParameter('simgroep_concurrent_spider.maximum_resource_size', $config['maximum_resource_size']);
         $container->setParameter('simgroep_concurrent_spider.http_user_agent', $config['http_user_agent']);
+        $container->setParameter('simgroep_concurrent_spider.curl_cert_ca_directory', $config['curl_cert_ca_directory']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.host', $config['rabbitmq']['host']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.port', $config['rabbitmq']['port']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.user', $config['rabbitmq']['user']);
