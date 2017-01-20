@@ -64,7 +64,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -76,7 +76,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -101,7 +101,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -110,6 +110,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->willThrowException($exception);
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -119,7 +120,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -189,7 +190,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -201,7 +202,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -234,7 +235,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -243,6 +244,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->willThrowException($exception);
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -252,7 +254,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -300,7 +302,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -333,7 +335,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -355,6 +357,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->will($this->throwException($exception));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -364,7 +367,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -439,6 +442,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -448,7 +452,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -507,7 +511,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -519,7 +523,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -541,6 +545,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->will($this->throwException(new Exception()));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -554,7 +559,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -603,7 +608,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -615,7 +620,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -626,7 +631,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -653,6 +658,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->will($this->throwException($exception));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -666,7 +672,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -715,7 +721,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -727,7 +733,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -738,7 +744,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
@@ -748,6 +754,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->will($this->throwException(new InvalidContentException()));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -761,7 +768,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -810,7 +817,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -822,7 +829,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -833,11 +840,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -851,7 +859,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -902,7 +910,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $client = $this
             ->getMockBuilder('Guzzle\Http\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['setUserAgent'])
+            ->setMethods(['setUserAgent', 'setSslVerification'])
             ->getMock();
 
         $client->setConfig(new Collection());
@@ -914,7 +922,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $requestHandler
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getClient')
             ->will($this->returnValue($client));
 
@@ -925,11 +933,12 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $spider
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('getRequestHandler')
             ->will($this->returnValue($requestHandler));
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -943,7 +952,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -987,6 +996,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -1001,7 +1011,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -1052,6 +1062,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -1061,7 +1072,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $logger])
+            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(['markAsSkipped'])
             ->getMock();
 
