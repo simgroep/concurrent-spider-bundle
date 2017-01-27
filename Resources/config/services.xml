@@ -18,8 +18,13 @@
             <tag name="console.command" />
         </service>
 
-        <service id="simgroep_concurrent_spider.crawl" class="Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand">
+        <service id="simgroep_concurrent_spider.queue_factory" class="Simgroep\ConcurrentSpiderBundle\QueueFactory">
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
+            <argument type="service" id="simgroep_concurrent_spider.queue.discovered_documents" />
+        </service>
+
+        <service id="simgroep_concurrent_spider.crawl" class="Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand">
+            <argument type="service" id="simgroep_concurrent_spider.queue_factory" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.spider" />
             <argument>%simgroep_concurrent_spider.http_user_agent%</argument>
@@ -82,6 +87,11 @@
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
             <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
             <argument>%simgroep_concurrent_spider.queue.discoveredurls_queue%</argument>
+        </service>
+
+        <service id="simgroep_concurrent_spider.queue.discovered_documents" class="Simgroep\ConcurrentSpiderBundle\Queue">
+            <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
+            <argument>%simgroep_concurrent_spider.queue.discovereddocuments_queue%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.queue.indexer" class="Simgroep\ConcurrentSpiderBundle\Queue">
