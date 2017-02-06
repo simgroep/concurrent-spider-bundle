@@ -26,6 +26,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
             ->withConsecutive(
                 [$this->equalTo('simgroep_concurrent_spider.maximum_resource_size'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.http_user_agent'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.curl_cert_ca_directory'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.host'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.port'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.user'), $this->anything()],
@@ -47,6 +48,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
         $config = [
             'simgroep_concurrent_spider' => [
                 'http_user_agent' => "PHP Concurrent Spider",
+                'curl_cert_ca_directory' => '/usr/local/share/certs/',
                 'rabbitmq' => [
                     'host' => 'localhost',
                     'port' => 5672,
