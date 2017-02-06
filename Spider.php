@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle;
 
 use Guzzle\Http\Exception\ClientErrorResponseException;
+use Mockery\CountValidator\Exception;
 use PhpAmqpLib\Message\AMQPMessage;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
@@ -13,6 +14,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Simgroep\ConcurrentSpiderBundle\QueueFactory;
 use VDB\Spider\Resource;
+use Guzzle\Http\Message\RequestInterface;
 
 class Spider
 {
@@ -104,18 +106,36 @@ class Spider
     public function crawl(CrawlJob $crawlJob, QueueFactory $queueFactory, $currentQueueType)
     {
         $this->currentCrawlJob = $crawlJob;
-        $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
 
-        if ($resource->getResponse()->getStatusCode() == 301) {
-            $exception = new ClientErrorResponseException(sprintf(
-                "Page moved to %s",
-                $resource->getResponse()->getInfo('redirect_url')
-            ), 301);
-            $exception->setResponse($resource->getResponse());
-            throw $exception;
+        $uri = new Uri($crawlJob->getUrl());
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $uri->toString());
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+//        curl_setopt($ch, CURLOPT_VERBOSE, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 0);
+        curl_setopt($ch, CURLOPT_NOBODY, true );
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'OPTIONS' );
+
+        $optionsResource = curl_exec($ch);
+
+        $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+
+        if ($statusCode == 301) {
+            $redirectUrl = curl_getinfo($ch, CURLINFO_REDIRECT_URL);
+            curl_close($ch);
+            throw new Exception(sprintf(
+               'Page moved to %s',
+                $redirectUrl
+          ));
         }
 
-        if ($this->isDocument($resource) && $currentQueueType != QueueFactory::QUEUE_DOCUMENTS) {
+        curl_close($ch);
+
+
+        if ($this->isDocument($contentType) && $currentQueueType != QueueFactory::QUEUE_DOCUMENTS) {
 
             $message = new AMQPMessage(
                 json_encode($crawlJob->toArray()),
@@ -125,6 +145,8 @@ class Spider
             $queueFactory->getQueue(QueueFactory::QUEUE_DOCUMENTS)->publish($message);
 
         } else {
+
+            $resource = $this->requestHandler->request($uri);
 
             $uris = [];
 
@@ -167,13 +189,15 @@ class Spider
     }
 
     /**
-     * @param Resource $resource
+     * @param string $resource
      *
      * @return bool
      */
-    public function isDocument(Resource $resource)
+    public function isDocument($contentType)
     {
-        switch ($resource->getResponse()->getContentType()) {
+        $contentType = explode(";", $contentType);
+
+        switch ($contentType[0]) {
             case 'application/pdf':
             case 'application/octet-stream' :
             case 'application/msword' :
