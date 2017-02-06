@@ -30,6 +30,7 @@ class SimgroepConcurrentSpiderExtension extends Extension
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.user', $config['rabbitmq']['user']);
         $container->setParameter('simgroep_concurrent_spider.rabbitmq.password', $config['rabbitmq']['password']);
         $container->setParameter('simgroep_concurrent_spider.queue.discoveredurls_queue', $config['queue']['discoveredurls_queue']);
+        $container->setParameter('simgroep_concurrent_spider.queue.discovereddocuments_queue', $config['queue']['discovereddocuments_queue']);
         $container->setParameter('simgroep_concurrent_spider.queue.recrawl_queue', $config['queue']['recrawl_queue']);
         $container->setParameter('simgroep_concurrent_spider.queue.indexer_queue', $config['queue']['indexer_queue']);
         $container->setParameter('simgroep_concurrent_spider.solr_client', $config['solr_client']);
