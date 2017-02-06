@@ -51,6 +51,11 @@ class CrawlCommand extends Command
     private $userAgent;
 
     /**
+     * @var string
+     */
+    private $curlCertCADirectory;
+
+    /**
      * @var \Monolog\Logger
      */
     private $logger;
@@ -62,6 +67,7 @@ class CrawlCommand extends Command
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
      * @param string                                   $userAgent
+     * @param string                                   $curlCertCADirectory
      * @param \Monolog\Logger                          $logger
      */
     public function __construct(
@@ -69,12 +75,14 @@ class CrawlCommand extends Command
         Indexer $indexer,
         Spider $spider,
         $userAgent,
+        $curlCertCADirectory,
         Logger $logger
     ) {
         $this->queueFactory = $queueFactory;
         $this->indexer = $indexer;
         $this->spider = $spider;
         $this->userAgent = $userAgent;
+        $this->curlCertCADirectory = $curlCertCADirectory;
         $this->logger = $logger;
 
         parent::__construct();
@@ -155,6 +163,7 @@ class CrawlCommand extends Command
 
         try {
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
+            $this->spider->getRequestHandler()->getClient()->setSslVerification($this->curlCertCADirectory);
             $this->spider->getRequestHandler()->getClient()->getConfig()->set('request.params', [
                 'redirect.disable' => true,
             ]);
