@@ -28,8 +28,8 @@ class Queue
     /**
      * Constructor.
      *
-     * @param \PhpAmqpLib\Connection\AbstractConnection $connection
-     * @param string                                $queueName
+     * @param AbstractConnection $connection
+     * @param string $queueName
      */
     public function __construct(AbstractConnection $connection, $queueName)
     {
