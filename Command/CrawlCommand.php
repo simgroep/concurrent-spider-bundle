@@ -13,9 +13,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use VDB\Uri\Exception\UriSyntaxException;
 use Guzzle\Http\Exception\ClientErrorResponseException;
-use VDB\Uri\Uri;
 use Exception;
 
 class CrawlCommand extends Command
@@ -119,14 +117,23 @@ class CrawlCommand extends Command
     {
         $this->currentQueueType = $input->getOption('queueName');
 
-        $this->queue = $this->queueFactory->getQueue($this->currentQueueType);
+        $this->setQueue($this->queueFactory->getQueue($this->currentQueueType));
 
         $this->queue->listen([$this, 'crawlUrl']);
 
         return 1;
     }
 
+    /**
+     * @param Queue $queue
+     * @return CrawlCommand
+     */
+    public function setQueue(Queue $queue)
+    {
+        $this->queue = $queue;
 
+        return $this;
+    }
 
     /**
      * Consume a message, extracts the URL from it and crawls the webpage.
@@ -168,7 +175,7 @@ class CrawlCommand extends Command
                 'redirect.disable' => true,
                 'expect' => false
             ]);
-            $this->spider->crawl($crawlJob,$this->queueFactory, $this->currentQueueType);
+            $this->spider->crawl($crawlJob, $this->queueFactory, $this->currentQueueType);
 
             $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
             $this->queue->acknowledge($message);

@@ -3,8 +3,6 @@
 namespace Simgroep\ConcurrentSpiderBundle;
 
 use Exception;
-use Simgroep\ConcurrentSpiderBundle\Queue;
-
 
 class QueueFactory
 {
@@ -12,20 +10,20 @@ class QueueFactory
     const QUEUE_DOCUMENTS = 'documents';
 
     /**
-     * @var \Simgroep\ConcurrentSpiderBundle\Queue
+     * @var Queue
      */
     protected $queueUrls;
 
     /**
-     * @var \Simgroep\ConcurrentSpiderBundle\Queue
+     * @var Queue
      */
     protected $queueDocuments;
 
     /**
      * QueueFactory constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queueUrls
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queueDocuments
+     * @param Queue $queueUrls
+     * @param Queue $queueDocuments
      */
     public function __construct(Queue $queueUrls, Queue $queueDocuments)
     {
@@ -36,12 +34,11 @@ class QueueFactory
     /**
      * @param string $queueName
      *
-     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     * @return Queue
      * @throws Exception
      */
     public function getQueue($queueName)
     {
-
         switch ($queueName) {
             case self::QUEUE_URLS:
                 return $this->queueUrls;
@@ -51,10 +48,7 @@ class QueueFactory
                 break;
             default:
                 throw new Exception ('Unknown queue!');
-
         }
-
     }
-
 
 }
