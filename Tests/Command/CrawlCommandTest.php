@@ -13,7 +13,6 @@ use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\EventDispatcher\EventDispatcher;
-use VDB\Uri\Exception\UriSyntaxException;
 
 class CrawlCommandTest extends PHPUnit_Framework_TestCase
 {
@@ -23,8 +22,6 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
      */
     public function skipDocumentOnServerError()
     {
-        $redirect_url = "http://redirect.example.com";
-
         $message = new AMQPMessage();
         $message->body = json_encode(
             [
@@ -48,6 +45,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessage')
             ->with($message);
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -120,11 +128,13 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -168,6 +178,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $queue->expects($this->once())
             ->method('publishJob')
             ->with($this->equalTo($crawlJob));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -254,11 +275,13 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -276,6 +299,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessage')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -345,19 +379,19 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
             ->getMock();
 
         $spider
             ->expects($this->once())
             ->method('crawl')
             ->will($this->throwException($exception));
-
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -367,7 +401,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -385,6 +419,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'whitelist' => [],
             ]
         );
+
+        $command->setQueue($queue);
 
         $this->assertNull($command->crawlUrl($message));
     }
@@ -404,6 +440,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessage')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -435,14 +482,14 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
             ->getMock();
-
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -452,7 +499,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -470,6 +517,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'whitelist' => [],
             ]
         );
+        $command->setQueue($queue);
 
         $this->assertNull($command->crawlUrl($message));
     }
@@ -489,6 +537,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessage')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -533,19 +592,19 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
             ->getMock();
 
         $spider
             ->expects($this->once())
             ->method('crawl')
             ->will($this->throwException(new Exception()));
-
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')
@@ -559,7 +618,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -574,7 +633,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ]
         );
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -592,6 +653,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessageAndRequeue')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -672,7 +744,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -687,7 +759,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ]
         );
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -705,6 +779,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('rejectMessage')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -768,7 +853,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -783,7 +868,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ]
         );
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -801,6 +888,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
              ->method('acknowledge')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -859,7 +957,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -876,7 +974,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ]
         );
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -894,6 +994,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('acknowledge')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -952,7 +1063,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -969,7 +1080,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ]
         );
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 
     /**
@@ -982,6 +1095,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods([])
             ->getMock();
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -1011,7 +1135,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(null)
             ->getMock();
 
@@ -1045,6 +1169,17 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->method('rejectMessage')
             ->with($message);
 
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
+
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
@@ -1072,7 +1207,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
-            ->setConstructorArgs([$queue, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
             ->setMethods(['markAsSkipped'])
             ->getMock();
 
@@ -1080,7 +1215,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('markAsSkipped');
 
-        $command->crawlUrl($message);
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
     }
 }
 

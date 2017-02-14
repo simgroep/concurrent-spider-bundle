@@ -2,7 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
-use Guzzle\Http\Exception\ClientErrorResponseException;
+use PhpAmqpLib\Message\AMQPMessage;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
@@ -14,46 +14,55 @@ use Symfony\Component\EventDispatcher\GenericEvent;
 class Spider
 {
     /**
-     * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     * @var EventDispatcherInterface
      */
     private $eventDispatcher;
 
     /**
-     * @var \VDB\Spider\RequestHandler\GuzzleRequestHandler
+     * @var GuzzleRequestHandler
      */
     private $requestHandler;
 
     /**
-     * @var \Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler
+     * @var PersistenceHandler
      */
     private $persistenceHandler;
 
     /**
-     * @var \Simgroep\ConcurrentSpiderBundle\CrawlJob
+     * @var CrawlJob
      */
     private $currentCrawlJob;
 
     /**
+     * @var resource
+     */
+    private $curlClient;
+
+    /**
      * Constructor.
      *
-     * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface            $eventDispatcher
-     * @param \VDB\Spider\RequestHandler\GuzzleRequestHandler                        $requestHandler
-     * @param \Simgroep\ConcurrentSpiderBundle\PersistenceHandler\PersistenceHandler $persistenceHandler
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param GuzzleRequestHandler     $requestHandler
+     * @param PersistenceHandler       $persistenceHandler
+     * @param resource                 $curlClient
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         GuzzleRequestHandler $requestHandler,
-        PersistenceHandler $persistenceHandler
-    ) {
+        PersistenceHandler $persistenceHandler,
+        $curlClient
+    )
+    {
         $this->eventDispatcher = $eventDispatcher;
         $this->requestHandler = $requestHandler;
         $this->persistenceHandler = $persistenceHandler;
+        $this->curlClient = $curlClient;
     }
 
     /**
      * Returns the request handler.
      *
-     * @return \VDB\Spider\RequestHandler\GuzzleRequestHandler
+     * @return GuzzleRequestHandler
      */
     public function getRequestHandler()
     {
@@ -63,7 +72,7 @@ class Spider
     /**
      * Returns the event dispatcher.
      *
-     * @return \Symfony\Component\EventDispatcher\EventDispatcherInterface
+     * @return EventDispatcherInterface
      */
     public function getEventDispatcher()
     {
@@ -73,7 +82,7 @@ class Spider
     /**
      * Returns the job that is currently being processed.
      *
-     * @return \Simgroep\ConcurrentSpiderBundle\CrawlJob
+     * @return CrawlJob
      */
     public function getCurrentCrawlJob()
     {
@@ -83,7 +92,7 @@ class Spider
     /**
      * Returns the persistence handler.
      *
-     * @return \VDB\Spider\PersistenceHandler\PersistenceHandler
+     * @return PersistenceHandler
      */
     public function getPersistenceHandler()
     {
@@ -93,58 +102,66 @@ class Spider
     /**
      * Function that crawls one webpage based on the give url.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
+     * @param CrawlJob     $crawlJob
+     * @param QueueFactory $queueFactory
+     * @param string       $currentQueueType
      */
-    public function crawl(CrawlJob $crawlJob)
+    public function crawl(CrawlJob $crawlJob, QueueFactory $queueFactory, $currentQueueType)
     {
         $this->currentCrawlJob = $crawlJob;
-        $resource = $this->requestHandler->request(new Uri($crawlJob->getUrl()));
 
-        if ($resource->getResponse()->getStatusCode() == 301) {
-            $exception = new ClientErrorResponseException( sprintf(
-                "Page moved to %s",
-                $resource->getResponse()->getInfo('redirect_url')
-            ), 301);
-            $exception->setResponse($resource->getResponse());
-            throw $exception;
-        }
+        $uri = new Uri($crawlJob->getUrl());
 
-        $uris = [];
+        $this->curlClient->initClient();
 
-        $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
+        if ($this->curlClient->isDocument($uri) && $currentQueueType != QueueFactory::QUEUE_DOCUMENTS) {
+            $message = new AMQPMessage(
+                json_encode($crawlJob->toArray()),
+                ['delivery_mode' => 1]
+            );
 
-        $baseUrl = $resource->getUri()->toString();
+            $queueFactory->getQueue(QueueFactory::QUEUE_DOCUMENTS)->publish($message);
 
-        $crawler = $resource->getCrawler()->filterXPath('//a');
-        foreach ($crawler as $node) {
-            try {
-                if ($node->getAttribute("rel") === "nofollow") {
-                    continue;
+        } else {
+            $resource = $this->requestHandler->request($uri);
+
+            $uris = [];
+
+            $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
+
+            $baseUrl = $resource->getUri()->toString();
+
+            $crawler = $resource->getCrawler()->filterXPath('//a');
+            foreach ($crawler as $node) {
+                try {
+                    if ($node->getAttribute("rel") === "nofollow") {
+                        continue;
+                    }
+                    $href = $node->getAttribute('href');
+                    $uri = new Uri($href, $baseUrl);
+                    $uris[] = $uri;
+                } catch (UriSyntaxException $e) {
+                    //too bad
                 }
-                $href = $node->getAttribute('href');
-                $uri = new Uri($href, $baseUrl);
-                $uris[] = $uri;
-            } catch (UriSyntaxException $e) {
-                //too bad
             }
-        }
 
-        $crawler = $resource->getCrawler()->filterXPath('//loc');
-        foreach ($crawler as $node) {
-            try {
-                $href = $node->nodeValue;
-                $uri = new Uri($href, $baseUrl);
-                $uris[] = $uri;
-            } catch (UriSyntaxException $e) {
-                //too bad
+            $crawler = $resource->getCrawler()->filterXPath('//loc');
+            foreach ($crawler as $node) {
+                try {
+                    $href = $node->nodeValue;
+                    $uri = new Uri($href, $baseUrl);
+                    $uris[] = $uri;
+                } catch (UriSyntaxException $e) {
+                    //too bad
+                }
             }
+
+            $this->eventDispatcher->dispatch(
+                SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,
+                new GenericEvent($this, ['uris' => $uris])
+            );
+
+            $this->persistenceHandler->persist($resource, $crawlJob);
         }
-
-        $this->eventDispatcher->dispatch(
-            SpiderEvents::SPIDER_CRAWL_POST_DISCOVER,
-            new GenericEvent($this, ['uris' => $uris])
-        );
-
-        $this->persistenceHandler->persist($resource, $crawlJob);
     }
 }
