@@ -20,6 +20,7 @@
         <whitelist>
             <directory suffix=".php">../Command/</directory>
             <directory suffix=".php">../DependencyInjection/</directory>
+            <directory suffix=".php">../DocumentResolver/</directory>
             <directory suffix=".php">../EventListener/</directory>
             <directory suffix=".php">../PersistenceHandler/</directory>
             <directory suffix=".php">../Event/</directory>
@@ -27,6 +28,9 @@
             <file>../Indexer.php</file>
             <file>../CrawlJob.php</file>
             <file>../Queue.php</file>
+            <file>../QueueFactory.php</file>
+            <file>../CurlClient.php</file>
+            <file>../UrlCheck.php</file>
             <file>../Spider.php</file>
             <file>../InvalidContentException.php</file>
             <file>../SimgroepConcurrentSpiderBundle.php</file>

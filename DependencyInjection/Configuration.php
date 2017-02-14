@@ -47,6 +47,7 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('discoveredurls_queue')->isRequired()->cannotBeEmpty()->defaultValue('discovered_urls')->end()
+                        ->scalarNode('discovereddocuments_queue')->isRequired()->cannotBeEmpty()->defaultValue('discovered_documents')->end()
                         ->scalarNode('indexer_queue')->isRequired()->cannotBeEmpty()->defaultValue('indexer')->end()
                         ->scalarNode('recrawl_queue')->isRequired()->cannotBeEmpty()->defaultValue('recrawl')->end()
                     ->end()

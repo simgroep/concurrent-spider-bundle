@@ -4,24 +4,34 @@ namespace Simgroep\ConcurrentSpiderBundle\Command;
 
 use Monolog\Logger;
 use PhpAmqpLib\Message\AMQPMessage;
+use Simgroep\ConcurrentSpiderBundle\QueueFactory;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Spider;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use VDB\Uri\Exception\UriSyntaxException;
 use Guzzle\Http\Exception\ClientErrorResponseException;
-use VDB\Uri\Uri;
 use Exception;
 
 class CrawlCommand extends Command
 {
     /**
+     * @var \Simgroep\ConcurrentSpiderBundle\QueueFactory
+     */
+    private $queueFactory;
+
+    /**
      * @var \Simgroep\ConcurrentSpiderBundle\Queue
      */
     private $queue;
+
+    /**
+     * @var string
+     */
+    private $currentQueueType;
 
     /**
      * @var \Simgroep\ConcurrentSpiderBundle\Indexer
@@ -51,7 +61,7 @@ class CrawlCommand extends Command
     /**
      * Constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\QueueFactory   $queueFactory
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
      * @param string                                   $userAgent
@@ -59,14 +69,14 @@ class CrawlCommand extends Command
      * @param \Monolog\Logger                          $logger
      */
     public function __construct(
-        Queue $queue,
+        QueueFactory $queueFactory,
         Indexer $indexer,
         Spider $spider,
         $userAgent,
         $curlCertCADirectory,
         Logger $logger
     ) {
-        $this->queue = $queue;
+        $this->queueFactory = $queueFactory;
         $this->indexer = $indexer;
         $this->spider = $spider;
         $this->userAgent = $userAgent;
@@ -83,6 +93,12 @@ class CrawlCommand extends Command
     {
         $this
             ->setName('simgroep:crawl')
+            ->addOption(
+                'queueName',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Name of queue to be used:  "urls" , "documents" ?'
+            )
             ->setDescription("This command starts listening to the queue and will accept url's to index.");
     }
 
@@ -99,9 +115,24 @@ class CrawlCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->currentQueueType = $input->getOption('queueName');
+
+        $this->setQueue($this->queueFactory->getQueue($this->currentQueueType));
+
         $this->queue->listen([$this, 'crawlUrl']);
 
         return 1;
+    }
+
+    /**
+     * @param Queue $queue
+     * @return CrawlCommand
+     */
+    public function setQueue(Queue $queue)
+    {
+        $this->queue = $queue;
+
+        return $this;
     }
 
     /**
@@ -141,9 +172,9 @@ class CrawlCommand extends Command
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->getRequestHandler()->getClient()->setSslVerification($this->curlCertCADirectory);
             $this->spider->getRequestHandler()->getClient()->getConfig()->set('request.params', [
-                'redirect.disable' => true,
+                'redirect.disable' => true
             ]);
-            $this->spider->crawl($crawlJob);
+            $this->spider->crawl($crawlJob, $this->queueFactory, $this->currentQueueType);
 
             $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
             $this->queue->acknowledge($message);

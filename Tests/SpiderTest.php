@@ -2,9 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
-use Guzzle\Http\Exception\ClientErrorResponseException;
-use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
+use Simgroep\ConcurrentSpiderBundle\CurlClient;
 use Simgroep\ConcurrentSpiderBundle\Spider;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use VDB\Uri\Uri;
@@ -17,13 +16,17 @@ class SpiderTest extends PHPUnit_Framework_TestCase
      */
     public function isDoubleSlashIsRemoved()
     {
-
         $dom = new \DOMDocument('1.0', 'utf-8');
 
         $node1 = $dom->createElement('a', 'https://github.com/');
         $node1->setAttribute("rel", "nofollow");
         $node2 = $dom->createElement('loc', 'https://github.com/');
 
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         $crawler = $this
             ->getMockBuilder('Symfony\Component\DomCrawler\Crawler')
@@ -44,20 +47,14 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
         $uri = new Uri('https://github.com/test');
 
-        $response = $this->getMockBuilder(Response::class)
+        $curlClient = $this->getMockBuilder(CurlClient::class)
             ->disableOriginalConstructor()
-            ->setMethods(['getStatusCode'])
             ->getMock();
-
-        $response
-            ->expects($this->once())
-            ->method('getStatusCode')
-            ->will($this->returnValue(200));
 
         $resource = $this
             ->getMockBuilder('VDB\Spider\Resource')
             ->disableOriginalConstructor()
-            ->setMethods(['getCrawler', 'getUri', 'getResponse'])
+            ->setMethods(['getCrawler', 'getUri'])
             ->getMock();
 
         $resource
@@ -69,11 +66,6 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getUri')
             ->will($this->returnValue($uri));
-
-        $resource
-            ->expects($this->once())
-            ->method('getResponse')
-            ->will($this->returnValue($response));
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -102,7 +94,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
             ->setMethods(null)
             ->getMock();
 
@@ -134,7 +126,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
         $crawlJob = new CrawlJob('https://github.com/test', 'https://github.com/test');
 
-        $spider->crawl($crawlJob);
+        $spider->crawl($crawlJob, $queueFactory, 'queueName');
 
         $this->assertEquals('https://github.com/test', $spider->getCurrentCrawlJob()->getUrl());
     }
@@ -142,37 +134,31 @@ class SpiderTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function responseWith301StatusCode()
+    public function responseWithDocument()
     {
-
         $url = 'https://github.com/test';
 
-        $response = $this->getMockBuilder(Response::class)
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
-            ->setMethods(['getStatusCode', 'getInfo'])
+            ->setMethods(['publish', '__destruct'])
             ->getMock();
 
-        $response
+        $queue
             ->expects($this->once())
-            ->method('getStatusCode')
-            ->will($this->returnValue(301));
+            ->method('publish')
+            ->will($this->returnValue(true));
 
-        $response
-            ->expects($this->once())
-            ->method('getInfo')
-            ->with('redirect_url')
-            ->will($this->returnValue($url));
-
-        $resource = $this
-            ->getMockBuilder('VDB\Spider\Resource')
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
             ->disableOriginalConstructor()
-            ->setMethods(['getResponse'])
+            ->setMethods(['getQueue'])
             ->getMock();
 
-        $resource
-            ->expects($this->exactly(3))
-            ->method('getResponse')
-            ->will($this->returnValue($response));
+        $queueFactory
+            ->expects($this->once())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -180,36 +166,36 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(['request'])
             ->getMock();
 
-        $requestHandler
-            ->expects($this->once())
-            ->method('request')
-            ->with($this->isInstanceOf('VDB\Uri\Uri'))
-            ->will($this->returnValue($resource));
-
         $persistenceHandler = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
             ->disableOriginalConstructor()
-            ->setMethods(['persist'])
             ->getMock();
 
         $eventDispatcher = $this
             ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
             ->disableOriginalConstructor()
-            ->setMethods(['dispatch'])
+            ->getMock();
+
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->setMethods([])
             ->getMock();
 
         /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
-            ->setMethods(null)
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
+            ->setMethods(['getStatusCode', 'getRedirectUrl'])
             ->getMock();
 
+        $curlClient
+            ->expects($this->once())
+            ->method('isDocument')
+            ->will($this->returnValue(true));
 
         $crawlJob = new CrawlJob($url, $url);
 
-        $this->setExpectedException(ClientErrorResponseException::class, sprintf("Page moved to %s", $url));
-        $spider->crawl($crawlJob);
+        $spider->crawl($crawlJob, $queueFactory, 'queueName');
     }
 
     /**
@@ -235,9 +221,13 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(['dispatch'])
             ->getMock();
 
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
             ->setMethods(null)
             ->getMock();
 
@@ -268,9 +258,13 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods([])
             ->getMock();
 
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
             ->setMethods(null)
             ->getMock();
 
