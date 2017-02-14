@@ -26,6 +26,8 @@ class CurlClientTest extends \PHPUnit_Framework_TestCase
             ->setMethods(['getContentType'])
             ->getMock();
 
+        $curlClient->initClient();
+
         $curlClient
             ->expects($this->once())
             ->method('getContentType')
@@ -42,6 +44,8 @@ class CurlClientTest extends \PHPUnit_Framework_TestCase
             ->setConstructorArgs([$this->userAgent, $this->curlCertCADirectory])
             ->setMethods(['getContentType'])
             ->getMock();
+
+        $curlClient->initClient();
 
         $curlClient
             ->expects($this->once())
@@ -71,6 +75,8 @@ class CurlClientTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getRedirectUrl')
             ->will($this->returnValue($this->url));
+
+        $curlClient->initClient();
 
         $uri = new Uri($this->url);
 
