@@ -112,6 +112,8 @@ class Spider
 
         $uri = new Uri($crawlJob->getUrl());
 
+        $this->curlClient->initClient();
+
         if ($this->curlClient->isDocument($uri) && $currentQueueType != QueueFactory::QUEUE_DOCUMENTS) {
             $message = new AMQPMessage(
                 json_encode($crawlJob->toArray()),

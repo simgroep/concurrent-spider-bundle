@@ -12,13 +12,29 @@ class CurlClient
     protected $ch;
 
     /**
+     * @var string
+     */
+    protected $userAgent;
+
+    /**
+     * @var string
+     */
+    protected $curlCertCADirectory;
+
+    /**
      * @param string $userAgent
      * @param string $curlCertCADirectory
      */
     public function __construct($userAgent, $curlCertCADirectory)
     {
+        $this->userAgent = $userAgent;
+        $this->curlCertCADirectory = $curlCertCADirectory;
+    }
+
+    public function initClient()
+    {
         $this->ch = curl_init();
-        $this->setDefaultOptions($userAgent, $curlCertCADirectory);
+        $this->setDefaultOptions($this->userAgent, $this->curlCertCADirectory);
     }
 
     /**
@@ -57,10 +73,11 @@ class CurlClient
                 $redirectUrl
             ));
         }
+        $contentType = $this->getContentType();
 
         curl_close($this->ch);
 
-        return $this->checkConntentType($this->getContentType());
+        return $this->checkConntentType($contentType);
     }
 
     /**
