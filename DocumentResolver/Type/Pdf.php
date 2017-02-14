@@ -106,6 +106,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      * @return string
      * @throws InvalidContentException
      * @throws ProcessFailedException
+     * @codeCoverageIgnore
      */
     public function extractContentFromResource(Resource $resource)
     {
@@ -143,6 +144,7 @@ class Pdf extends TypeAbstract implements DocumentTypeInterface
      * @param string $command
      *
      * @return Process
+     * @codeCoverageIgnore
      */
     protected function processCommand($command)
     {
