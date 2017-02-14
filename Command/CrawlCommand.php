@@ -172,8 +172,7 @@ class CrawlCommand extends Command
             $this->spider->getRequestHandler()->getClient()->setUserAgent($this->userAgent);
             $this->spider->getRequestHandler()->getClient()->setSslVerification($this->curlCertCADirectory);
             $this->spider->getRequestHandler()->getClient()->getConfig()->set('request.params', [
-                'redirect.disable' => true,
-                'expect' => false
+                'redirect.disable' => true
             ]);
             $this->spider->crawl($crawlJob, $this->queueFactory, $this->currentQueueType);
 
