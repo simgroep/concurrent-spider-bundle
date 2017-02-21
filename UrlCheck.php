@@ -108,6 +108,11 @@ class UrlCheck
     public static function fixUrl ($url) {
         $url = str_replace(' ', '%20', $url);
         $url = preg_replace('#\/\??$#i', "", $url);
+
+        if (!strpos($url, '?') && !strpos($url, '#') && !preg_match('#\.[a-z0-9]{2,5}$#i', $url)) {
+            $url = rtrim($url, '/') . '/';
+        }
+
         return $url;
     }
 }
