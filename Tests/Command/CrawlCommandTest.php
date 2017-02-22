@@ -66,7 +66,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $client = $this
@@ -159,7 +159,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $crawlJob = new CrawlJob(
             $redirect_url,
-            'https://github.com',
+            'https://github.com/',
             [],
             [
                 'core' => 'core1'
@@ -199,7 +199,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $indexer
@@ -320,7 +320,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'), ['core' => 'corename'])
+            ->with($this->equalTo('https://github.com/'), ['core' => 'corename'])
             ->will($this->returnValue(false));
 
         $indexer
@@ -461,7 +461,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'), ['core' => 'corename'])
+            ->with($this->equalTo('https://github.com/'), ['core' => 'corename'])
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
@@ -558,7 +558,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $eventDispatcher = $this
@@ -674,7 +674,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $client = $this
@@ -800,7 +800,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $client = $this
@@ -909,7 +909,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('http://ggg.nl'))
+            ->with($this->equalTo('http://ggg.nl/'))
             ->will($this->returnValue(false));
 
         $client = $this
@@ -1015,7 +1015,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $client = $this

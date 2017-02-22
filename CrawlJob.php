@@ -100,7 +100,7 @@ class CrawlJob
      */
     public function getUrl()
     {
-        return $this->url;
+        return UrlCheck::fixUrl($this->url);
     }
 
     /**
@@ -110,7 +110,7 @@ class CrawlJob
      */
     public function getBaseUrl()
     {
-        return $this->baseUrl;
+        return UrlCheck::fixUrl($this->baseUrl);
     }
 
     /**

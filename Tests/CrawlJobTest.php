@@ -38,5 +38,13 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
         $this->assertSame('http://dummy.nl/', $crawlJob->getBaseUrl());
     }
 
-
+    /**
+     * @test
+     * @testdox Tests if get url returns correct value.
+     */
+    public function ifGetUrlReturnCorrectValue()
+    {
+        $crawlJob = new CrawlJob('http://dummy.nl/', '', [], [], []);
+        $this->assertSame('http://dummy.nl/', $crawlJob->getUrl());
+    }
 }
