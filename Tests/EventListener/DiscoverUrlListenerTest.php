@@ -31,7 +31,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
@@ -81,7 +81,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $eventDispatcher = $this

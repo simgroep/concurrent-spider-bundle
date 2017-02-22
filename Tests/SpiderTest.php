@@ -136,7 +136,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
         $spider->crawl($crawlJob);
 
-        $this->assertEquals('https://github.com/test', $spider->getCurrentCrawlJob()->getUrl());
+        $this->assertEquals('https://github.com/test/', $spider->getCurrentCrawlJob()->getUrl());
     }
 
     /**
