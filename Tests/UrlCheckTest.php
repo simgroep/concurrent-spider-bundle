@@ -8,11 +8,12 @@ use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 class UrlCheckTest extends PHPUnit_Framework_TestCase
 {
     public function testFixUrl() {
-        $this->assertEquals("http://example.com/Some%20Thing", UrlCheck::fixUrl("http://example.com/Some Thing"));
-        $this->assertEquals("http://example.com/Some%20Thing", UrlCheck::fixUrl("http://example.com/Some%20Thing"));
-        $this->assertEquals("http://example.com/SomeThing", UrlCheck::fixUrl("http://example.com/SomeThing/"));
-        $this->assertEquals("http://example.com/SomeThing", UrlCheck::fixUrl("http://example.com/SomeThing"));
-        $this->assertEquals("http://example.com/Some%20Thing", UrlCheck::fixUrl("http://example.com/Some Thing/"));
+        $this->assertEquals("http://example.com/Some%20Thing/", UrlCheck::fixUrl("http://example.com/Some Thing"));
+        $this->assertEquals("http://example.com/Some%20Thing/", UrlCheck::fixUrl("http://example.com/Some%20Thing"));
+        $this->assertEquals("http://example.com/SomeThing/", UrlCheck::fixUrl("http://example.com/SomeThing/"));
+        $this->assertEquals("http://example.com/SomeThing/", UrlCheck::fixUrl("http://example.com/SomeThing"));
+        $this->assertEquals("http://example.com/Some%20Thing/", UrlCheck::fixUrl("http://example.com/Some Thing/"));
+        $this->assertEquals("http://example.com/Some%20Thing.html", UrlCheck::fixUrl("http://example.com/Some Thing.html"));
     }
     public function testIsUrlBlacklisted() {
         $blacklist = [

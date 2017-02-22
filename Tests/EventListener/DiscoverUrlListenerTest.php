@@ -31,7 +31,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
@@ -81,7 +81,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com'))
+            ->with($this->equalTo('https://github.com/'))
             ->will($this->returnValue(false));
 
         $eventDispatcher = $this
@@ -127,7 +127,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('https://github.com/test'))
+            ->with($this->equalTo('https://github.com/test/'))
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
@@ -270,10 +270,10 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
     public function notBlacklistedDataProvider()
     {
         return [
-            ['http://www.simgroep.nl/internet/medewerkers_41499', 'http:\/\/www\.simgroep\.nl\/intranet\/.*'],
-            ['http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509', 'http:\/\/www\.simgroep\.nl\/beheer\/.*'],
-            ['http://www.simgroep.nl/internet/portfolio_41515/search', 'http:\/\/www\.simgroep\.nl\/internet\/portfolio_41516.*'],
-            ['http://www.simgroep.nl/internet/vacatures_41521', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'],
+            ['http://www.simgroep.nl/internet/medewerkers_41499/', 'http:\/\/www\.simgroep\.nl\/intranet\/.*'],
+            ['http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509/', 'http:\/\/www\.simgroep\.nl\/beheer\/.*'],
+            ['http://www.simgroep.nl/internet/portfolio_41515/search/', 'http:\/\/www\.simgroep\.nl\/internet\/portfolio_41516.*'],
+            ['http://www.simgroep.nl/internet/vacatures_41521/', 'http:\/\/www\.simgroep\.nl\/intermet\/vacatures\/.*'],
         ];
     }
 
@@ -297,7 +297,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('isUrlIndexedAndNotExpired')
-            ->with($this->equalTo('http://www.socialedienstbommelerwaard.nl/Digitaal%20loket'))
+            ->with($this->equalTo('http://www.socialedienstbommelerwaard.nl/Digitaal%20loket/'))
             ->will($this->returnValue(true));
 
         $eventDispatcher = $this
