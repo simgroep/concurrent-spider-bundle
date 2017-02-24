@@ -61,12 +61,12 @@ class CrawlCommand extends Command
     /**
      * Constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\QueueFactory   $queueFactory
-     * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
-     * @param \Simgroep\ConcurrentSpiderBundle\Spider  $spider
-     * @param string                                   $userAgent
-     * @param string                                   $curlCertCADirectory
-     * @param \Monolog\Logger                          $logger
+     * @param \Simgroep\ConcurrentSpiderBundle\QueueFactory $queueFactory
+     * @param \Simgroep\ConcurrentSpiderBundle\Indexer      $indexer
+     * @param \Simgroep\ConcurrentSpiderBundle\Spider       $spider
+     * @param string                                        $userAgent
+     * @param string                                        $curlCertCADirectory
+     * @param \Monolog\Logger                               $logger
      */
     public function __construct(
         QueueFactory $queueFactory,
@@ -75,7 +75,8 @@ class CrawlCommand extends Command
         $userAgent,
         $curlCertCADirectory,
         Logger $logger
-    ) {
+    )
+    {
         $this->queueFactory = $queueFactory;
         $this->indexer = $indexer;
         $this->spider = $spider;
@@ -126,6 +127,7 @@ class CrawlCommand extends Command
 
     /**
      * @param Queue $queue
+     *
      * @return CrawlCommand
      */
     public function setQueue(Queue $queue)
@@ -149,7 +151,8 @@ class CrawlCommand extends Command
             $data['base_url'],
             $data['blacklist'],
             $data['metadata'],
-            $data['whitelist']
+            $data['whitelist'],
+            $data['queueName']
         );
 
         if (false === $crawlJob->isAllowedToCrawl()) {
@@ -176,7 +179,7 @@ class CrawlCommand extends Command
             ]);
             $this->spider->crawl($crawlJob, $this->queueFactory, $this->currentQueueType);
 
-            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core']);
+            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core'], $crawlJob->getQueueName());
             $this->queue->acknowledge($message);
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
@@ -190,7 +193,8 @@ class CrawlCommand extends Command
                         $crawlJob->getBaseUrl(),
                         $crawlJob->getBlacklist(),
                         $crawlJob->getMetadata(),
-                        $crawlJob->getWhitelist()
+                        $crawlJob->getWhitelist(),
+                        $crawlJob->getQueueName()
                     );
                     $this->queue->publishJob($newCrawlJob);
                     break;
@@ -229,10 +233,12 @@ class CrawlCommand extends Command
      * @param string $level
      * @param string $message
      * @param string $url
+     * @param string $core
+     * @param string $queueName
      */
-    public function logMessage($level, $message, $url, $core = 'unknown')
+    public function logMessage($level, $message, $url, $core = 'unknown', $queueName = '')
     {
-        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST), $core]]);
+        $this->logger->{$level}($message, ['tags' => [parse_url($url, PHP_URL_HOST), $core, $queueName]]);
     }
 
     /**
@@ -252,7 +258,8 @@ class CrawlCommand extends Command
                 $reason
             ),
             $crawlJob->getUrl(),
-            $meta['core']
+            $meta['core'],
+            $crawlJob->getQueueName()
         );
     }
 
@@ -260,12 +267,22 @@ class CrawlCommand extends Command
      * Logs a message that will tell the job is failed.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
-     * @param string                                    $level
+     * @param string                                    $errorMessage
      */
     public function markAsFailed(CrawlJob $crawlJob, $errorMessage)
     {
         $meta = $crawlJob->getMetadata();
-        $this->logMessage('emergency', sprintf("Failed (%s) %s", $errorMessage, $crawlJob->getUrl()), $crawlJob->getUrl(), $meta['core']);
+        $this->logMessage(
+            'emergency',
+            sprintf(
+                "Failed (%s) %s",
+                $errorMessage,
+                $crawlJob->getUrl()
+            ),
+            $crawlJob->getUrl(),
+            $meta['core'],
+            $crawlJob->getQueueName()
+        );
     }
 
 }

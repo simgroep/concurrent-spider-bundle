@@ -21,6 +21,11 @@ class Queue
     protected $queueName;
 
     /**
+     * @var boolean
+     */
+    protected $revisitDisabled;
+
+    /**
      * @var \PhpAmqpLib\Channel\AMQPChannel
      */
     protected $channel;
@@ -29,12 +34,14 @@ class Queue
      * Constructor.
      *
      * @param AbstractConnection $connection
-     * @param string $queueName
+     * @param string             $queueName
+     * @param boolean            $revisitDisabled
      */
-    public function __construct(AbstractConnection $connection, $queueName)
+    public function __construct(AbstractConnection $connection, $queueName, $revisitDisabled = true)
     {
         $this->connection = $connection;
         $this->queueName = $queueName;
+        $this->revisitDisabled = $revisitDisabled;
     }
 
     /**
@@ -56,7 +63,13 @@ class Queue
     {
         if (null === $this->channel) {
             $this->channel = $this->connection->channel();
-            $this->channel->queue_declare($this->queueName, false, false, false, false);
+
+            $this->declareQueue($this->queueName);
+
+            if ($this->revisitDisabled == false) {
+                $this->declareQueue('revisit');
+            }
+
             $this->channel->basic_qos(null, 1, null);
         }
 
@@ -67,16 +80,26 @@ class Queue
      * Publish a job to the queue.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
+     * @param string|null                     $queueName
      *
      * @return \Simgroep\ConcurrentSpiderBundle\Queue
      */
-    public function publish(AMQPMessage $message)
+    public function publish(AMQPMessage $message, $queueName = null)
     {
-        $this->getChannel()->basic_publish($message, '', $this->queueName);
+        if (null == $queueName) {
+            $queueName = $this->queueName;
+        }
+
+        $this->getChannel()->basic_publish($message, '', $queueName);
 
         return $this;
     }
 
+    /**
+     * @param \Simgroep\ConcurrentSpiderBundle\CrawlJob $crawlJob
+     *
+     * @return \Simgroep\ConcurrentSpiderBundle\Queue
+     */
     public function publishJob(CrawlJob $crawlJob)
     {
         $message = new AMQPMessage(
@@ -84,7 +107,7 @@ class Queue
             ['delivery_mode' => 1]
         );
 
-        return $this->publish($message);
+        return $this->publish($message, $crawlJob->getQueueName());
     }
 
     /**
@@ -98,15 +121,11 @@ class Queue
     {
         $channel = $this->getChannel();
 
-        $channel->basic_consume(
-            $this->queueName,
-            '',
-            false,
-            false,
-            false,
-            false,
-            $callback
-        );
+        $this->consumeBasic($this->queueName, $callback, $channel);
+
+        if ($this->revisitDisabled == false) {
+            $this->consumeBasic('revisit', $callback, $channel);
+        }
 
         while (count($channel->callbacks)) {
             $channel->wait();
@@ -157,5 +176,35 @@ class Queue
         $message->delivery_info['channel']->basic_ack($message->delivery_info['delivery_tag']);
 
         return $this;
+    }
+
+    /**
+     * Declare a queue on channel
+     *
+     * @param string   $queueName
+     */
+    protected function declareQueue($queueName)
+    {
+        $this->channel->queue_declare($queueName, false, false, false, false);
+    }
+
+    /**
+     * Basic consume of queue
+     *
+     * @param string                          $queue
+     * @param \Callable                       $callback The method that should be called for every job
+     * @param \PhpAmqpLib\Channel\AMQPChannel $channel
+     */
+    protected function consumeBasic($queue, Callable $callback, $channel)
+    {
+        $channel->basic_consume(
+            $queue,
+            '',
+            false,
+            false,
+            false,
+            false,
+            $callback
+        );
     }
 }
