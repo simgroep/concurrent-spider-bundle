@@ -88,6 +88,7 @@
         <service id="simgroep_concurrent_spider.queue.discovered_urls" class="Simgroep\ConcurrentSpiderBundle\Queue">
             <argument type="service" id="simgroep_concurrent_spider.rabbitmq.connection" />
             <argument>%simgroep_concurrent_spider.queue.discoveredurls_queue%</argument>
+            <argument>false</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.queue.discovered_documents" class="Simgroep\ConcurrentSpiderBundle\Queue">

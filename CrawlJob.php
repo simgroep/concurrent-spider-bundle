@@ -32,6 +32,11 @@ class CrawlJob
     private $whitelist;
 
     /**
+     * @var null|string
+     */
+    private $queueName;
+
+    /**
      * Constrcutor.
      *
      * @var string $url
@@ -39,14 +44,16 @@ class CrawlJob
      * @var array  $blacklist
      * @var array  $metadata
      * @var array  $whitelist
+     * @var null|string  $queueName
      */
-    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [], array $whitelist = [])
+    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [], array $whitelist = [], $queueName = null)
     {
         $this->url = $url;
         $this->baseUrl = $baseUrl;
         $this->blacklist = $blacklist;
         $this->metadata = $metadata;
         $this->whitelist = $whitelist;
+        $this->queueName = $queueName;
     }
 
     /**
@@ -63,8 +70,9 @@ class CrawlJob
         $blacklist = $data['blacklist'];
         $metadata = $data['metadata'];
         $whitelist = $data['whitelist'];
+        $queueName = $data['queueName'];
 
-        return new self($urlToCrawl, $baseUrl, $blacklist, $metadata, $whitelist);
+        return new self($urlToCrawl, $baseUrl, $blacklist, $metadata, $whitelist, $queueName);
     }
 
     /**
@@ -90,6 +98,7 @@ class CrawlJob
             'blacklist' => $this->blacklist,
             'metadata' => $this->metadata,
             'whitelist' => $this->whitelist,
+            'queueName' => $this->queueName,
         ];
     }
 
@@ -141,5 +150,15 @@ class CrawlJob
     public function getWhitelist()
     {
         return $this->whitelist;
+    }
+
+    /**
+     * Returns queueName if passed
+     *
+     * @return null|string
+     */
+    public function getQueueName()
+    {
+        return $this->queueName;
     }
 }
