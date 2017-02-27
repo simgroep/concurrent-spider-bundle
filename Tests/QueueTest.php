@@ -37,6 +37,35 @@ class QueueTest extends PHPUnit_Framework_TestCase
         $queue->publish($message);
     }
 
+    public function testPublishWithEnabledRevisit()
+    {
+        $queueName = 'queue1-1';
+
+        $message = $this->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
+            ->getMock();
+
+        $channel = $this->getChannel($queueName, false, true);
+        $channel->expects($this->once())
+            ->method('basic_publish')
+            ->with($message, $this->equalTo(''), $this->equalTo($queueName));
+
+        $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
+            ->disableOriginalConstructor()
+            ->setMethods(['channel', 'isConnected', 'close'])
+            ->getMock();
+        $connection->expects($this->once())
+            ->method('channel')
+            ->will($this->returnValue($channel));
+        $connection->expects($this->once())
+            ->method('isConnected')
+            ->will($this->returnValue(true));
+        $connection->expects($this->once())
+            ->method('close');
+
+        $queue = new Queue($connection, $queueName, false);
+        $queue->publish($message);
+    }
+
     public function testListen()
     {
         $queueName = 'queue2';
@@ -62,6 +91,37 @@ class QueueTest extends PHPUnit_Framework_TestCase
                 ->method('close');
 
         $queue = new Queue($connection, $queueName);
+        $queue->listen($callback);
+    }
+
+    public function testListenEnabledRevisit()
+    {
+        $queueName = 'queue2-2';
+
+        $callback = new QueueCallableClass();
+
+        $channel = $this->getChannel($queueName, true, true);
+        $channel->expects($this->at(3))
+            ->method('basic_consume')
+            ->with($this->equalTo($queueName), $this->equalTo(''), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $callback);
+        $channel->expects($this->at(4))
+            ->method('basic_consume')
+            ->with($this->equalTo('revisit'), $this->equalTo(''), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $callback);
+
+        $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
+            ->disableOriginalConstructor()
+            ->setMethods(['channel', 'isConnected', 'close'])
+            ->getMock();
+        $connection->expects($this->once())
+            ->method('channel')
+            ->will($this->returnValue($channel));
+        $connection->expects($this->once())
+            ->method('isConnected')
+            ->will($this->returnValue(true));
+        $connection->expects($this->once())
+            ->method('close');
+
+        $queue = new Queue($connection, $queueName, false);
         $queue->listen($callback);
     }
 
@@ -167,15 +227,24 @@ class QueueTest extends PHPUnit_Framework_TestCase
      * @param string $queueName
      * @return PhpAmqpLib\Channel\AMQPChannel
      */
-    protected function getChannel($queueName, $wait = false)
+    protected function getChannel($queueName, $wait = false, $queueDeclaredExpectedMoreThenOnce = false)
     {
         $channel = $this->getMockBuilder('PhpAmqpLib\Channel\AMQPChannel')
             ->disableOriginalConstructor()
             ->setMethods(['queue_declare', 'basic_qos', 'basic_publish', 'basic_consume', 'wait'])
             ->getMock();
-        $channel->expects($this->once())
-            ->method('queue_declare')
-            ->with($this->equalTo($queueName), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
+        if ($queueDeclaredExpectedMoreThenOnce == true) {
+            $channel->expects($this->at(0))
+                ->method('queue_declare')
+                ->with($this->equalTo($queueName), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
+            $channel->expects($this->at(1))
+                ->method('queue_declare')
+                ->with($this->equalTo('revisit'), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
+        } else {
+            $channel->expects($this->once())
+                ->method('queue_declare')
+                ->with($this->equalTo($queueName), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false));
+        }
         $channel->expects($this->once())
             ->method('basic_qos')
             ->with($this->equalTo(null), $this->equalTo(1), $this->equalTo(null));
