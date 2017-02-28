@@ -18,7 +18,7 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
         $this->crawlJob = new CrawlJob(
             'http://dummy.nl/dummy.html',
             'http://dummy.nl/',
-            ['http:/black.site/'],
+            ['http://black.site/'],
             ['core' => 'core1'],
             ['http://white.power/'],
             'dummyqueue'
@@ -70,7 +70,7 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
      */
     public function ifGetBlacklistReturnCorrectValue()
     {
-        $this->assertSame(['http:/black.site/'], $this->crawlJob->getBlacklist());
+        $this->assertSame(['http://black.site/'], $this->crawlJob->getBlacklist());
     }
 
     /**
