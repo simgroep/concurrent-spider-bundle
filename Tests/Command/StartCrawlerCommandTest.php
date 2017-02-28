@@ -19,6 +19,7 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'blacklist' => [],
             'metadata' => [],
             'whitelist' => [],
+            'queueName' => null
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
@@ -55,6 +56,7 @@ class StartCrawlerCommandTest extends \PHPUnit_Framework_TestCase
             'blacklist' => [],
             'metadata' => ['core' => 'github'],
             'whitelist' => [],
+            'queueName' => null
         ];
         $message = new AMQPMessage(json_encode($data), ['delivery_mode' => 1]);
 
