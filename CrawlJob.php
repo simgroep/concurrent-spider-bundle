@@ -39,14 +39,21 @@ class CrawlJob
     /**
      * Constrcutor.
      *
-     * @var string $url
-     * @var string $baseUrl
-     * @var array  $blacklist
-     * @var array  $metadata
-     * @var array  $whitelist
-     * @var null|string  $queueName
+     * @var string      $url
+     * @var string      $baseUrl
+     * @var array       $blacklist
+     * @var array       $metadata
+     * @var array       $whitelist
+     * @var null|string $queueName
      */
-    public function __construct($url, $baseUrl, array $blacklist = [], array $metadata = [], array $whitelist = [], $queueName = null)
+    public function __construct(
+        $url,
+        $baseUrl,
+        array $blacklist = [],
+        array $metadata = [],
+        array $whitelist = [],
+        $queueName = null
+    )
     {
         $this->url = $url;
         $this->baseUrl = $baseUrl;
@@ -60,6 +67,7 @@ class CrawlJob
      * Factory method for creating a job.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
+     * @return \Simgroep\ConcurrentSpiderBundle\CrawlJob
      */
     public static function create(AMQPMessage $message)
     {
