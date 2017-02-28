@@ -179,8 +179,18 @@ class CrawlCommand extends Command
             ]);
             $this->spider->crawl($crawlJob, $this->queueFactory, $this->currentQueueType);
 
-            $this->logMessage('info', sprintf("Crawling %s", $crawlJob->getUrl()), $crawlJob->getUrl(), $data['metadata']['core'], $crawlJob->getQueueName());
+            $this->logMessage(
+                'info',
+                sprintf(
+                    "Crawling %s",
+                    $crawlJob->getUrl()
+                ),
+                $crawlJob->getUrl(),
+                $data['metadata']['core'],
+                $crawlJob->getQueueName()
+            );
             $this->queue->acknowledge($message);
+
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
                 case 301:
