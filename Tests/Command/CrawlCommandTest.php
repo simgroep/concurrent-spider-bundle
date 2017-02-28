@@ -32,6 +32,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                     'core' => 'core1'
                 ],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -154,6 +155,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                     'core' => 'core1'
                 ],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -164,7 +166,8 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             [
                 'core' => 'core1'
             ],
-            []
+            [],
+            null
         );
 
         $queue = $this
@@ -417,6 +420,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -515,6 +519,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
         $command->setQueue($queue);
@@ -630,6 +635,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -756,6 +762,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -865,6 +872,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -971,6 +979,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                     'core' => 'core1'
                 ],
                 'whitelist' => ['http://ggg.nl'],
+                'queueName' => null,
             ]
         );
 
@@ -1077,6 +1086,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                     'core' => 'core1'
                 ],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 
@@ -1155,6 +1165,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
                 'blacklist' => [],
                 'metadata' => ['core' => 'corename'],
                 'whitelist' => [],
+                'queueName' => null,
             ]
         );
 

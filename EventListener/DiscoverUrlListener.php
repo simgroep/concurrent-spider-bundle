@@ -74,7 +74,8 @@ class DiscoverUrlListener
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
                     $crawlJob->getMetadata(),
-                    $crawlJob->getWhitelist()
+                    $crawlJob->getWhitelist(),
+                    $crawlJob->getQueueName()
                 );
 
                 if ($job->isAllowedToCrawl()) {

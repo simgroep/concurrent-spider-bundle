@@ -9,6 +9,23 @@ use PhpAmqpLib\Message\AMQPMessage;
 class CrawlJobTest extends PHPUnit_Framework_TestCase
 {
     /**
+     * @var \Simgroep\ConcurrentSpiderBundle\CrawlJob
+     */
+    protected $crawlJob;
+
+    public function setUp()
+    {
+        $this->crawlJob = new CrawlJob(
+            'http://dummy.nl/dummy.html',
+            'http://dummy.nl/',
+            ['http://black.site/'],
+            ['core' => 'core1'],
+            ['http://white.power/'],
+            'dummyqueue'
+        );
+    }
+
+    /**
      * @test
      * @testdox Tests if factory return correct values.
      */
@@ -20,6 +37,7 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
             'blacklist' => [],
             'metadata' => ['core' => 'core2'],
             'whitelist' => [],
+            'queueName' => null
         ];
         $bodyCrawlJob = json_encode($data);
 
@@ -34,8 +52,7 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
      */
     public function ifGetBaseUrlReturnCorrectValue()
     {
-        $crawlJob = new CrawlJob('', 'http://dummy.nl/', [], [], []);
-        $this->assertSame('http://dummy.nl/', $crawlJob->getBaseUrl());
+        $this->assertSame('http://dummy.nl/', $this->crawlJob->getBaseUrl());
     }
 
     /**
@@ -44,7 +61,42 @@ class CrawlJobTest extends PHPUnit_Framework_TestCase
      */
     public function ifGetUrlReturnCorrectValue()
     {
-        $crawlJob = new CrawlJob('http://dummy.nl/', '', [], [], []);
-        $this->assertSame('http://dummy.nl/', $crawlJob->getUrl());
+        $this->assertSame('http://dummy.nl/dummy.html', $this->crawlJob->getUrl());
+    }
+
+    /**
+     * @test
+     * @testdox Tests if get blacklist returns correct value.
+     */
+    public function ifGetBlacklistReturnCorrectValue()
+    {
+        $this->assertSame(['http://black.site/'], $this->crawlJob->getBlacklist());
+    }
+
+    /**
+     * @test
+     * @testdox Tests if get metadata returns correct value.
+     */
+    public function ifGetMetadataReturnCorrectValue()
+    {
+        $this->assertSame(['core' => 'core1'], $this->crawlJob->getMetadata());
+    }
+
+    /**
+     * @test
+     * @testdox Tests if get whitelist returns correct value.
+     */
+    public function ifGetWhitelistReturnCorrectValue()
+    {
+        $this->assertSame(['http://white.power/'], $this->crawlJob->getWhitelist());
+    }
+
+    /**
+     * @test
+     * @testdox Tests if get url returns correct value.
+     */
+    public function ifGetQueueNameReturnCorrectValue()
+    {
+        $this->assertSame('dummyqueue', $this->crawlJob->getQueueName());
     }
 }
