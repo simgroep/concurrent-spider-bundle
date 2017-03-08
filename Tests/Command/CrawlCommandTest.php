@@ -140,8 +140,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
     /**
      * @test
+     * @dataProvider redirectResponseCodeDataProvider
      */
-    public function deleteDocumentAndCreateNewMessageWhenDocumentIsMoved()
+    public function deleteDocumentAndCreateNewMessageWhenDocumentIsMoved($statusCode)
     {
         $redirect_url = "http://redirect.example.com";
 
@@ -238,7 +239,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $response
             ->expects($this->once())
             ->method('getStatusCode')
-            ->will($this->returnValue("301"));
+            ->will($this->returnValue($statusCode));
 
         $response
             ->expects($this->once())
@@ -249,7 +250,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $exception = new ClientErrorResponseException( sprintf(
             "Page moved to %s",
             $redirect_url
-        ), 301);
+        ), $statusCode);
         $exception->setResponse($response);
 
         $spider = $this
@@ -1229,6 +1230,16 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $command
             ->setQueue($queue)
             ->crawlUrl($message);
+    }
+
+    /**
+     * @return array
+     */
+    public function redirectResponseCodeDataProvider()
+    {
+        return [
+            [301], [302]
+        ];
     }
 }
 
