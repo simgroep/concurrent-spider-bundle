@@ -194,6 +194,7 @@ class CrawlCommand extends Command
         } catch (ClientErrorResponseException $e) {
             switch ($e->getResponse()->getStatusCode()) {
                 case 301:
+                case 302:
                     $this->indexer->deleteDocument($message);
                     $this->queue->rejectMessage($message);
 
