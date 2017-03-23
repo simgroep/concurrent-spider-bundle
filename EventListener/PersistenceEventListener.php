@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
 use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
@@ -53,6 +54,11 @@ class PersistenceEventListener
     public function onPrePersistDocument(PersistenceEvent $event)
     {
         $newDocument = $event->getDocument();
+
+        if ($newDocument->offsetGet('collection') === null) {
+            throw new CollectionNotFoundException('Page blacklisted in segments');
+        }
+
         $currentDocument = $this->indexer->findDocumentByUrl($newDocument['url'], $event->getMetadata());
 
         if (null === $currentDocument || $currentDocument['revisit_after'] == 0) {

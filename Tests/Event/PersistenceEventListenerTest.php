@@ -26,6 +26,8 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $document = new PersistableDocument();
+        $document->offsetSet('collection', 'test_collection');
+
         $event = new PersistenceEvent($document, $resource, array());
 
         $eventListener = new PersistenceEventListener($indexer, 50, 50, 50);
@@ -64,6 +66,7 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
         $document = new PersistableDocument();
         $document['title'] = 'test';
         $document['strippedContent'] = 'test';
+        $document['collection'] = 'test';
 
         $event = new PersistenceEvent($document, $resource, array());
 
@@ -103,6 +106,7 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
         $document = new PersistableDocument();
         $document['title'] = 'test1';
         $document['strippedContent'] = 'test1';
+        $document['collection'] = 'test1';
 
         $event = new PersistenceEvent($document, $resource, array());
 
@@ -142,6 +146,7 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
         $document = new PersistableDocument();
         $document['title'] = 'test';
         $document['strippedContent'] = 'test';
+        $document['collection'] = 'test';
 
         $event = new PersistenceEvent($document, $resource, array());
 
@@ -181,6 +186,7 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
         $document = new PersistableDocument();
         $document['title'] = 'test1';
         $document['strippedContent'] = 'test1';
+        $document['collection'] = 'test1';
 
         $event = new PersistenceEvent($document, $resource, array());
 
@@ -188,5 +194,30 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
         $eventListener->onPrePersistDocument($event);
 
         $this->assertEquals(2000, $document['revisit_after']);
+    }
+
+    /**
+     * @expectedException Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException
+     * @expectedExceptionMessage Page blacklisted in segments
+     */
+    public function testIfNotFoundCollectionExceptionIsThrownWhenCollectionIsNotSet()
+    {
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('findDocumentByUrl'))
+            ->getMock();
+
+        $resource = $this
+            ->getMockBuilder('\VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $document = new PersistableDocument();
+
+        $event = new PersistenceEvent($document, $resource, array());
+
+        $eventListener = new PersistenceEventListener($indexer, 50, 50, 50);
+        $eventListener->onPrePersistDocument($event);
     }
 }
