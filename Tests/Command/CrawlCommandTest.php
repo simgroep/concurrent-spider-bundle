@@ -8,6 +8,7 @@ use Guzzle\Http\Exception\ClientErrorResponseException;
 use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
+use Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Input\StringInput;
@@ -1226,6 +1227,123 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $command
             ->expects($this->once())
             ->method('markAsSkipped');
+
+        $command
+            ->setQueue($queue)
+            ->crawlUrl($message);
+    }
+
+    /**
+     * @test
+     */
+    public function collectionDoesNotExist()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['__destruct', 'listen', 'rejectMessage'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('rejectMessage')
+            ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
+
+        $queueFactory = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\QueueFactory')
+            ->disableOriginalConstructor()
+            ->setMethods(['getQueue'])
+            ->getMock();
+
+        $queueFactory
+            ->expects($this->any())
+            ->method('getQueue')
+            ->will($this->returnValue($queue));
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['isUrlIndexedAndNotExpired'])
+            ->getMock();
+
+        $indexer
+            ->expects($this->once())
+            ->method('isUrlIndexedAndNotExpired')
+            ->with($this->equalTo('https://github.com/'))
+            ->will($this->returnValue(false));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $client = $this
+            ->getMockBuilder('Guzzle\Http\Client')
+            ->disableOriginalConstructor()
+            ->setMethods(['setUserAgent', 'setSslVerification'])
+            ->getMock();
+
+        $client->setConfig(new Collection());
+
+        $requestHandler = $this
+            ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(['getClient'])
+            ->getMock();
+
+        $requestHandler
+            ->expects($this->exactly(3))
+            ->method('getClient')
+            ->will($this->returnValue($client));
+
+        $persistenceHandler = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\PersistenceHandler\RabbitMqPersistenceHandler')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
+
+        $spider = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
+            ->setMethods(['crawl'])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('crawl')
+            ->will($this->throwException(new CollectionNotFoundException()));
+
+        $logger = $this
+            ->getMockBuilder('Monolog\Logger')
+            ->disableOriginalConstructor()
+            ->setMethods(['info', 'warning', 'emergency'])
+            ->getMock();
+
+        $logger
+            ->expects($this->once())
+            ->method('info');
+
+        $command = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
+            ->setConstructorArgs([$queueFactory, $indexer, $spider, $userAgent, $curlCertCADirectory, $logger])
+            ->setMethods(null)
+            ->getMock();
+
+        $message = new AMQPMessage();
+        $message->body = json_encode(
+            [
+                'url' => 'https://github.com',
+                'base_url' => 'https://github.com',
+                'blacklist' => [],
+                'metadata' => ['core' => 'corename'],
+                'whitelist' => [],
+                'queueName' => null,
+            ]
+        );
 
         $command
             ->setQueue($queue)
