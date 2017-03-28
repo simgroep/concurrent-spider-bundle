@@ -4,6 +4,6 @@ namespace Simgroep\ConcurrentSpiderBundle;
 
 use Exception;
 
-class CollectionNotFoundException extends Exception
+class PageBlacklistedException extends Exception
 {
 }

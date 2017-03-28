@@ -8,7 +8,7 @@ use Guzzle\Http\Exception\ClientErrorResponseException;
 use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
-use Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException;
+use Simgroep\ConcurrentSpiderBundle\PageBlacklistedException;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
 use Symfony\Component\Console\Input\StringInput;
@@ -1315,7 +1315,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $spider
             ->expects($this->once())
             ->method('crawl')
-            ->will($this->throwException(new CollectionNotFoundException()));
+            ->will($this->throwException(new PageBlacklistedException()));
 
         $logger = $this
             ->getMockBuilder('Monolog\Logger')

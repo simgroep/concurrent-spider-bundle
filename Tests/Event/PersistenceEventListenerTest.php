@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle\Tests\Event;
 
 use PHPUnit_Framework_TestCase;
+use Simgroep\ConcurrentSpiderBundle\PageBlacklistedException;
 use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
 use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
 use Simgroep\ConcurrentSpiderBundle\EventListener\PersistenceEventListener;
@@ -197,10 +198,10 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
     }
 
     /**
-     * @expectedException Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException
+     * @expectedException Simgroep\ConcurrentSpiderBundle\PageBlacklistedException
      * @expectedExceptionMessage Page blacklisted in segments
      */
-    public function testIfNotFoundCollectionExceptionIsThrownWhenCollectionIsNotSet()
+    public function testIfPageBlacklistedExceptionIsThrownWhenCollectionIsNotSet()
     {
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
@@ -219,5 +220,44 @@ class PersistenceEventListenerTest extends PHPUnit_Framework_TestCase
 
         $eventListener = new PersistenceEventListener($indexer, 50, 50, 50);
         $eventListener->onPrePersistDocument($event);
+    }
+
+    /**
+     * @dataProvider metaKeysWithBlacklistPhraseDataProvider
+     */
+    public function testIPageBlacklistedExceptionWhenBlacklistKeywordFound($metaKey)
+    {
+        $this->setExpectedException(
+            PageBlacklistedException::class,
+            sprintf('Page blacklisted by meta %s', $metaKey)
+        );
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(array('findDocumentByUrl'))
+            ->getMock();
+
+        $resource = $this
+            ->getMockBuilder('\VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $document = new PersistableDocument();
+        $document['collection'] = 'test1';
+        $document[$metaKey] = sprintf('test1, %s, test2',PersistenceEventListener::BLACKLIST_KEYWORD);
+
+        $event = new PersistenceEvent($document, $resource, array());
+
+        $eventListener = new PersistenceEventListener($indexer, 50, 50, 50);
+        $eventListener->onPrePersistDocument($event);
+    }
+
+    public function metaKeysWithBlacklistPhraseDataProvider()
+    {
+        return [
+            ['keywords'],
+            ['SIM.item_trefwoorden'],
+        ];
     }
 }
