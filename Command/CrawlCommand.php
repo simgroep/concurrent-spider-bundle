@@ -4,7 +4,7 @@ namespace Simgroep\ConcurrentSpiderBundle\Command;
 
 use Monolog\Logger;
 use PhpAmqpLib\Message\AMQPMessage;
-use Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException;
+use Simgroep\ConcurrentSpiderBundle\PageBlacklistedException;
 use Simgroep\ConcurrentSpiderBundle\QueueFactory;
 use Simgroep\ConcurrentSpiderBundle\Queue;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
@@ -228,7 +228,7 @@ class CrawlCommand extends Command
                     break;
 
             }
-        } catch(CollectionNotFoundException $e) {
+        } catch(PageBlacklistedException $e) {
             $this->queue->rejectMessage($message);
             $this->markAsSkipped($crawlJob, 'info', $e->getMessage());
         } catch (Exception $e) {

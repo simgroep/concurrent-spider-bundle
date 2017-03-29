@@ -2,7 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
-use Simgroep\ConcurrentSpiderBundle\CollectionNotFoundException;
+use Simgroep\ConcurrentSpiderBundle\PageBlacklistedException;
 use Simgroep\ConcurrentSpiderBundle\Indexer;
 use Simgroep\ConcurrentSpiderBundle\Event\PersistenceEvent;
 use Simgroep\ConcurrentSpiderBundle\PersistableDocument;
@@ -10,6 +10,8 @@ use DateTime;
 
 class PersistenceEventListener
 {
+    const BLACKLIST_KEYWORD = 'nosearch';
+
     /**
      * @var \Simgroep\ConcurrentSpiderBundle\Indexer
      */
@@ -55,9 +57,7 @@ class PersistenceEventListener
     {
         $newDocument = $event->getDocument();
 
-        if ($newDocument->offsetGet('collection') === null) {
-            throw new CollectionNotFoundException('Page blacklisted in segments');
-        }
+        $this->checkIfPageIsBlacklistedByKeywordOrPhrase($newDocument);
 
         $currentDocument = $this->indexer->findDocumentByUrl($newDocument['url'], $event->getMetadata());
 
@@ -134,5 +134,21 @@ class PersistenceEventListener
     {
         return sha1($document['title'] . $document['strippedContent']);
     }
-}
 
+    /**
+     * @param PersistableDocument $document
+     * @throws PageBlacklistedException
+     */
+    private function checkIfPageIsBlacklistedByKeywordOrPhrase(PersistableDocument $document)
+    {
+        if ($document->offsetGet('collection') === null) {
+            throw new PageBlacklistedException('Page blacklisted in segments');
+        }
+        if (stripos($document->offsetGet('keywords'), self::BLACKLIST_KEYWORD) !== false) {
+            throw new PageBlacklistedException('Page blacklisted by meta keywords');
+        }
+        if (stripos($document->offsetGet('SIM.item_trefwoorden'), self::BLACKLIST_KEYWORD) !== false) {
+            throw new PageBlacklistedException('Page blacklisted by meta SIM.item_trefwoorden');
+        }
+    }
+}
