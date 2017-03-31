@@ -85,7 +85,7 @@ class DiscoverUrlListener
 
                 continue;//url blacklisted, so go to next one
             }
-var_dump('PUBLISHING....');
+
             $job = new CrawlJob(
                 UrlCheck::fixUrl($uri->normalize()->toString()),
                 (new Uri($crawlJob->getUrl()))->normalize()->toString(),
