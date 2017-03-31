@@ -207,4 +207,14 @@ class Queue
             $callback
         );
     }
+
+    /**
+     * Get queue name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->queueName;
+    }
 }

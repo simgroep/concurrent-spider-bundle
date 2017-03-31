@@ -7,6 +7,7 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
 use Solarium\Exception\HttpException;
 use DateTime;
+use VDB\Uri\Uri;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -73,10 +74,90 @@ class Indexer
 
         $query = $this->client->createSelect();
         $query->setQuery($queryPhrase);
-
         $result = $this->client->select($query);
 
         return ($result->getNumFound() > 0);
+    }
+
+    /**
+     * Returns unique hashes for uris from one page.
+     *
+     * @param $uris
+     *
+     * @return array
+     */
+    public function getUniqueHashIds($uris)
+    {
+        $hashes = [];
+        foreach ($uris as $uri) {
+            $uri = $this->normalizeUri($uri);
+            $hashId = $this->getHashSolarId($uri);
+            $hashes[$hashId] = $uri;
+        }
+
+        return array_keys($hashes);
+    }
+
+    /**
+     * Filters all URL from one page and return not indexed or expired.
+     *
+     * @param $uris
+     * @param array $metadata
+     *
+     * @return array
+     */
+    public function filterIndexedAndNotExpired($uris, array $metadata = [])
+    {
+        if (!count($uris)) {
+            return $uris;
+        }
+        $this->setCoreNameFromMetadata($metadata);
+
+        $currentDate = new DateTime();
+
+        $docIds = $this->getUniqueHashIds($uris);
+        $queryPhrase = sprintf(
+            'id:(%s) AND revisit_expiration:[%s TO *]',
+            implode(' OR ', $docIds),
+            $currentDate->format('Y-m-d\TH:i:s\Z')
+        );
+
+        $query = $this->client->createSelect();
+        $query->setQuery($queryPhrase);
+        $result = $this->client->select($query);
+
+        if ($result->getNumFound() > 0) {
+            $documents = $result->getDocuments();
+            $uris = $this->getUnstoredOrExpiredUris($uris, $documents);
+        }
+
+        return $uris;
+    }
+
+    /**
+     * Returns unique urls to be crawl from one page.
+     *
+     * @param $uris
+     * @param $documents
+     *
+     * @return array
+     */
+    public function getUnstoredOrExpiredUris($uris, $documents)
+    {
+        $toCrawlUris = [];
+        $docIds = array_map(function ($doc) {
+                return $doc->id;
+            }, $documents);
+
+        foreach ($uris as $uri) {
+            $uri = $this->normalizeUri($uri);
+            $hashId = $this->getHashSolarId($uri);
+            if(!in_array($hashId, $docIds)) {
+                $toCrawlUris[$hashId] = $uri;
+            }
+        }
+
+        return $toCrawlUris;
     }
 
     /**
@@ -321,5 +402,38 @@ class Indexer
         $updateQuery->addDocuments($documents);
 
         $this->client->update($updateQuery);
+    }
+
+
+    /**
+     * Get unique solar index document id
+     *
+     * @param $uri
+     *
+     * @return string
+     */
+    public function getHashSolarId($uri)
+    {
+        if (is_string($uri)) {
+            return sha1(strtolower(UrlCheck::fixUrl($uri)));
+        }
+
+        return sha1(strtolower(UrlCheck::fixUrl($uri->toString())));
+    }
+
+    /**
+     * Returns uri without hashed suffixes.
+     *
+     * @param $uri
+     *
+     * @return Uri
+     */
+    public function normalizeUri($uri)
+    {
+        if (($position = strpos($uri, '#'))) {
+            $uri = new Uri(substr($uri, 0, $position));
+        }
+
+        return $uri;
     }
 }

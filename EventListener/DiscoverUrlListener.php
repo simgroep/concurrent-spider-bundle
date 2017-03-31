@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use Predis\Client;
 use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 use VDB\Uri\Uri;
 use Simgroep\ConcurrentSpiderBundle\Queue;
@@ -28,16 +29,31 @@ class DiscoverUrlListener
     private $eventDispatcher;
 
     /**
+     * @var Client
+     */
+    private $redis;
+
+    /**
+     * @var
+     */
+    private $ttl;
+
+    /**
      * Constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
+     * @param EventDispatcher $eventDispatcher
+     * @param Client $redis
+     * @param int $ttl
      */
-    public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher )
+    public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher, Client $redis, $ttl)
     {
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->eventDispatcher = $eventDispatcher;
+        $this->redis = $redis;
+        $this->ttl = $ttl;
     }
 
 
@@ -51,14 +67,16 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         $crawlJob = $event->getSubject()->getCurrentCrawlJob();
+        $filteredUris = $this->indexer->filterIndexedAndNotExpired($event['uris'], $crawlJob->getMetadata());
 
-        foreach ($event['uris'] as $uri) {
-            if (($position = strpos($uri, '#'))) {
-                $uri = new Uri(substr($uri, 0, $position));
+        foreach ($filteredUris as $uri) {
+            $uri = $this->indexer->normalizeUri($uri);
+
+            if ($this->isAlreadyInQueue($uri, $crawlJob->getMetadata())) {
+                continue;
             }
 
             $isBlacklisted = UrlCheck::isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
-
             if ($isBlacklisted) {
                 $this->eventDispatcher->dispatch(
                     "spider.crawl.blacklisted",
@@ -67,22 +85,46 @@ class DiscoverUrlListener
 
                 continue;//url blacklisted, so go to next one
             }
+var_dump('PUBLISHING....');
+            $job = new CrawlJob(
+                UrlCheck::fixUrl($uri->normalize()->toString()),
+                (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                $crawlJob->getBlacklist(),
+                $crawlJob->getMetadata(),
+                $crawlJob->getWhitelist(),
+                $crawlJob->getQueueName()
+            );
 
-            if (!$this->indexer->isUrlIndexedandNotExpired(UrlCheck::fixUrl($uri->toString()), $crawlJob->getMetadata())) {
-                $job = new CrawlJob(
-                    UrlCheck::fixUrl($uri->normalize()->toString()),
-                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
-                    $crawlJob->getBlacklist(),
-                    $crawlJob->getMetadata(),
-                    $crawlJob->getWhitelist(),
-                    $crawlJob->getQueueName()
-                );
-
-                if ($job->isAllowedToCrawl()) {
-                    $this->queue->publishJob($job);
-                }
+            if ($job->isAllowedToCrawl()) {
+                $this->queue->publishJob($job);
             }
         }
+    }
+
+    /**
+     * Check if uri was added to queue before.
+     *
+     * @param $uri
+     * @param $collectionName
+     *
+     * @return bool
+     */
+    protected function isAlreadyInQueue($uri, $collectionName)
+    {
+        if($this->queue->getName() == 'discovered_urls'){
+            $setUriKey = $collectionName["core"];
+
+            $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
+            if (in_array($uriHash, $this->redis->smembers($setUriKey))) {
+                return true;
+            }
+
+            $crawledUrls[$uriHash] = $this->redis->scard($setUriKey);
+            $this->redis->sadd($setUriKey, array_keys($crawledUrls));
+            $this->redis->expire($setUriKey, $this->ttl);
+        }
+
+        return false;
     }
 
 }
