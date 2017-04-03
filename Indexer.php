@@ -7,7 +7,6 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
 use Solarium\Exception\HttpException;
 use DateTime;
-use VDB\Uri\Uri;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -90,7 +89,7 @@ class Indexer
     {
         $hashes = [];
         foreach ($uris as $uri) {
-            $uri = $this->normalizeUri($uri);
+            $uri = UrlCheck::normalizeUri($uri);
             $hashId = $this->getHashSolarId($uri);
             $hashes[$hashId] = $uri;
         }
@@ -127,8 +126,10 @@ class Indexer
         $result = $this->client->select($query);
 
         if ($result->getNumFound() > 0) {
-            $documents = $result->getDocuments();
-            $uris = $this->getUnstoredOrExpiredUris($uris, $documents);
+            $storedIds = array_map(function ($doc) {
+                return $doc->id;
+            }, $result->getDocuments());
+            $uris = $this->getUnstoredOrExpiredUris($uris, $storedIds);
         }
 
         return $uris;
@@ -138,21 +139,17 @@ class Indexer
      * Returns unique urls to be crawl from one page.
      *
      * @param $uris
-     * @param $documents
+     * @param $storedIds
      *
      * @return array
      */
-    public function getUnstoredOrExpiredUris($uris, $documents)
+    public function getUnstoredOrExpiredUris($uris, $storedIds)
     {
         $toCrawlUris = [];
-        $docIds = array_map(function ($doc) {
-                return $doc->id;
-            }, $documents);
-
         foreach ($uris as $uri) {
-            $uri = $this->normalizeUri($uri);
+            $uri = UrlCheck::normalizeUri($uri);
             $hashId = $this->getHashSolarId($uri);
-            if(!in_array($hashId, $docIds)) {
+            if(!in_array($hashId, $storedIds)) {
                 $toCrawlUris[$hashId] = $uri;
             }
         }
@@ -336,7 +333,6 @@ class Indexer
                 $document->addField($solrField, $data['document'][$field]);
             }
         }
-
         $this->documents[$core][] = $document;
 
         if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
@@ -419,21 +415,5 @@ class Indexer
         }
 
         return sha1(strtolower(UrlCheck::fixUrl($uri->toString())));
-    }
-
-    /**
-     * Returns uri without hashed suffixes.
-     *
-     * @param $uri
-     *
-     * @return Uri
-     */
-    public function normalizeUri($uri)
-    {
-        if (($position = strpos($uri, '#'))) {
-            $uri = new Uri(substr($uri, 0, $position));
-        }
-
-        return $uri;
     }
 }

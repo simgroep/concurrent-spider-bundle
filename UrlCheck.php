@@ -2,6 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
+use VDB\Uri\Uri;
+
 class UrlCheck
 {
 
@@ -115,5 +117,19 @@ class UrlCheck
         }
 
         return $url;
+    }
+
+    /**
+     * Returns uri without hashed suffixes.
+     * @param $uri
+     * @return Uri
+     */
+    public function normalizeUri($uri)
+    {
+        if (($position = strpos($uri, '#'))) {
+            $uri = new Uri(substr($uri, 0, $position));
+        }
+
+        return $uri;
     }
 }

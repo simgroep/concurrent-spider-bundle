@@ -70,32 +70,27 @@ class DiscoverUrlListener
         $filteredUris = $this->indexer->filterIndexedAndNotExpired($event['uris'], $crawlJob->getMetadata());
 
         foreach ($filteredUris as $uri) {
-            $uri = $this->indexer->normalizeUri($uri);
+            $uri = UrlCheck::normalizeUri($uri);
 
-            if ($this->isAlreadyInQueue($uri, $crawlJob->getMetadata())) {
-                continue;
-            }
+            if (
+                UrlCheck::isAllowedToCrawl(
+                    UrlCheck::fixUrl($uri->normalize()->toString()),
+                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                    $crawlJob->getBlacklist(),
+                    $crawlJob->getWhitelist()
+                ) && !$this->isAlreadyInQueue($uri, $crawlJob->getMetadata())
 
-            $isBlacklisted = UrlCheck::isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
-            if ($isBlacklisted) {
-                $this->eventDispatcher->dispatch(
-                    "spider.crawl.blacklisted",
-                    new Event($this, ['uri' => $uri])
+            ) {
+
+                $job = new CrawlJob(
+                    UrlCheck::fixUrl($uri->normalize()->toString()),
+                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                    $crawlJob->getBlacklist(),
+                    $crawlJob->getMetadata(),
+                    $crawlJob->getWhitelist(),
+                    $crawlJob->getQueueName()
                 );
 
-                continue;//url blacklisted, so go to next one
-            }
-
-            $job = new CrawlJob(
-                UrlCheck::fixUrl($uri->normalize()->toString()),
-                (new Uri($crawlJob->getUrl()))->normalize()->toString(),
-                $crawlJob->getBlacklist(),
-                $crawlJob->getMetadata(),
-                $crawlJob->getWhitelist(),
-                $crawlJob->getQueueName()
-            );
-
-            if ($job->isAllowedToCrawl()) {
                 $this->queue->publishJob($job);
             }
         }
@@ -111,7 +106,8 @@ class DiscoverUrlListener
      */
     protected function isAlreadyInQueue($uri, $collectionName)
     {
-        if($this->queue->getName() == 'discovered_urls'){
+
+        if ($this->queue->getName() == 'discovered_urls') {
             $setUriKey = $collectionName["core"];
 
             $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
