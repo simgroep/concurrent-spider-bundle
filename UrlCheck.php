@@ -125,7 +125,7 @@ class UrlCheck
      * @param $uri
      * @return Uri
      */
-    public function normalizeUri($uri)
+    public static function normalizeUri($uri)
     {
         if (($position = strpos($uri, '#'))) {
             $uri = new Uri(substr($uri, 0, $position));
