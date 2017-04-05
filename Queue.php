@@ -34,8 +34,8 @@ class Queue
      * Constructor.
      *
      * @param AbstractConnection $connection
-     * @param string             $queueName
-     * @param boolean            $revisitDisabled
+     * @param string $queueName
+     * @param boolean $revisitDisabled
      */
     public function __construct(AbstractConnection $connection, $queueName, $revisitDisabled = true)
     {
@@ -80,7 +80,7 @@ class Queue
      * Publish a job to the queue.
      *
      * @param \PhpAmqpLib\Message\AMQPMessage $message
-     * @param string|null                     $queueName
+     * @param string|null $queueName
      *
      * @return \Simgroep\ConcurrentSpiderBundle\Queue
      */
@@ -181,7 +181,7 @@ class Queue
     /**
      * Declare a queue on channel
      *
-     * @param string   $queueName
+     * @param string $queueName
      */
     protected function declareQueue($queueName)
     {
@@ -191,8 +191,8 @@ class Queue
     /**
      * Basic consume of queue
      *
-     * @param string                          $queue
-     * @param \Callable                       $callback The method that should be called for every job
+     * @param string $queue
+     * @param \Callable $callback The method that should be called for every job
      * @param \PhpAmqpLib\Channel\AMQPChannel $channel
      */
     protected function consumeBasic($queue, Callable $callback, $channel)
@@ -206,5 +206,15 @@ class Queue
             false,
             $callback
         );
+    }
+
+    /**
+     * Get queue name.
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->queueName;
     }
 }

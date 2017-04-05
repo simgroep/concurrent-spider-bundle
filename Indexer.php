@@ -7,6 +7,7 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
 use Solarium\Exception\HttpException;
 use DateTime;
+use VDB\Uri\Uri;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -41,8 +42,8 @@ class Indexer
      * Constructor.
      *
      * @param \Solarium\Client $client
-     * @param array            $mapping
-     * @param integer          $minimalDocumentSaveAmount
+     * @param array $mapping
+     * @param integer $minimalDocumentSaveAmount
      */
     public function __construct(Client $client, array $mapping, $minimalDocumentSaveAmount)
     {
@@ -55,7 +56,7 @@ class Indexer
      * Indicates whether an URL already has been indexed or not.
      *
      * @param string $uri
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return boolean
      */
@@ -73,10 +74,88 @@ class Indexer
 
         $query = $this->client->createSelect();
         $query->setQuery($queryPhrase);
-
         $result = $this->client->select($query);
 
         return ($result->getNumFound() > 0);
+    }
+
+    /**
+     * Returns unique hashes for uris from one page.
+     *
+     * @param Uri[] $uris
+     *
+     * @return array
+     */
+    public function getUniqueHashIds($uris)
+    {
+        $hashes = [];
+        foreach ($uris as $uri) {
+            $uri = UrlCheck::normalizeUri($uri);
+            $hashId = $this->getHashSolarId($uri);
+            $hashes[$hashId] = $uri;
+        }
+
+        return array_keys($hashes);
+    }
+
+    /**
+     * Filters all URL from one page and return not indexed or expired.
+     *
+     * @param $uris
+     * @param array $metadata
+     *
+     * @return array
+     */
+    public function filterIndexedAndNotExpired($uris, array $metadata = [])
+    {
+        if (!count($uris)) {
+            return $uris;
+        }
+        $this->setCoreNameFromMetadata($metadata);
+
+        $currentDate = new DateTime();
+
+        $docIds = $this->getUniqueHashIds($uris);
+        $queryPhrase = sprintf(
+            'id:(%s) AND revisit_expiration:[%s TO *]',
+            implode(' OR ', $docIds),
+            $currentDate->format('Y-m-d\TH:i:s\Z')
+        );
+
+        $query = $this->client->createSelect();
+        $query->setQuery($queryPhrase);
+        $result = $this->client->select($query);
+
+        if ($result->getNumFound() > 0) {
+            $storedIds = array_map(function ($doc) {
+                return $doc->id;
+            }, $result->getDocuments());
+            $uris = $this->getUnstoredOrExpiredUris($uris, $storedIds);
+        }
+
+        return $uris;
+    }
+
+    /**
+     * Returns unique urls to be crawl from one page.
+     *
+     * @param Uri[] $uris
+     * @param $storedIds
+     *
+     * @return array
+     */
+    public function getUnstoredOrExpiredUris($uris, $storedIds)
+    {
+        $toCrawlUris = [];
+        foreach ($uris as $uri) {
+            $uri = UrlCheck::normalizeUri($uri);
+            $hashId = $this->getHashSolarId($uri);
+            if (!in_array($hashId, $storedIds)) {
+                $toCrawlUris[$hashId] = $uri;
+            }
+        }
+
+        return $toCrawlUris;
     }
 
     /**
@@ -99,7 +178,8 @@ class Indexer
      * @param array $metadata
      * @return null|\Solarium\Core\Plugin\PluginInterface
      */
-    public function getDocumentUrlsInCore ($metadata) {
+    public function getDocumentUrlsInCore($metadata)
+    {
         $this->setCoreNameFromMetadata($metadata);
 
         $query = $this->client->createSelect();
@@ -136,7 +216,7 @@ class Indexer
      * Returns a SOLR document based on the given URL.
      *
      * @param string $url
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return array
      */
@@ -179,7 +259,7 @@ class Indexer
      * Returns url's that are not indexed or indexed but expired.
      *
      * @param string $uri
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return boolean
      */
@@ -255,7 +335,6 @@ class Indexer
                 $document->addField($solrField, $data['document'][$field]);
             }
         }
-
         $this->documents[$core][] = $document;
 
         if (count($this->documents, true) >= $this->minimalDocumentSaveAmount) {
@@ -286,7 +365,8 @@ class Indexer
      * @param array $metadata
      * @param string $document_id
      */
-    public function deleteDocumentById ($metadata, $document_id) {
+    public function deleteDocumentById($metadata, $document_id)
+    {
         $this->setCoreNameFromMetadata($metadata);
 
         $updateQuery = $this->client->createUpdate();
@@ -304,13 +384,13 @@ class Indexer
     protected function setCoreNameFromMetadata(array $metadata)
     {
         if (array_key_exists('core', $metadata)) {
-            foreach($this->client->getEndPoints() as $endpoint) {
+            foreach ($this->client->getEndPoints() as $endpoint) {
                 $endpoint->setCore($metadata['core']);
             }
         }
     }
 
-     /**
+    /**
      * Add multiple documents to the data store.
      *
      * @param \Solarium\QueryType\Update\Query\Query $updateQuery
@@ -321,5 +401,22 @@ class Indexer
         $updateQuery->addDocuments($documents);
 
         $this->client->update($updateQuery);
+    }
+
+
+    /**
+     * Get unique solar index document id
+     *
+     * @param Uri|string $uri
+     *
+     * @return string
+     */
+    public function getHashSolarId($uri)
+    {
+        if ($uri instanceof Uri) {
+            $uri = $uri->toString();
+        }
+
+        return sha1(strtolower(UrlCheck::fixUrl($uri)));
     }
 }

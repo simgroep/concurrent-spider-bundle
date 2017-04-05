@@ -2,6 +2,7 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
+use Predis\Client;
 use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 use VDB\Uri\Uri;
 use Simgroep\ConcurrentSpiderBundle\Queue;
@@ -28,16 +29,31 @@ class DiscoverUrlListener
     private $eventDispatcher;
 
     /**
+     * @var \Predis\Client
+     */
+    private $redis;
+
+    /**
+     * @var int
+     */
+    private $ttl;
+
+    /**
      * Constructor.
      *
-     * @param \Simgroep\ConcurrentSpiderBundle\Queue   $queue
+     * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
+     * @param EventDispatcher $eventDispatcher
+     * @param \Predis\Client $redis
+     * @param int $ttl
      */
-    public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher )
+    public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher, Client $redis, $ttl)
     {
         $this->queue = $queue;
         $this->indexer = $indexer;
         $this->eventDispatcher = $eventDispatcher;
+        $this->redis = $redis;
+        $this->ttl = $ttl;
     }
 
 
@@ -51,24 +67,21 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         $crawlJob = $event->getSubject()->getCurrentCrawlJob();
+        $filteredUris = $this->indexer->filterIndexedAndNotExpired($event['uris'], $crawlJob->getMetadata());
 
-        foreach ($event['uris'] as $uri) {
-            if (($position = strpos($uri, '#'))) {
-                $uri = new Uri(substr($uri, 0, $position));
-            }
+        foreach ($filteredUris as $uri) {
+            $uri = UrlCheck::normalizeUri($uri);
 
-            $isBlacklisted = UrlCheck::isUrlBlacklisted($uri->normalize()->toString(), $crawlJob->getBlacklist());
+            if (
+                UrlCheck::isAllowedToCrawl(
+                    UrlCheck::fixUrl($uri->normalize()->toString()),
+                    (new Uri($crawlJob->getUrl()))->normalize()->toString(),
+                    $crawlJob->getBlacklist(),
+                    $crawlJob->getWhitelist()
+                ) && !$this->isAlreadyInQueue($uri, $crawlJob->getMetadata())
 
-            if ($isBlacklisted) {
-                $this->eventDispatcher->dispatch(
-                    "spider.crawl.blacklisted",
-                    new Event($this, ['uri' => $uri])
-                );
+            ) {
 
-                continue;//url blacklisted, so go to next one
-            }
-
-            if (!$this->indexer->isUrlIndexedandNotExpired(UrlCheck::fixUrl($uri->toString()), $crawlJob->getMetadata())) {
                 $job = new CrawlJob(
                     UrlCheck::fixUrl($uri->normalize()->toString()),
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
@@ -78,11 +91,39 @@ class DiscoverUrlListener
                     $crawlJob->getQueueName()
                 );
 
-                if ($job->isAllowedToCrawl()) {
-                    $this->queue->publishJob($job);
-                }
+                $this->queue->publishJob($job);
             }
         }
+    }
+
+    /**
+     * Check if uri was added to queue before.
+     *
+     * @param Uri $uri
+     * @param array $collectionName
+     *
+     * @return bool
+     */
+    public function isAlreadyInQueue($uri, $collectionName)
+    {
+
+        if (!empty($collectionName["core"])) {
+            $setUriKey = sprintf('%s_%s',
+                $collectionName["core"],
+                $this->queue->getName()
+            );
+
+            $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
+            if (in_array($uriHash, $this->redis->smembers($setUriKey))) {
+                return true;
+            }
+
+            $crawledUrls[$uriHash] = $this->redis->scard($setUriKey);
+            $this->redis->sadd($setUriKey, array_keys($crawledUrls));
+            $this->redis->expire($setUriKey, $this->ttl);
+        }
+
+        return false;
     }
 
 }

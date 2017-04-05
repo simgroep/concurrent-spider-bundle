@@ -132,6 +132,8 @@
             <argument type="service" id="simgroep_concurrent_spider.queue.discovered_urls" />
             <argument type="service" id="simgroep_concurrent_spider.indexer" />
             <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
+            <argument type="service" id="snc_redis.default" />
+            <argument>%redis.options.ttl%</argument>
 
             <tag name="simgroep_concurrent_spider.event_listener" event="spider.crawl.post_discover" method="onDiscoverUrl" />
         </service>

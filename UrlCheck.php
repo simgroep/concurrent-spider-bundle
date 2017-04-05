@@ -2,6 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
+use VDB\Uri\Uri;
+
 class UrlCheck
 {
 
@@ -105,7 +107,8 @@ class UrlCheck
      * @param string $url
      * @return string
      */
-    public static function fixUrl ($url) {
+    public static function fixUrl($url)
+    {
         $url = str_replace(' ', '%20', $url);
         $url = preg_replace('#\/\??$#i', "", $url);
         $url = trim($url);
@@ -115,5 +118,19 @@ class UrlCheck
         }
 
         return $url;
+    }
+
+    /**
+     * Returns uri without hashed suffixes.
+     * @param Uri $uri
+     * @return Uri
+     */
+    public static function normalizeUri($uri)
+    {
+        if (($position = strpos($uri, '#'))) {
+            $uri = new Uri(substr($uri, 0, $position));
+        }
+
+        return $uri;
     }
 }
