@@ -24,25 +24,25 @@ class QueueTest extends PHPUnit_Framework_TestCase
         $queueName = 'queue1';
 
         $message = $this->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
-                ->getMock();
+            ->getMock();
 
         $channel = $this->getChannel($queueName);
         $channel->expects($this->once())
-                ->method('basic_publish')
-                ->with($message, $this->equalTo(''), $this->equalTo($queueName));
+            ->method('basic_publish')
+            ->with($message, $this->equalTo(''), $this->equalTo($queueName));
 
         $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
-                ->disableOriginalConstructor()
-                ->setMethods(['channel', 'isConnected', 'close'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['channel', 'isConnected', 'close'])
+            ->getMock();
         $connection->expects($this->once())
-                ->method('channel')
-                ->will($this->returnValue($channel));
+            ->method('channel')
+            ->will($this->returnValue($channel));
         $connection->expects($this->once())
-                ->method('isConnected')
-                ->will($this->returnValue(true));
+            ->method('isConnected')
+            ->will($this->returnValue(true));
         $connection->expects($this->once())
-                ->method('close');
+            ->method('close');
 
         $queue = new Queue($connection, $queueName);
         $queue->publish($message);
@@ -85,21 +85,21 @@ class QueueTest extends PHPUnit_Framework_TestCase
 
         $channel = $this->getChannel($queueName, true);
         $channel->expects($this->once())
-                ->method('basic_consume')
-                ->with($this->equalTo($queueName), $this->equalTo(''), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $callback);
+            ->method('basic_consume')
+            ->with($this->equalTo($queueName), $this->equalTo(''), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $this->equalTo(false), $callback);
 
         $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
-                ->disableOriginalConstructor()
-                ->setMethods(['channel', 'isConnected', 'close'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['channel', 'isConnected', 'close'])
+            ->getMock();
         $connection->expects($this->once())
-                ->method('channel')
-                ->will($this->returnValue($channel));
+            ->method('channel')
+            ->will($this->returnValue($channel));
         $connection->expects($this->once())
-                ->method('isConnected')
-                ->will($this->returnValue(true));
+            ->method('isConnected')
+            ->will($this->returnValue(true));
         $connection->expects($this->once())
-                ->method('close');
+            ->method('close');
 
         $queue = new Queue($connection, $queueName);
         $queue->listen($callback);
@@ -141,28 +141,28 @@ class QueueTest extends PHPUnit_Framework_TestCase
         $queueName = 'queue3';
 
         $channel = $this->getMockBuilder('PhpAmqpLib\Channel\AMQPChannel')
-                ->disableOriginalConstructor()
-                ->setMethods(['basic_reject'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['basic_reject'])
+            ->getMock();
         $channel->expects($this->once())
-                ->method('basic_reject')
-                ->with($this->equalTo('dummyTag'), $this->equalTo(false));
+            ->method('basic_reject')
+            ->with($this->equalTo('dummyTag'), $this->equalTo(false));
 
         $message = $this->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
-                ->getMock();
+            ->getMock();
         $message->delivery_info = [];
         $message->delivery_info['channel'] = $channel;
         $message->delivery_info['delivery_tag'] = 'dummyTag';
 
         $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
-                ->disableOriginalConstructor()
-                ->setMethods(['isConnected', 'close'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['isConnected', 'close'])
+            ->getMock();
         $connection->expects($this->once())
-                ->method('isConnected')
-                ->will($this->returnValue(true));
+            ->method('isConnected')
+            ->will($this->returnValue(true));
         $connection->expects($this->once())
-                ->method('close');
+            ->method('close');
 
         $queue = new Queue($connection, $queueName);
         $queue->rejectMessage($message);
@@ -173,28 +173,28 @@ class QueueTest extends PHPUnit_Framework_TestCase
         $queueName = 'queue4';
 
         $channel = $this->getMockBuilder('PhpAmqpLib\Channel\AMQPChannel')
-                ->disableOriginalConstructor()
-                ->setMethods(['basic_reject'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['basic_reject'])
+            ->getMock();
         $channel->expects($this->once())
-                ->method('basic_reject')
-                ->with($this->equalTo('dummyTag2'), $this->equalTo(true));
+            ->method('basic_reject')
+            ->with($this->equalTo('dummyTag2'), $this->equalTo(true));
 
         $message = $this->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
-                ->getMock();
+            ->getMock();
         $message->delivery_info = [];
         $message->delivery_info['channel'] = $channel;
         $message->delivery_info['delivery_tag'] = 'dummyTag2';
 
         $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
-                ->disableOriginalConstructor()
-                ->setMethods(['isConnected', 'close'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['isConnected', 'close'])
+            ->getMock();
         $connection->expects($this->once())
-                ->method('isConnected')
-                ->will($this->returnValue(true));
+            ->method('isConnected')
+            ->will($this->returnValue(true));
         $connection->expects($this->once())
-                ->method('close');
+            ->method('close');
 
         $queue = new Queue($connection, $queueName);
         $queue->rejectMessageAndRequeue($message);
@@ -205,28 +205,28 @@ class QueueTest extends PHPUnit_Framework_TestCase
         $queueName = 'queue5';
 
         $channel = $this->getMockBuilder('PhpAmqpLib\Channel\AMQPChannel')
-                ->disableOriginalConstructor()
-                ->setMethods(['basic_ack'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['basic_ack'])
+            ->getMock();
         $channel->expects($this->once())
-                ->method('basic_ack')
-                ->with($this->equalTo('dummyTag3'));
+            ->method('basic_ack')
+            ->with($this->equalTo('dummyTag3'));
 
         $message = $this->getMockBuilder('PhpAmqpLib\Message\AMQPMessage')
-                ->getMock();
+            ->getMock();
         $message->delivery_info = [];
         $message->delivery_info['channel'] = $channel;
         $message->delivery_info['delivery_tag'] = 'dummyTag3';
 
         $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
-                ->disableOriginalConstructor()
-                ->setMethods(['isConnected', 'close'])
-                ->getMock();
+            ->disableOriginalConstructor()
+            ->setMethods(['isConnected', 'close'])
+            ->getMock();
         $connection->expects($this->once())
-                ->method('isConnected')
-                ->will($this->returnValue(true));
+            ->method('isConnected')
+            ->will($this->returnValue(true));
         $connection->expects($this->once())
-                ->method('close');
+            ->method('close');
 
         $queue = new Queue($connection, $queueName);
         $queue->acknowledge($message);
@@ -261,7 +261,7 @@ class QueueTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo(null), $this->equalTo(1), $this->equalTo(null));
         if ($wait === true) {
             $channel->callbacks = [1, 2];
-            
+
             $channel->expects($this->exactly(2))
                 ->method('wait')
                 ->will($this->returnCallback(function () use ($channel) {

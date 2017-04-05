@@ -83,7 +83,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue($solrQuery));
 
         $mapping = [
-            'id' =>'id',
+            'id' => 'id',
             'groups' =>
                 [
                     'SIM' => ['dummyKey1' => 'dummyKeySolr1'],
@@ -169,7 +169,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $selectQuery
             ->expects($this->once())
             ->method('setQuery')
-            ->with($this->callback(function($subject) {
+            ->with($this->callback(function ($subject) {
                 return preg_match('/^revisit_expiration:\[\* TO .*\]$/', $subject);
             }))
             ->will($this->returnValue($selectQuery));
@@ -203,7 +203,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $selectQuery
             ->expects($this->once())
             ->method('setQuery')
-            ->with($this->callback(function($subject) use ($url) {
+            ->with($this->callback(function ($subject) use ($url) {
                 return preg_match(sprintf('/^id:%s$/', sha1($url)), $subject);
             }))
             ->will($this->returnValue($selectQuery));
@@ -420,9 +420,9 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $indexer = new Indexer($solrClient, [], 50);
 
-        $this->assertTrue($indexer->getHashSolarId($url) == $hashIdUrl);
-        $this->assertTrue($indexer->getHashSolarId($uriObj) == $hashIdUri);
-        $this->assertTrue($hashIdUrl == $hashIdUri);
+        $this->assertEquals($indexer->getHashSolarId($url), $hashIdUrl);
+        $this->assertEquals($indexer->getHashSolarId($uriObj), $hashIdUri);
+        $this->assertEquals($hashIdUrl, $hashIdUri);
     }
 
     public function storedAndNotExpiredDataProvider()
@@ -434,7 +434,12 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         return [
             [
-                [new Uri($url1), new Uri($url2), new Uri($url3), new Uri($url4) ],
+                [
+                    new Uri($url1),
+                    new Uri($url2),
+                    new Uri($url3),
+                    new Uri($url4)
+                ],
                 [
                     sha1(strtolower(UrlCheck::fixUrl($url1))),
                     sha1(strtolower(UrlCheck::fixUrl($url2))),
@@ -490,9 +495,9 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $result = $indexer->getUniqueHashIds($uris);
 
-        $this->assertTrue(in_array(sha1(strtolower(UrlCheck::fixUrl($uris[0]))), $result));
-        $this->assertTrue(in_array(sha1(strtolower(UrlCheck::fixUrl($uris[2]))), $result));
-        $this->assertTrue(count($result) == 2);
+        $this->assertContains(sha1(strtolower(UrlCheck::fixUrl($uris[0]))), $result);
+        $this->assertContains(sha1(strtolower(UrlCheck::fixUrl($uris[2]))), $result);
+        $this->assertEquals(count($result), 2);
     }
 
     public function testFilterIndexedAndNotExpired()
@@ -510,7 +515,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
             ->disableOriginalConstructor()
-            ->setMethods(['getNumFound','getDocuments'])
+            ->setMethods(['getNumFound', 'getDocuments'])
             ->getMock();
 
         $solrResult->expects($this->once())
@@ -540,7 +545,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $indexer = new Indexer($solrClient, [], 50);
         $result = $indexer->filterIndexedAndNotExpired($uris, ['core' => 'coreName']);
 
-        $this->assertTrue(count($result) == 0);
+        $this->assertEquals(count($result), 0);
     }
 
     public function testEmptyUrisFilterIndexedAndNotExpiredEmptyArray()
@@ -555,8 +560,54 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $indexer = new Indexer($solrClient, [], 50);
         $result = $indexer->filterIndexedAndNotExpired($uris, ['core' => 'coreName']);
 
-        $this->assertTrue(count($result) == 0);
-        $this->assertTrue(is_array($result) === true);
+        $this->assertEquals(count($result), 0);
+        $this->assertTrue(is_array($result));
+    }
+
+    /**
+     * @test
+     * @testdox Tests if the given url is expired in solr.
+     */
+    public function ifUrlIsIndexedAndExpiredReturnTrue()
+    {
+        $url = 'https://github.com';
+
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->disableOriginalConstructor()
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $solrQuery
+            ->expects($this->exactly(2))
+            ->method('setQuery');
+
+        $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
+            ->disableOriginalConstructor()
+            ->setMethods(['getNumFound'])
+            ->getMock();
+
+        $solrResult
+            ->expects($this->exactly(2))
+            ->method('getNumFound')
+            ->will($this->returnValue(1));
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($solrQuery));
+
+        $solrClient->expects($this->exactly(2))
+            ->method('select')
+            ->will($this->returnValue($solrResult));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $actual = $indexer->isUrlNotIndexedOrIndexedAndExpired($url, ['core' => 'coreName']);
+
+        $this->assertTrue($actual);
     }
 
 }

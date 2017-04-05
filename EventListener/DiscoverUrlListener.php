@@ -107,7 +107,7 @@ class DiscoverUrlListener
     public function isAlreadyInQueue($uri, $collectionName)
     {
 
-        if(!empty($collectionName["core"])){
+        if (!empty($collectionName["core"])) {
             $setUriKey = sprintf('%s_%s',
                 $collectionName["core"],
                 $this->queue->getName()

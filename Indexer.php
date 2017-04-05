@@ -41,8 +41,8 @@ class Indexer
      * Constructor.
      *
      * @param \Solarium\Client $client
-     * @param array            $mapping
-     * @param integer          $minimalDocumentSaveAmount
+     * @param array $mapping
+     * @param integer $minimalDocumentSaveAmount
      */
     public function __construct(Client $client, array $mapping, $minimalDocumentSaveAmount)
     {
@@ -55,7 +55,7 @@ class Indexer
      * Indicates whether an URL already has been indexed or not.
      *
      * @param string $uri
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return boolean
      */
@@ -149,7 +149,7 @@ class Indexer
         foreach ($uris as $uri) {
             $uri = UrlCheck::normalizeUri($uri);
             $hashId = $this->getHashSolarId($uri);
-            if(!in_array($hashId, $storedIds)) {
+            if (!in_array($hashId, $storedIds)) {
                 $toCrawlUris[$hashId] = $uri;
             }
         }
@@ -177,7 +177,8 @@ class Indexer
      * @param array $metadata
      * @return null|\Solarium\Core\Plugin\PluginInterface
      */
-    public function getDocumentUrlsInCore ($metadata) {
+    public function getDocumentUrlsInCore($metadata)
+    {
         $this->setCoreNameFromMetadata($metadata);
 
         $query = $this->client->createSelect();
@@ -214,7 +215,7 @@ class Indexer
      * Returns a SOLR document based on the given URL.
      *
      * @param string $url
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return array
      */
@@ -257,7 +258,7 @@ class Indexer
      * Returns url's that are not indexed or indexed but expired.
      *
      * @param string $uri
-     * @param array  $metadata
+     * @param array $metadata
      *
      * @return boolean
      */
@@ -363,7 +364,8 @@ class Indexer
      * @param array $metadata
      * @param string $document_id
      */
-    public function deleteDocumentById ($metadata, $document_id) {
+    public function deleteDocumentById($metadata, $document_id)
+    {
         $this->setCoreNameFromMetadata($metadata);
 
         $updateQuery = $this->client->createUpdate();
@@ -381,13 +383,13 @@ class Indexer
     protected function setCoreNameFromMetadata(array $metadata)
     {
         if (array_key_exists('core', $metadata)) {
-            foreach($this->client->getEndPoints() as $endpoint) {
+            foreach ($this->client->getEndPoints() as $endpoint) {
                 $endpoint->setCore($metadata['core']);
             }
         }
     }
 
-     /**
+    /**
      * Add multiple documents to the data store.
      *
      * @param \Solarium\QueryType\Update\Query\Query $updateQuery

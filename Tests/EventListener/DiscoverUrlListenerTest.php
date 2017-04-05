@@ -32,7 +32,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([]));
 
         $eventDispatcher = $this
@@ -97,7 +97,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([$uri]));
 
         $eventDispatcher = $this
@@ -147,7 +147,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([$uri]));
 
         $eventDispatcher = $this
@@ -201,7 +201,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([$uri]));
 
         $eventDispatcher = $this
@@ -255,7 +255,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([$uri]));
 
         $eventDispatcher = $this
@@ -308,7 +308,8 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         ];
     }
 
-    public function testUrlWithSpace () {
+    public function testUrlWithSpace()
+    {
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
@@ -330,7 +331,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $indexer
             ->expects($this->once())
             ->method('filterIndexedAndNotExpired')
-            ->withConsecutive(['uris' => [$uri]],['core'])
+            ->withConsecutive(['uris' => [$uri]], ['core'])
             ->will($this->returnValue([$uri]));
 
         $eventDispatcher = $this
@@ -399,7 +400,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
 
 
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
-        $result = $listener->isAlreadyInQueue($uri,['core' => 'coreName_queueName']);
+        $result = $listener->isAlreadyInQueue($uri, ['core' => 'coreName_queueName']);
 
         $this->assertTrue($result);
     }
@@ -432,7 +433,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $redis = $this
             ->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['smembers','scard','sadd','expire'])
+            ->setMethods(['smembers', 'scard', 'sadd', 'expire'])
             ->getMock();
 
         $redis
@@ -442,7 +443,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
 
 
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
-        $result = $listener->isAlreadyInQueue($uri,['core' => 'coreName_queueName']);
+        $result = $listener->isAlreadyInQueue($uri, ['core' => 'coreName_queueName']);
 
         $this->assertFalse($result);
     }
