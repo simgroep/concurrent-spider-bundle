@@ -16,7 +16,7 @@ class QueueTest extends PHPUnit_Framework_TestCase
             ->getMock();
 
         $queue = new Queue($connection, $queueName);
-        $this->assertTrue($queue->getName() == $queueName);
+        $this->assertEquals($queue->getName(), $queueName);
     }
 
     public function testPublish()
