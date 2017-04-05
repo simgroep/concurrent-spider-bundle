@@ -7,6 +7,17 @@ use Simgroep\ConcurrentSpiderBundle\Queue;
 
 class QueueTest extends PHPUnit_Framework_TestCase
 {
+    public function testGetName()
+    {
+        $queueName = 'queue1';
+
+        $connection = $this->getMockBuilder('PhpAmqpLib\Connection\AMQPConnection')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $queue = new Queue($connection, $queueName);
+        $this->assertTrue($queue->getName() == $queueName);
+    }
 
     public function testPublish()
     {

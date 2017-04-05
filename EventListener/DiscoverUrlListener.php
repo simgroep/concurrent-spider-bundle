@@ -104,11 +104,14 @@ class DiscoverUrlListener
      *
      * @return bool
      */
-    protected function isAlreadyInQueue($uri, $collectionName)
+    public function isAlreadyInQueue($uri, $collectionName)
     {
 
-        if ($this->queue->getName() == 'discovered_urls') {
-            $setUriKey = $collectionName["core"];
+        if(!empty($collectionName["core"])){
+            $setUriKey = sprintf('%s_%s',
+                $collectionName["core"],
+                $this->queue->getName()
+            );
 
             $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
             if (in_array($uriHash, $this->redis->smembers($setUriKey))) {

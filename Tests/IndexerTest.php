@@ -4,8 +4,11 @@ namespace Simgroep\ConcurrentSpiderBundle\Tests;
 
 use PhpAmqpLib\Message\AMQPMessage;
 use PHPUnit_Framework_TestCase;
-use Simgroep\ConcurrentSpiderBundle\Indexer;
 use DateTime;
+use Solarium\Core\Query\Result\Result;
+use VDB\Uri\Uri;
+use Simgroep\ConcurrentSpiderBundle\Indexer;
+use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 
 class IndexerTest extends PHPUnit_Framework_TestCase
 {
@@ -401,4 +404,159 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
         $this->assertTrue($actual);
     }
+
+    public function testGetHashSolarId()
+    {
+        $url = 'https://github.com';
+        $hashIdUrl = sha1(strtolower(UrlCheck::fixUrl($url)));
+
+        $uriObj = new Uri('https://github.com');
+        $hashIdUri = sha1(strtolower(UrlCheck::fixUrl($uriObj->toString())));
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $indexer = new Indexer($solrClient, [], 50);
+
+        $this->assertTrue($indexer->getHashSolarId($url) == $hashIdUrl);
+        $this->assertTrue($indexer->getHashSolarId($uriObj) == $hashIdUri);
+        $this->assertTrue($hashIdUrl == $hashIdUri);
+    }
+
+    public function storedAndNotExpiredDataProvider()
+    {
+        $url1 = 'http://www.simgroep.nl/internet/medewerkers_41499/';
+        $url2 = 'http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509/';
+        $url3 = 'http://www.simgroep.nl/internet/portfolio_41515/search/';
+        $url4 = 'http://www.simgroep.nl/internet/vacatures_41521/';
+
+        return [
+            [
+                [new Uri($url1), new Uri($url2), new Uri($url3), new Uri($url4) ],
+                [
+                    sha1(strtolower(UrlCheck::fixUrl($url1))),
+                    sha1(strtolower(UrlCheck::fixUrl($url2))),
+                    sha1(strtolower(UrlCheck::fixUrl($url3))),
+                    sha1(strtolower(UrlCheck::fixUrl($url4)))
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider storedAndNotExpiredDataProvider
+     */
+    public function testGetUnstoredOrExpiredUris($uris, $storedIds)
+    {
+        $urlUnstored = [new Uri('https://github.com')];
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->getMock();
+
+        $indexer = new Indexer($solrClient, [], 50);
+
+        $result = $indexer->getUnstoredOrExpiredUris($urlUnstored, $storedIds);
+        $this->assertArrayHasKey(sha1(strtolower(UrlCheck::fixUrl($urlUnstored[0]))), $result);
+
+        $result = $indexer->getUnstoredOrExpiredUris($uris, $storedIds);
+        $this->assertEmpty($result);
+    }
+
+    public function urisNotUniqueDataProvider()
+    {
+        $url1 = new Uri('http://www.simgroep.nl/internet/medewerkers_41499/');
+        $url2 = new Uri('http://www.simgroep.nl/internet/medewerkers_41499/');
+        $url3 = new Uri('http://www.simgroep.nl/internet/vacatures_41521/');
+        $url4 = new Uri('http://www.simgroep.nl/internet/vacatures_41521/');
+
+        return [
+            [[$url1, $url2, $url3, $url4]]
+        ];
+    }
+
+    /**
+     * @dataProvider urisNotUniqueDataProvider
+     */
+    public function testGetUniqueHashIds($uris)
+    {
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->getMock();
+
+        $indexer = new Indexer($solrClient, [], 50);
+
+        $result = $indexer->getUniqueHashIds($uris);
+
+        $this->assertTrue(in_array(sha1(strtolower(UrlCheck::fixUrl($uris[0]))), $result));
+        $this->assertTrue(in_array(sha1(strtolower(UrlCheck::fixUrl($uris[2]))), $result));
+        $this->assertTrue(count($result) == 2);
+    }
+
+    public function testFilterIndexedAndNotExpired()
+    {
+        $uris = [new Uri('https://github.com')];
+
+        $solrQuery = $this->getMockBuilder('Solarium\QueryType\Select\Query\Query')
+            ->disableOriginalConstructor()
+            ->setMethods(['setQuery'])
+            ->getMock();
+
+        $solrQuery
+            ->expects($this->once())
+            ->method('setQuery');
+
+        $solrResult = $this->getMockBuilder('Solarium\Core\Query\Result\Result')
+            ->disableOriginalConstructor()
+            ->setMethods(['getNumFound','getDocuments'])
+            ->getMock();
+
+        $solrResult->expects($this->once())
+            ->method('getNumFound')
+            ->will($this->returnValue(1));
+
+        $solrResultDoc = new \stdClass();
+        $solrResultDoc->id = sha1(strtolower(UrlCheck::fixUrl($uris[0])));
+
+        $solrResult->expects($this->once())
+            ->method('getDocuments')
+            ->willReturn([$solrResultDoc]);
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $solrClient->expects($this->once())
+            ->method('createSelect')
+            ->will($this->returnValue($solrQuery));
+
+        $solrClient->expects($this->once())
+            ->method('select')
+            ->will($this->returnValue($solrResult));
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $result = $indexer->filterIndexedAndNotExpired($uris, ['core' => 'coreName']);
+
+        $this->assertTrue(count($result) == 0);
+    }
+
+    public function testEmptyUrisFilterIndexedAndNotExpiredEmptyArray()
+    {
+        $uris = [];
+
+        $solrClient = $this->getMockBuilder('Solarium\Client')
+            ->setConstructorArgs([])
+            ->setMethods(['createSelect', 'select'])
+            ->getMock();
+
+        $indexer = new Indexer($solrClient, [], 50);
+        $result = $indexer->filterIndexedAndNotExpired($uris, ['core' => 'coreName']);
+
+        $this->assertTrue(count($result) == 0);
+        $this->assertTrue(is_array($result) === true);
+    }
+
 }

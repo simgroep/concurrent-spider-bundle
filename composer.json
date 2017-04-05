@@ -31,7 +31,7 @@
         "vdb/php-spider": "dev-master",
         "videlalvaro/php-amqplib": "~2",
         "symfony/symfony": ">=2.4,<3",
-        "phpoffice/phpword": "0.12.*",
+        "phpoffice/phpword": "0.13.*",
         "nelmio/solarium-bundle": "dev-master",
         "symfony/process": "^3.1"
     },
