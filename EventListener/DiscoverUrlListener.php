@@ -29,12 +29,12 @@ class DiscoverUrlListener
     private $eventDispatcher;
 
     /**
-     * @var Client
+     * @var \Predis\Client
      */
     private $redis;
 
     /**
-     * @var
+     * @var int
      */
     private $ttl;
 
@@ -44,7 +44,7 @@ class DiscoverUrlListener
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
      * @param \Simgroep\ConcurrentSpiderBundle\Indexer $indexer
      * @param EventDispatcher $eventDispatcher
-     * @param Client $redis
+     * @param \Predis\Client $redis
      * @param int $ttl
      */
     public function __construct(Queue $queue, Indexer $indexer, EventDispatcher $eventDispatcher, Client $redis, $ttl)
@@ -99,8 +99,8 @@ class DiscoverUrlListener
     /**
      * Check if uri was added to queue before.
      *
-     * @param $uri
-     * @param $collectionName
+     * @param Uri $uri
+     * @param array $collectionName
      *
      * @return bool
      */

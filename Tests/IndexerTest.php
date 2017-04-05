@@ -430,7 +430,7 @@ class IndexerTest extends PHPUnit_Framework_TestCase
         $url1 = 'http://www.simgroep.nl/internet/medewerkers_41499/';
         $url2 = 'http://www.simgroep.nl/internet/nieuws-uit-de-branche_41509/';
         $url3 = 'http://www.simgroep.nl/internet/portfolio_41515/search/';
-        $url4 = 'http://www.simgroep.nl/internet/vacatures_41521/';
+        $url4 = 'http://www.simgroep.nl/internet/vacatures_41521';
 
         return [
             [
@@ -472,13 +472,15 @@ class IndexerTest extends PHPUnit_Framework_TestCase
 
     public function urisNotUniqueDataProvider()
     {
-        $url1 = new Uri('http://www.simgroep.nl/internet/medewerkers_41499/');
-        $url2 = new Uri('http://www.simgroep.nl/internet/medewerkers_41499/');
-        $url3 = new Uri('http://www.simgroep.nl/internet/vacatures_41521/');
-        $url4 = new Uri('http://www.simgroep.nl/internet/vacatures_41521/');
-
         return [
-            [[$url1, $url2, $url3, $url4]]
+            [
+                [
+                    new Uri('http://www.simgroep.nl/internet/medewerkers_41499/'),
+                    new Uri('http://www.simgroep.nl/internet/medewerkers_41499'),
+                    new Uri('http://www.simgroep.nl/internet/vacatures_41521/'),
+                    new Uri('http://www.simgroep.nl/internet/vacatures_41521')
+                ]
+            ]
         ];
     }
 

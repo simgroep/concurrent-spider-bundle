@@ -122,7 +122,7 @@ class UrlCheck
 
     /**
      * Returns uri without hashed suffixes.
-     * @param $uri
+     * @param Uri $uri
      * @return Uri
      */
     public static function normalizeUri($uri)

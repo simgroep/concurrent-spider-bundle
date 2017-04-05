@@ -7,6 +7,7 @@ use Solarium\Client;
 use Solarium\QueryType\Update\Query\Query;
 use Solarium\Exception\HttpException;
 use DateTime;
+use VDB\Uri\Uri;
 
 /**
  * This class provides a gateway to the datastore for spidered webpages.
@@ -81,7 +82,7 @@ class Indexer
     /**
      * Returns unique hashes for uris from one page.
      *
-     * @param $uris
+     * @param Uri[] $uris
      *
      * @return array
      */
@@ -138,7 +139,7 @@ class Indexer
     /**
      * Returns unique urls to be crawl from one page.
      *
-     * @param $uris
+     * @param Uri[] $uris
      * @param $storedIds
      *
      * @return array
@@ -406,16 +407,16 @@ class Indexer
     /**
      * Get unique solar index document id
      *
-     * @param $uri
+     * @param Uri|string $uri
      *
      * @return string
      */
     public function getHashSolarId($uri)
     {
-        if (is_string($uri)) {
-            return sha1(strtolower(UrlCheck::fixUrl($uri)));
+        if ($uri instanceof Uri) {
+            $uri = $uri->toString();
         }
 
-        return sha1(strtolower(UrlCheck::fixUrl($uri->toString())));
+        return sha1(strtolower(UrlCheck::fixUrl($uri)));
     }
 }
