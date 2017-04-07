@@ -14,6 +14,8 @@ use VDB\Uri\Uri;
  */
 class Indexer
 {
+    const maxSolrQueryParams = 100;
+
     /**
      * @var \Solarium\Client
      */
@@ -117,7 +119,7 @@ class Indexer
         $docIds = $this->getUniqueHashIds($uris);
         $urisAll = [];
 
-        $docIdsParts = array_chunk($docIds, 100);
+        $docIdsParts = array_chunk($docIds, self::maxSolrQueryParams);
         foreach ($docIdsParts as $docIdsSet) {
             $queryPhrase = sprintf(
                 'id:(%s) AND revisit_expiration:[%s TO *]',

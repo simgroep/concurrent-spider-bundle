@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2280289cbabbcca1d0a0f894254c555a",
+    "content-hash": "de15c063a111fba9dd87349eafe6e991",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1072,7 +1072,7 @@
         },
         {
             "name": "snc/redis-bundle",
-            "version": "2.0.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simgroep/SncRedisBundle.git",
@@ -1135,7 +1135,7 @@
             "support": {
                 "source": "https://github.com/simgroep/SncRedisBundle/tree/2.0.1"
             },
-            "time": "2016-12-05T17:36:17+00:00"
+            "time": "2016-12-05 17:36:17"
         },
         {
             "name": "solarium/solarium",
@@ -3412,7 +3412,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "vdb/php-spider": 20,
-        "nelmio/solarium-bundle": 20
+        "nelmio/solarium-bundle": 20,
+        "snc/redis-bundle": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
