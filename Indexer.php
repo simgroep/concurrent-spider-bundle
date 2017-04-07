@@ -14,6 +14,8 @@ use VDB\Uri\Uri;
  */
 class Indexer
 {
+    const maxSolrQueryParams = 100;
+
     /**
      * @var \Solarium\Client
      */
@@ -114,26 +116,32 @@ class Indexer
         $this->setCoreNameFromMetadata($metadata);
 
         $currentDate = new DateTime();
-
         $docIds = $this->getUniqueHashIds($uris);
-        $queryPhrase = sprintf(
-            'id:(%s) AND revisit_expiration:[%s TO *]',
-            implode(' OR ', $docIds),
-            $currentDate->format('Y-m-d\TH:i:s\Z')
-        );
+        $urisAll = [];
 
-        $query = $this->client->createSelect();
-        $query->setQuery($queryPhrase);
-        $result = $this->client->select($query);
+        $docIdsParts = array_chunk($docIds, self::maxSolrQueryParams);
+        foreach ($docIdsParts as $docIdsSet) {
+            $queryPhrase = sprintf(
+                'id:(%s) AND revisit_expiration:[%s TO *]',
+                implode(' OR ', $docIdsSet),
+                $currentDate->format('Y-m-d\TH:i:s\Z')
+            );
 
-        if ($result->getNumFound() > 0) {
-            $storedIds = array_map(function ($doc) {
-                return $doc->id;
-            }, $result->getDocuments());
-            $uris = $this->getUnstoredOrExpiredUris($uris, $storedIds);
+            $query = $this->client->createSelect();
+            $query->setQuery($queryPhrase);
+            $result = $this->client->select($query);
+
+            if ($result->getNumFound() > 0) {
+                $storedIds = array_map(function ($doc) {
+                    return $doc->id;
+                }, $result->getDocuments());
+                $uris = $this->getUnstoredOrExpiredUris($uris, $storedIds);
+                $urisAll = array_merge($urisAll, $uris);
+            }
+
         }
 
-        return $uris;
+        return count($urisAll) ? $urisAll : $uris;
     }
 
     /**
