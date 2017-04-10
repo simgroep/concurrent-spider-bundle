@@ -61,6 +61,49 @@ class OdtTest extends PHPUnit_Framework_TestCase
     /**
      * @test
      */
+    public function extractContentFromResourceOnUnrecognizedResourceContentReturnsEmptyString()
+    {
+        $reader = $this
+            ->getMockBuilder('PhpOffice\PhpWord\Reader\ODText')
+            ->disableOriginalConstructor()
+            ->setMethods(['load'])
+            ->getMock();
+        $reader->expects($this->once())
+            ->method('load')
+            ->will($this->throwException(new \Exception));
+
+        $type = $this->getMockBuilder('Simgroep\ConcurrentSpiderBundle\DocumentResolver\Type\Odt')
+            ->setMethods(['getReader'])
+            ->getMock();
+        $type->expects($this->once())
+            ->method('getReader')
+            ->will($this->returnValue($reader));
+
+        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getBody'])
+            ->getMock();
+        $response->expects($this->once())
+            ->method('getBody')
+            ->will($this->returnValue(file_get_contents(__DIR__ . '/../../Mock/Documents/test.odt')));
+
+        $resource = $this
+            ->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getResponse', 'getBody'])
+            ->getMock();
+        $resource->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+
+        $data = $type->extractContentFromResource($resource);
+
+        $this->assertEquals('',$data);
+    }
+
+    /**
+     * @test
+     */
     public function retrieveValidDataFromOdtFile()
     {
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')

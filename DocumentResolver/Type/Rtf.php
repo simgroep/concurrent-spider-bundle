@@ -77,7 +77,8 @@ class Rtf extends TypeAbstract implements DocumentTypeInterface
         try {
             $phpword = $reader->load($tempFile);
         } catch (\Exception $e) {
-            // too bad
+            unlink($tempFile);
+            return '';
         }
 
         //back error reporting to previous state
