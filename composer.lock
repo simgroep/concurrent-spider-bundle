@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "de15c063a111fba9dd87349eafe6e991",
+    "content-hash": "ddc4212d06f9e77d2f5b82549b795374",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -775,16 +775,16 @@
         },
         {
             "name": "phpoffice/phpword",
-            "version": "v0.13.0",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPOffice/PHPWord.git",
-                "reference": "0a3f873972defb304de4fa2f5f53156558c11a7a"
+                "reference": "51c6b5fc38d6838b9f6f59cb0c690b42356a95a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/0a3f873972defb304de4fa2f5f53156558c11a7a",
-                "reference": "0a3f873972defb304de4fa2f5f53156558c11a7a",
+                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
+                "reference": "51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
                 "shasum": ""
             },
             "require": {
@@ -871,7 +871,7 @@
                 "word",
                 "writer"
             ],
-            "time": "2016-07-31T08:53:39+00:00"
+            "time": "2016-11-08 22:40:10"
         },
         {
             "name": "predis/predis",
@@ -3412,6 +3412,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "vdb/php-spider": 20,
+        "phpoffice/phpword": 20,
         "nelmio/solarium-bundle": 20,
         "snc/redis-bundle": 20
     },

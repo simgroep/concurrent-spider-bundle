@@ -35,7 +35,7 @@
         "vdb/php-spider": "dev-master",
         "videlalvaro/php-amqplib": "~2",
         "symfony/symfony": ">=2.4,<3",
-        "phpoffice/phpword": "0.13.*",
+        "phpoffice/phpword": "dev-master#51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
         "nelmio/solarium-bundle": "dev-master",
         "symfony/process": "^3.1",
         "predis/predis": "v1.1.1",
