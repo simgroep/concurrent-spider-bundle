@@ -31,6 +31,7 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.port'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.user'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.rabbitmq.password'), $this->anything()],
+                [$this->equalTo('simgroep_concurrent_spider.rabbitmq.vhost'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.discoveredurls_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.discovereddocuments_queue'), $this->anything()],
                 [$this->equalTo('simgroep_concurrent_spider.queue.recrawl_queue'), $this->anything()],
@@ -54,7 +55,8 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                     'host' => 'localhost',
                     'port' => 5672,
                     'user' => 'guest',
-                    'password' => 'guest'
+                    'password' => 'guest',
+                    'vhost' => 'simsearch'
                 ],
                 'queue' => [
                     'discoveredurls_queue' => 'discovered_urls',

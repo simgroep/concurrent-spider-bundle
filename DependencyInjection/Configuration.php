@@ -38,6 +38,7 @@ class Configuration implements ConfigurationInterface
                         ->integerNode('port')->isRequired()->cannotBeEmpty()->defaultValue('5672')->end()
                         ->scalarNode('user')->isRequired()->cannotBeEmpty()->defaultValue('guest')->end()
                         ->scalarNode('password')->isRequired()->cannotBeEmpty()->defaultValue('guest')->end()
+                        ->scalarNode('vhost')->isRequired()->cannotBeEmpty()->defaultValue('simsearch')->end()
                     ->end()
                 ->end()
                 ->integerNode('minimal_revisit_factor')->isRequired()->cannotBeEmpty()->defaultValue(60)->end()

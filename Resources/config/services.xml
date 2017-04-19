@@ -10,6 +10,7 @@
             <argument>%simgroep_concurrent_spider.rabbitmq.port%</argument>
             <argument>%simgroep_concurrent_spider.rabbitmq.user%</argument>
             <argument>%simgroep_concurrent_spider.rabbitmq.password%</argument>
+            <argument>%simgroep_concurrent_spider.rabbitmq.vhost%</argument>
         </service>
 
         <service id="simgroep_concurrent_spider.start_crawler_command" class="Simgroep\ConcurrentSpiderBundle\Command\StartCrawlerCommand">
