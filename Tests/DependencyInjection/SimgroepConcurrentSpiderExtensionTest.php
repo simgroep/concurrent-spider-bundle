@@ -55,7 +55,8 @@ class SimgroepConcurrentSpiderExtensionTest extends PHPUnit_Framework_TestCase
                     'host' => 'localhost',
                     'port' => 5672,
                     'user' => 'guest',
-                    'password' => 'guest'
+                    'password' => 'guest',
+                    'vhost' => 'simsearch'
                 ],
                 'queue' => [
                     'discoveredurls_queue' => 'discovered_urls',
