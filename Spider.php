@@ -2,7 +2,11 @@
 
 namespace Simgroep\ConcurrentSpiderBundle;
 
+use Guzzle\Http\Client;
+use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
+use Guzzle\Plugin\Cookie\CookiePlugin;
 use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\HttpFoundation\Request;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
@@ -34,6 +38,11 @@ class Spider
     private $currentCrawlJob;
 
     /**
+     * @var CookiePlugin
+     */
+    private $cookiePlugin;
+
+    /**
      * @var resource
      */
     private $curlClient;
@@ -42,20 +51,23 @@ class Spider
      * Constructor.
      *
      * @param EventDispatcherInterface $eventDispatcher
-     * @param GuzzleRequestHandler     $requestHandler
-     * @param PersistenceHandler       $persistenceHandler
-     * @param resource                 $curlClient
+     * @param GuzzleRequestHandler $requestHandler
+     * @param PersistenceHandler $persistenceHandler
+     * @param CookiePlugin $cookiePlugin
+     * @param resource $curlClient
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         GuzzleRequestHandler $requestHandler,
         PersistenceHandler $persistenceHandler,
+        CookiePlugin $cookiePlugin,
         $curlClient
     )
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->requestHandler = $requestHandler;
         $this->persistenceHandler = $persistenceHandler;
+        $this->cookiePlugin = $cookiePlugin;
         $this->curlClient = $curlClient;
     }
 
@@ -102,9 +114,9 @@ class Spider
     /**
      * Function that crawls one webpage based on the give url.
      *
-     * @param CrawlJob     $crawlJob
+     * @param CrawlJob $crawlJob
      * @param QueueFactory $queueFactory
-     * @param string       $currentQueueType
+     * @param string $currentQueueType
      */
     public function crawl(CrawlJob $crawlJob, QueueFactory $queueFactory, $currentQueueType)
     {
@@ -124,14 +136,20 @@ class Spider
 
         } else {
             $resource = $this->requestHandler->request($uri);
+            $crawler = $resource->getCrawler();
+            $baseUrl = $resource->getUri()->toString();
+
+            if (!trim($resource->getResponse()->getBody(true))) {
+                $this->setClient($uri->toString());
+                $resource = $this->requestHandler->request($uri);
+                $crawler = $resource->getCrawler();
+            }
 
             $uris = [];
 
             $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
-            $baseUrl = $resource->getUri()->toString();
-
-            $crawler = $resource->getCrawler()->filterXPath('//a');
+            $crawler = $crawler->filterXPath('//a');;
             foreach ($crawler as $node) {
                 try {
                     if ($node->getAttribute("rel") === "nofollow") {
@@ -145,7 +163,7 @@ class Spider
                 }
             }
 
-            $crawler = $resource->getCrawler()->filterXPath('//loc');
+            $crawler = $crawler->filterXPath('//loc');;
             foreach ($crawler as $node) {
                 try {
                     $href = $node->nodeValue;
@@ -164,4 +182,17 @@ class Spider
             $this->persistenceHandler->persist($resource, $crawlJob);
         }
     }
+
+    /**
+     * Sets require cookie jar for request handler
+     *
+     * @param string $uri
+     */
+    public function setClient($uri)
+    {
+        $client = new Client($uri);
+        $client->addSubscriber($this->cookiePlugin);
+        $this->requestHandler->setClient($client);
+    }
+
 }

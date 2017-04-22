@@ -109,10 +109,17 @@
 
         <service id="simgroep_concurrent_spider.request_handler" class="VDB\Spider\RequestHandler\GuzzleRequestHandler" />
 
+        <service id="simgroep_concurrent_spider.cookie_jar" class="Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar" />
+
+        <service id="simgroep_concurrent_spider.cookie_plugin" class="Guzzle\Plugin\Cookie\CookiePlugin" >
+            <argument type="service" id="simgroep_concurrent_spider.cookie_jar" />
+        </service>
+
         <service id="simgroep_concurrent_spider.spider" class="Simgroep\ConcurrentSpiderBundle\Spider">
             <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
             <argument type="service" id="simgroep_concurrent_spider.request_handler" />
             <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
+            <argument type="service" id="simgroep_concurrent_spider.cookie_plugin" />
             <argument type="service" id="simgroep_concurrent_spider.curl_client" />
         </service>
 
