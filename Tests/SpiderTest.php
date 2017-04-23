@@ -51,10 +51,21 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $response = $this
+            ->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getBody'])
+            ->getMock();
+
+        $response
+            ->expects($this->once())
+            ->method('getBody')
+            ->will($this->returnValue('<html><body>test</body></html>'));
+
         $resource = $this
             ->getMockBuilder('VDB\Spider\Resource')
             ->disableOriginalConstructor()
-            ->setMethods(['getCrawler', 'getUri'])
+            ->setMethods(['getCrawler', 'getUri', 'getResponse'])
             ->getMock();
 
         $resource
@@ -66,6 +77,11 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getUri')
             ->will($this->returnValue($uri));
+
+        $resource
+            ->expects($this->once())
+            ->method('getResponse')
+            ->will($this->returnValue($response));
 
         $requestHandler = $this
             ->getMockBuilder('VDB\Spider\RequestHandler\GuzzleRequestHandler')
@@ -91,10 +107,16 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(['dispatch'])
             ->getMock();
 
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->setMethods(null)
             ->getMock();
 
@@ -176,6 +198,12 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         $curlClient = $this->getMockBuilder(CurlClient::class)
             ->disableOriginalConstructor()
             ->setMethods([])
@@ -184,7 +212,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         /** @var Spider $spider */
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->setMethods(['getStatusCode', 'getRedirectUrl'])
             ->getMock();
 
@@ -221,13 +249,19 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods(['dispatch'])
             ->getMock();
 
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         $curlClient = $this->getMockBuilder(CurlClient::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->setMethods(null)
             ->getMock();
 
@@ -258,13 +292,19 @@ class SpiderTest extends PHPUnit_Framework_TestCase
             ->setMethods([])
             ->getMock();
 
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
+
         $curlClient = $this->getMockBuilder(CurlClient::class)
             ->disableOriginalConstructor()
             ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->setMethods(null)
             ->getMock();
 

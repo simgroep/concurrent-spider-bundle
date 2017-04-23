@@ -119,8 +119,8 @@
             <argument type="service" id="simgroep_concurrent_spider.event_dispatcher" />
             <argument type="service" id="simgroep_concurrent_spider.request_handler" />
             <argument type="service" id="simgroep_concurrent_spider.rabbit_mq_persistence_handler" />
-            <argument type="service" id="simgroep_concurrent_spider.cookie_plugin" />
             <argument type="service" id="simgroep_concurrent_spider.curl_client" />
+            <argument type="service" id="simgroep_concurrent_spider.cookie_plugin" />
         </service>
 
         <service id="simgroep_concurrent_spider.curl_client" class="Simgroep\ConcurrentSpiderBundle\CurlClient">

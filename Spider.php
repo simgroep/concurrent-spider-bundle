@@ -6,7 +6,6 @@ use Guzzle\Http\Client;
 use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
 use Guzzle\Plugin\Cookie\CookiePlugin;
 use PhpAmqpLib\Message\AMQPMessage;
-use Symfony\Component\HttpFoundation\Request;
 use VDB\Uri\Uri;
 use VDB\Uri\Exception\UriSyntaxException;
 use VDB\Spider\RequestHandler\GuzzleRequestHandler;
@@ -53,22 +52,22 @@ class Spider
      * @param EventDispatcherInterface $eventDispatcher
      * @param GuzzleRequestHandler $requestHandler
      * @param PersistenceHandler $persistenceHandler
-     * @param CookiePlugin $cookiePlugin
      * @param resource $curlClient
+     * @param CookiePlugin $cookiePlugin
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
         GuzzleRequestHandler $requestHandler,
         PersistenceHandler $persistenceHandler,
-        CookiePlugin $cookiePlugin,
-        $curlClient
+        CurlClient $curlClient,
+        CookiePlugin $cookiePlugin
     )
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->requestHandler = $requestHandler;
         $this->persistenceHandler = $persistenceHandler;
-        $this->cookiePlugin = $cookiePlugin;
         $this->curlClient = $curlClient;
+        $this->cookiePlugin = $cookiePlugin;
     }
 
     /**
@@ -136,20 +135,18 @@ class Spider
 
         } else {
             $resource = $this->requestHandler->request($uri);
-            $crawler = $resource->getCrawler();
             $baseUrl = $resource->getUri()->toString();
 
             if (!trim($resource->getResponse()->getBody(true))) {
                 $this->setClient($uri->toString());
                 $resource = $this->requestHandler->request($uri);
-                $crawler = $resource->getCrawler();
             }
 
             $uris = [];
 
             $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
-            $crawler = $crawler->filterXPath('//a');;
+            $crawler = $resource->getCrawler()->filterXPath('//a');;
             foreach ($crawler as $node) {
                 try {
                     if ($node->getAttribute("rel") === "nofollow") {
@@ -163,7 +160,7 @@ class Spider
                 }
             }
 
-            $crawler = $crawler->filterXPath('//loc');;
+            $crawler = $resource->getCrawler()->filterXPath('//loc');
             foreach ($crawler as $node) {
                 try {
                     $href = $node->nodeValue;
