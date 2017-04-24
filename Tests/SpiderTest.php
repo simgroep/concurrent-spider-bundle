@@ -312,7 +312,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
 
     }
 
-    public function testEmptyStringResourceBodyReadsPageAgainWithCookiePlugin()
+    public function testIfEmptyStringResourceBodyThenRequestHandlerReadsPageAgainWithCookiePlugin()
     {
         $dom = new \DOMDocument('1.0', 'utf-8');
 
