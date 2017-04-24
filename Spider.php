@@ -50,10 +50,10 @@ class Spider
      * Constructor.
      *
      * @param EventDispatcherInterface $eventDispatcher
-     * @param GuzzleRequestHandler $requestHandler
-     * @param PersistenceHandler $persistenceHandler
-     * @param resource $curlClient
-     * @param CookiePlugin $cookiePlugin
+     * @param GuzzleRequestHandler     $requestHandler
+     * @param PersistenceHandler       $persistenceHandler
+     * @param resource                 $curlClient
+     * @param CookiePlugin             $cookiePlugin
      */
     public function __construct(
         EventDispatcherInterface $eventDispatcher,
@@ -113,9 +113,9 @@ class Spider
     /**
      * Function that crawls one webpage based on the give url.
      *
-     * @param CrawlJob $crawlJob
+     * @param CrawlJob     $crawlJob
      * @param QueueFactory $queueFactory
-     * @param string $currentQueueType
+     * @param string       $currentQueueType
      */
     public function crawl(CrawlJob $crawlJob, QueueFactory $queueFactory, $currentQueueType)
     {
@@ -146,7 +146,7 @@ class Spider
 
             $this->eventDispatcher->dispatch(SpiderEvents::SPIDER_CRAWL_PRE_DISCOVER);
 
-            $crawler = $resource->getCrawler()->filterXPath('//a');;
+            $crawler = $resource->getCrawler()->filterXPath('//a');
             foreach ($crawler as $node) {
                 try {
                     if ($node->getAttribute("rel") === "nofollow") {

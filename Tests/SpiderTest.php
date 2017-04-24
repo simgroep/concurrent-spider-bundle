@@ -37,7 +37,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $crawler
             ->expects($this->exactly(2))
             ->method('filterXpath')
-            ->with($this->callback(function($subject) {
+            ->with($this->callback(function ($subject) {
                 if ($subject === "//a" || $subject === "//loc") {
                     return true;
                 }
@@ -335,7 +335,7 @@ class SpiderTest extends PHPUnit_Framework_TestCase
         $crawler
             ->expects($this->exactly(2))
             ->method('filterXpath')
-            ->with($this->callback(function($subject) {
+            ->with($this->callback(function ($subject) {
                 if ($subject === "//a" || $subject === "//loc") {
                     return true;
                 }
