@@ -8,6 +8,7 @@ use Guzzle\Http\Exception\ClientErrorResponseException;
 use Guzzle\Http\Message\Response;
 use PHPUnit_Framework_TestCase;
 use PhpAmqpLib\Message\AMQPMessage;
+use Simgroep\ConcurrentSpiderBundle\CurlClient;
 use Simgroep\ConcurrentSpiderBundle\PageBlacklistedException;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
 use Simgroep\ConcurrentSpiderBundle\InvalidContentException;
@@ -101,7 +102,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->will($this->returnValue(500));
 
 
-        $exception = new ClientErrorResponseException( "Internal server error", 500);
+        $exception = new ClientErrorResponseException("Internal server error", 500);
         $exception->setResponse($response);
 
         $spider = $this
@@ -248,7 +249,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->with($this->equalTo('redirect_url'))
             ->will($this->returnValue($redirect_url));
 
-        $exception = new ClientErrorResponseException( sprintf(
+        $exception = new ClientErrorResponseException(sprintf(
             "Page moved to %s",
             $redirect_url
         ), $statusCode);
@@ -384,13 +385,20 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->getMock();
 
         $spider
@@ -403,6 +411,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods(['info', 'warning', 'emergency'])
             ->getMock();
+
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
@@ -488,13 +499,20 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->getMock();
 
         $logger = $this
@@ -502,6 +520,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->setMethods(['info', 'warning', 'emergency'])
             ->getMock();
+
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
@@ -599,13 +620,20 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->getMock();
 
         $spider
@@ -622,6 +650,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $logger
             ->expects($this->once())
             ->method('emergency');
+
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
@@ -896,7 +927,7 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
         $queue
             ->expects($this->once())
-             ->method('acknowledge')
+            ->method('acknowledge')
             ->with($this->isInstanceOf('PhpAmqpLib\Message\AMQPMessage'));
 
         $queueFactory = $this
@@ -1303,13 +1334,20 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
             ->setMethods(null)
             ->getMock();
 
-        $userAgent = 'I am some agent';
-        $curlCertCADirectory = '/usr/local/share/certs/';
+        $curlClient = $this->getMockBuilder(CurlClient::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $cookiePlugin = $this
+            ->getMockBuilder('Guzzle\Plugin\Cookie\CookiePlugin')
+            ->disableOriginalConstructor()
+            ->setMethods(null)
+            ->getMock();
 
         $spider = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Spider')
             ->setMethods(['crawl'])
-            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $userAgent, $curlCertCADirectory])
+            ->setConstructorArgs([$eventDispatcher, $requestHandler, $persistenceHandler, $curlClient, $cookiePlugin])
             ->getMock();
 
         $spider
@@ -1326,6 +1364,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $logger
             ->expects($this->once())
             ->method('info');
+
+        $userAgent = 'I am some agent';
+        $curlCertCADirectory = '/usr/local/share/certs/';
 
         $command = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Command\CrawlCommand')
