@@ -74,6 +74,14 @@ class Html extends TypeAbstract implements DocumentTypeInterface
     {
         $crawler = $resource->getCrawler();
 
+        // Check if script block contains div tags
+        $content = $resource->getResponse()->getBody(true);
+        if (preg_match('/["|\']<div(.*?)<\/div>["|\']/is', $content)) {
+            $content = preg_replace('/<script(.*?)<\/script>/is', '', $content);
+            $crawler->clear();
+            $crawler->addContent($content);
+        }
+
         if (null !== $this->cssBlacklist) {
             $crawler->filter($this->cssBlacklist)->each(function (Crawler $crawler) {
                 foreach ($crawler as $node) {
@@ -87,7 +95,6 @@ class Html extends TypeAbstract implements DocumentTypeInterface
         $crawler->filterXpath($query)->each(
             function (Crawler $crawler) use (&$content) {
                 $text = trim($crawler->text());
-
                 if (strlen($text) > 0) {
                     $content .= $text . ' ';
                 }
