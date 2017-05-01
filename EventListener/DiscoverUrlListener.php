@@ -3,6 +3,7 @@
 namespace Simgroep\ConcurrentSpiderBundle\EventListener;
 
 use Predis\Client;
+use Predis\Connection\ConnectionException;
 use Simgroep\ConcurrentSpiderBundle\UrlCheck;
 use VDB\Uri\Uri;
 use Simgroep\ConcurrentSpiderBundle\Queue;
@@ -39,6 +40,11 @@ class DiscoverUrlListener
     private $ttl;
 
     /**
+     * @var array
+     */
+    private $smembers = [];
+
+    /**
      * Constructor.
      *
      * @param \Simgroep\ConcurrentSpiderBundle\Queue $queue
@@ -67,7 +73,18 @@ class DiscoverUrlListener
     public function onDiscoverUrl(Event $event)
     {
         $crawlJob = $event->getSubject()->getCurrentCrawlJob();
-        $filteredUris = $this->indexer->filterIndexedAndNotExpired($event['uris'], $crawlJob->getMetadata());
+        $metadata = $crawlJob->getMetadata();
+        $filteredUris = $this->indexer->filterIndexedAndNotExpired($event['uris'], $metadata);
+        $setUriKey = sprintf('%s_%s',
+            $metadata["core"],
+            $this->queue->getName()
+        );
+
+        try {
+            $this->smembers = $this->redis->smembers($setUriKey);
+        } catch (ConnectionException $e) {
+            $this->smembers = [];
+        }
 
         foreach ($filteredUris as $uri) {
             $uri = UrlCheck::normalizeUri($uri);
@@ -78,7 +95,7 @@ class DiscoverUrlListener
                     (new Uri($crawlJob->getUrl()))->normalize()->toString(),
                     $crawlJob->getBlacklist(),
                     $crawlJob->getWhitelist()
-                ) && !$this->isAlreadyInQueue($uri, $crawlJob->getMetadata())
+                ) && !$this->isAlreadyInQueue($uri)
 
             ) {
 
@@ -94,34 +111,29 @@ class DiscoverUrlListener
                 $this->queue->publishJob($job);
             }
         }
+
+        if (count($this->smembers)) {
+            try {
+                $this->redis->sadd($setUriKey, $this->smembers);
+                $this->redis->expire($setUriKey, $this->ttl);
+            } catch (ConnectionException $e) {}
+        }
     }
 
     /**
      * Check if uri was added to queue before.
      *
      * @param Uri $uri
-     * @param array $collectionName
      *
      * @return bool
      */
-    public function isAlreadyInQueue($uri, $collectionName)
+    public function isAlreadyInQueue($uri)
     {
-
-        if (!empty($collectionName["core"])) {
-            $setUriKey = sprintf('%s_%s',
-                $collectionName["core"],
-                $this->queue->getName()
-            );
-
-            $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
-            if (in_array($uriHash, $this->redis->smembers($setUriKey))) {
-                return true;
-            }
-
-            $crawledUrls[$uriHash] = $this->redis->scard($setUriKey);
-            $this->redis->sadd($setUriKey, array_keys($crawledUrls));
-            $this->redis->expire($setUriKey, $this->ttl);
+        $uriHash = $this->indexer->getHashSolarId(UrlCheck::fixUrl($uri->toString()));
+        if (in_array($uriHash, $this->smembers)) {
+            return true;
         }
+        $this->smembers[] = $uriHash;
 
         return false;
     }
