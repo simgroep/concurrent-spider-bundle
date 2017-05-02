@@ -47,7 +47,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $response->expects($this->once())
                 ->method('getContentType')
                 ->will($this->returnValue('text/html'));
-        $response->expects($this->once())
+        $response->expects($this->any())
                 ->method('getLastModified')
                 ->will($this->returnValue('2015-06-18T23:49:41Z'));
 
@@ -71,7 +71,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
-        $resource->expects($this->exactly(2))
+        $resource->expects($this->exactly(3))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
         $resource->expects($this->exactly(2))
@@ -97,7 +97,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $response->expects($this->once())
                 ->method('getContentType')
                 ->will($this->returnValue('text/html'));
-        $response->expects($this->once())
+        $response->expects($this->any())
                 ->method('getLastModified')
                 ->will($this->returnValue('2015-06-18T23:49:41Z'));
 
@@ -121,7 +121,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
-        $resource->expects($this->exactly(2))
+        $resource->expects($this->exactly(3))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
         $resource->expects($this->exactly(2))
@@ -139,7 +139,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
             'tstamp' => date('Y-m-d\TH:i:s\Z'),
             'type' => ["text/html","text","html"],
             'contentLength' => 23,
-            'lastModified'=> date('Y-m-d\TH:i:s\Z'),
+            'lastModified'=> $data['lastModified'],
             'date' => date('Y-m-d\TH:i:s\Z'),
             'lang' => 'nl-NL',
             'author' => '',
@@ -165,7 +165,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
         $response->expects($this->once())
                 ->method('getContentType')
                 ->will($this->returnValue('text/html'));
-        $response->expects($this->once())
+        $response->expects($this->any())
                 ->method('getLastModified')
                 ->will($this->returnValue('2015-06-18T23:49:41Z'));
 
@@ -189,7 +189,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
                 ->expects($this->exactly(5))
                 ->method('getCrawler')
                 ->will($this->returnValue($crawler));
-        $resource->expects($this->exactly(2))
+        $resource->expects($this->exactly(3))
                 ->method('getResponse')
                 ->will($this->returnValue($response));
         $resource->expects($this->exactly(2))
@@ -207,7 +207,7 @@ class HtmlTest extends PHPUnit_Framework_TestCase
             'tstamp' => date('Y-m-d\TH:i:s\Z'),
             'type' => ["text/html","text","html"],
             'contentLength' => 23,
-            'lastModified'=> date('Y-m-d\TH:i:s\Z'),
+            'lastModified'=> $data['lastModified'],
             'date' => date('Y-m-d\TH:i:s\Z'),
             'lang' => 'nl-NL',
             'author' => 'Dummy Author',
@@ -216,6 +216,79 @@ class HtmlTest extends PHPUnit_Framework_TestCase
             'strippedContent' => 'This is the text value.',
             'description' => 'Dummy description',
             'keywords'=> 'keyword1,keyword2',
+        ];
+
+        $this->assertEquals($expectedData, $data);
+    }
+
+    /**
+     * @test
+     */
+    public function persistRetrieveValidDataWithDivClosingTagIncludedInScriptFromWebPageWithAllDefaultValuesInFields()
+    {
+        $htmlBody = '<html><head><meta name="DCTERMS.available" content="2015-06-18T23:49:41Z" /><meta name="DCTERMS.modified" content="2015-06-18T23:49:41Z" /></head><body><script type="text/javascript">var html = "<div class=\'error text\'>Dynamically generated div.</div>";</script><p>This is the text value.</p></body></html>';
+
+        $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
+            ->disableOriginalConstructor()
+            ->setMethods(['getContentType', 'getLastModified', 'getBody'])
+            ->getMock();
+        $response->expects($this->once())
+            ->method('getContentType')
+            ->will($this->returnValue('text/html'));
+        $response->expects($this->any())
+            ->method('getLastModified')
+            ->will($this->returnValue('2015-06-18T23:49:41Z'));
+        $response->expects($this->once())
+            ->method('getBody')
+            ->will($this->returnValue($htmlBody));
+
+        $uri = $this->getMockBuilder('VDB\Uri\Uri')
+            ->disableOriginalConstructor()
+            ->setMethods(['toString'])
+            ->getMock();
+        $uri->expects($this->exactly(2))
+            ->method('toString')
+            ->will($this->returnValue('http://blabdummy.de/dummydir/somewebpagedummyfile.html'));
+
+        $crawler = new Crawler('', 'https://github.com');
+        $crawler->addContent($htmlBody);
+
+        $resource = $this
+            ->getMockBuilder('VDB\Spider\Resource')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCrawler', 'getResponse', 'getUri'])
+            ->getMock();
+        $resource
+            ->expects($this->exactly(5))
+            ->method('getCrawler')
+            ->will($this->returnValue($crawler));
+        $resource->expects($this->exactly(3))
+            ->method('getResponse')
+            ->will($this->returnValue($response));
+        $resource->expects($this->exactly(2))
+            ->method('getUri')
+            ->will($this->returnValue($uri));
+
+        $type = new Html(null);
+        $data = $type->getData($resource);
+
+        $expectedData = [
+            'id' => sha1('http://blabdummy.de/dummydir/somewebpagedummyfile.html'),
+            'url' => 'http://blabdummy.de/dummydir/somewebpagedummyfile.html',
+            'content' => 'This is the text value.',
+            'title' => '',
+            'tstamp' => date('Y-m-d\TH:i:s\Z'),
+            'type' => ["text/html","text","html"],
+            'contentLength' => 23,
+            'lastModified'=> $data['lastModified'],
+            'date' => date('Y-m-d\TH:i:s\Z'),
+            'lang' => 'nl-NL',
+            'author' => '',
+            'publishedDate' => date('Y-m-d\TH:i:s\Z'),
+            'updatedDate' => date('Y-m-d\TH:i:s\Z'),
+            'strippedContent' => 'This is the text value.',
+            'description' => '',
+            'keywords' => '',
         ];
 
         $this->assertEquals($expectedData, $data);
