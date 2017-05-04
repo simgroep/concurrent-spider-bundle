@@ -21,8 +21,9 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
 
     /**
      * @test
+     * @dataProvider rejectResponseCodeDataProvider
      */
-    public function skipDocumentOnServerError()
+    public function skipDocumentOnServerError($statusCode)
     {
         $message = new AMQPMessage();
         $message->body = json_encode(
@@ -99,10 +100,10 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
         $response
             ->expects($this->exactly(2))
             ->method('getStatusCode')
-            ->will($this->returnValue(500));
+            ->will($this->returnValue($statusCode));
 
 
-        $exception = new ClientErrorResponseException("Internal server error", 500);
+        $exception = new ClientErrorResponseException("Internal server error", $statusCode);
         $exception->setResponse($response);
 
         $spider = $this
@@ -1398,6 +1399,16 @@ class CrawlCommandTest extends PHPUnit_Framework_TestCase
     {
         return [
             [301], [302]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function rejectResponseCodeDataProvider()
+    {
+        return [
+            [400], [401], [403], [500]
         ];
     }
 }
