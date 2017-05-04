@@ -210,8 +210,9 @@ class CrawlCommand extends Command
                     );
                     $this->queue->publishJob($newCrawlJob);
                     break;
-                case 403:
+                case 400:
                 case 401:
+                case 403:
                 case 500:
                     $this->queue->rejectMessage($message);
                     $this->markAsSkipped($crawlJob, 'warning', 'status: ' . $e->getResponse()->getStatusCode());
