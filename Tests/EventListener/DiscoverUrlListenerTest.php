@@ -2,6 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Tests\EventListener;
 
+use Predis\Client;
+use Predis\Connection\ConnectionException;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
@@ -485,4 +487,55 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($result);
     }
 
+    public function testRedisConnectionThrowExceptionOnSetMembersRead()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['publish', '__destruct'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('publish');
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['filterIndexedAndNotExpired'])
+            ->getMock();
+
+        $uri = new Uri('http://www.github.com');
+
+        $indexer
+            ->expects($this->once())
+            ->method('filterIndexedAndNotExpired')
+            ->withConsecutive(['uris' => [$uri]], ['core'])
+            ->will($this->returnValue([$uri]));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $redis = new Client(null,null);
+        $crawlJob = new CrawlJob($uri, $uri, [], ["core" => "coreName"]);
+
+        $spider = $this
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
+        $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
+        $listener->onDiscoverUrl($event);
+
+        $this->getExpectedException(ConnectionException::class);
+    }
 }
