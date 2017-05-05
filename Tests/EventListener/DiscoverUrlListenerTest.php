@@ -2,6 +2,8 @@
 
 namespace Simgroep\ConcurrentSpiderBundle\Tests\EventListener;
 
+use Predis\Client;
+use Predis\Connection\ConnectionException;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Simgroep\ConcurrentSpiderBundle\EventListener\DiscoverUrlListener;
 use Simgroep\ConcurrentSpiderBundle\CrawlJob;
@@ -45,7 +47,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -108,9 +110,15 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $redis = $this
             ->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
+            ->setMethods(['smembers', 'sadd', 'expire'])
             ->getMock();
 
-        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+        $redis
+            ->expects($this->once())
+            ->method('smembers')
+            ->will($this->returnValue([]));
+
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -158,9 +166,15 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $redis = $this
             ->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
+            ->setMethods(['smembers', 'sadd', 'expire'])
             ->getMock();
 
-        $crawlJob = new CrawlJob('https://github.com', 'https://github.com');
+        $redis
+            ->expects($this->once())
+            ->method('smembers')
+            ->will($this->returnValue([]));
+
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -214,7 +228,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [$pattern]);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [$pattern], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -268,7 +282,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [$pattern]);
+        $crawlJob = new CrawlJob('https://github.com', 'https://github.com', [$pattern], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -342,9 +356,15 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $redis = $this
             ->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
+            ->setMethods(['smembers', 'sadd', 'expire'])
             ->getMock();
 
-        $crawlJob = new CrawlJob('http://www.socialedienstbommelerwaard.nl/Digitaal loket', 'http://www.socialedienstbommelerwaard.nl');
+        $redis
+            ->expects($this->once())
+            ->method('smembers')
+            ->will($this->returnValue([]));
+
+        $crawlJob = new CrawlJob('http://www.socialedienstbommelerwaard.nl/Digitaal loket', 'http://www.socialedienstbommelerwaard.nl', [], ["core" => "coreName"]);
 
         $spider = $this
             ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
@@ -362,23 +382,34 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $listener->onDiscoverUrl($event);
     }
 
-    public function testIfUrlAlreadyInQueue()
+    public function testIfUrlIsAlreadyInQueue()
     {
         $queue = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
             ->disableOriginalConstructor()
+            ->setMethods(['getName', '__destruct'])
             ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('getName')
+            ->will($this->returnValue('coreName_queueName'));
 
         $indexer = $this
             ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
             ->disableOriginalConstructor()
-            ->setMethods(['getHashSolarId'])
+            ->setMethods(['filterIndexedAndNotExpired', 'getHashSolarId'])
             ->getMock();
 
         $uri = new Uri('https://github.com');
 
         $indexer
             ->expects($this->once())
+            ->method('filterIndexedAndNotExpired')
+            ->will($this->returnValue([$uri]));
+
+        $indexer
+            ->expects($this->exactly(2))
             ->method('getHashSolarId')
             ->will($this->returnValue(sha1(strtolower($uri))));
 
@@ -390,7 +421,7 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
         $redis = $this
             ->getMockBuilder('Predis\Client')
             ->disableOriginalConstructor()
-            ->setMethods(['smembers'])
+            ->setMethods(['smembers', 'sadd', 'expire'])
             ->getMock();
 
         $redis
@@ -398,9 +429,23 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->method('smembers')
             ->will($this->returnValue([sha1(strtolower($uri))]));
 
+        $crawlJob = new CrawlJob($uri, $uri, [], ["core" => "coreName"]);
 
+        $spider = $this
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
-        $result = $listener->isAlreadyInQueue($uri, ['core' => 'coreName_queueName']);
+        $listener->onDiscoverUrl($event);
+        $result = $listener->isAlreadyInQueue($uri);
 
         $this->assertTrue($result);
     }
@@ -436,15 +481,61 @@ class DiscoverUrlListenerTest extends PHPUnit_Framework_TestCase
             ->setMethods(['smembers', 'scard', 'sadd', 'expire'])
             ->getMock();
 
-        $redis
-            ->expects($this->once())
-            ->method('smembers')
-            ->will($this->returnValue([]));
-
-
         $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
-        $result = $listener->isAlreadyInQueue($uri, ['core' => 'coreName_queueName']);
+        $result = $listener->isAlreadyInQueue($uri);
 
         $this->assertFalse($result);
+    }
+
+    public function testRedisConnectionThrowExceptionOnSetMembersRead()
+    {
+        $queue = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Queue')
+            ->disableOriginalConstructor()
+            ->setMethods(['publish', '__destruct'])
+            ->getMock();
+
+        $queue
+            ->expects($this->once())
+            ->method('publish');
+
+        $indexer = $this
+            ->getMockBuilder('Simgroep\ConcurrentSpiderBundle\Indexer')
+            ->disableOriginalConstructor()
+            ->setMethods(['filterIndexedAndNotExpired'])
+            ->getMock();
+
+        $uri = new Uri('http://www.github.com');
+
+        $indexer
+            ->expects($this->once())
+            ->method('filterIndexedAndNotExpired')
+            ->withConsecutive(['uris' => [$uri]], ['core'])
+            ->will($this->returnValue([$uri]));
+
+        $eventDispatcher = $this
+            ->getMockBuilder('Symfony\Component\EventDispatcher\EventDispatcher')
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $redis = new Client(null,null);
+        $crawlJob = new CrawlJob($uri, $uri, [], ["core" => "coreName"]);
+
+        $spider = $this
+            ->getMockbuilder('Simgroep\ConcurrentSpiderbundle\Spider')
+            ->disableOriginalConstructor()
+            ->setMethods(['getCurrentCrawlJob'])
+            ->getMock();
+
+        $spider
+            ->expects($this->once())
+            ->method('getCurrentCrawlJob')
+            ->will($this->returnValue($crawlJob));
+
+        $event = new GenericEvent($spider, ['uris' => [$uri]]);
+        $listener = new DiscoverUrlListener($queue, $indexer, $eventDispatcher, $redis, 900);
+        $listener->onDiscoverUrl($event);
+
+        $this->getExpectedException(ConnectionException::class);
     }
 }
