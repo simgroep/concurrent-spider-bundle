@@ -64,7 +64,7 @@ class Html extends TypeAbstract implements DocumentTypeInterface
     }
 
     /**
-     * Extracts all text content from the crawled resource exception javascript.
+     * Extracts all text content from the crawled resource exception javascript and style.
      *
      * @param \VDB\Spider\Resource $resource
      *
@@ -103,5 +103,4 @@ class Html extends TypeAbstract implements DocumentTypeInterface
 
         return trim($content);
     }
-
 }
