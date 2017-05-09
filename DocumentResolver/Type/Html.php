@@ -90,7 +90,7 @@ class Html extends TypeAbstract implements DocumentTypeInterface
             });
         }
 
-        $query = '//body//*[not(self::script)]/text()';
+        $query = '//body//*[not(self::script|self::style)]/text()';
         $content = '';
         $crawler->filterXpath($query)->each(
             function (Crawler $crawler) use (&$content) {
