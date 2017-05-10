@@ -64,7 +64,7 @@ class Html extends TypeAbstract implements DocumentTypeInterface
     }
 
     /**
-     * Extracts all text content from the crawled resource exception javascript.
+     * Extracts all text content from the crawled resource exception javascript and style.
      *
      * @param \VDB\Spider\Resource $resource
      *
@@ -90,7 +90,7 @@ class Html extends TypeAbstract implements DocumentTypeInterface
             });
         }
 
-        $query = '//body//*[not(self::script)]/text()';
+        $query = '//body//*[not(self::script|self::style)]/text()';
         $content = '';
         $crawler->filterXpath($query)->each(
             function (Crawler $crawler) use (&$content) {
@@ -103,5 +103,4 @@ class Html extends TypeAbstract implements DocumentTypeInterface
 
         return trim($content);
     }
-
 }
