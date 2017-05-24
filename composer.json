@@ -39,7 +39,7 @@
         "php": ">=5.4.0",
         "vdb/php-spider": "^0.2",
         "videlalvaro/php-amqplib": "~2",
-        "symfony/symfony": ">=2.4,<3",
+        "symfony/symfony": "^2.7||^3.0",
         "phpoffice/phpword": "^0.13,>=0.13.1",
         "nelmio/solarium-bundle": "^2.3",
         "symfony/process": "^3.1",
