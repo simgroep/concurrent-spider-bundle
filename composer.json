@@ -1,5 +1,6 @@
 {
     "name": "simgroep/concurrent-spider-bundle",
+    "description": "Symfony bundle for running a distributed web page crawler",
     "type": "symfony-bundle",
     "authors": [
         {

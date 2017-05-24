@@ -3,6 +3,7 @@ php:
   - "5.6"
   - "5.5"
 before_script:
+  - composer validate --strict
   - composer install -n --dev
 script:
   - vendor/bin/phpunit -c Tests/phpunit-travis.xml
