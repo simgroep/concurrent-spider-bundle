@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "2409887e3f584f63083b5be1fc2010f8",
+    "content-hash": "83f35b026e2358e126ad11208ba6bcb9",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -1950,7 +1950,7 @@
         },
         {
             "name": "vdb/php-spider",
-            "version": "dev-master",
+            "version": "0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/simgroep/php-spider.git",
@@ -2005,7 +2005,7 @@
                 "issues": "https://github.com/matthijsvandenbos/php-spider/issues",
                 "source": "https://github.com/matthijsvandenbos/php-spider"
             },
-            "time": "2015-05-12 11:47:28"
+            "time": "2015-05-12T11:47:28+00:00"
         },
         {
             "name": "vdb/uri",
@@ -3411,7 +3411,6 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "vdb/php-spider": 20,
         "phpoffice/phpword": 20,
         "nelmio/solarium-bundle": 20
     },

@@ -33,7 +33,7 @@
     "license": "MIT",
     "require": {
         "php": ">=5.4.0",
-        "vdb/php-spider": "dev-master",
+        "vdb/php-spider": "^0.2",
         "videlalvaro/php-amqplib": "~2",
         "symfony/symfony": ">=2.4,<3",
         "phpoffice/phpword": "dev-master#51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
