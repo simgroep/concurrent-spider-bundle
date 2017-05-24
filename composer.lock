@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "c069e6090a559e14d0ec9a81ba2a8d18",
+    "content-hash": "7ecba754fdc84cbb590aae0662828a06",
     "packages": [
         {
             "name": "doctrine/annotations",
@@ -775,15 +775,15 @@
         },
         {
             "name": "phpoffice/phpword",
-            "version": "dev-master",
+            "version": "0.13.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/PHPOffice/PHPWord.git",
+                "url": "https://github.com/simgroep/PHPWord.git",
                 "reference": "51c6b5fc38d6838b9f6f59cb0c690b42356a95a0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPOffice/PHPWord/zipball/51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
+                "url": "https://api.github.com/repos/simgroep/PHPWord/zipball/51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
                 "reference": "51c6b5fc38d6838b9f6f59cb0c690b42356a95a0",
                 "shasum": ""
             },
@@ -818,7 +818,6 @@
                     "PhpOffice\\PhpWord\\": "src/PhpWord"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "LGPL-3.0"
             ],
@@ -827,13 +826,13 @@
                     "name": "Mark Baker"
                 },
                 {
-                    "name": "Franck Lefevre",
-                    "homepage": "http://blog.rootslabs.net"
-                },
-                {
                     "name": "Gabriel Bull",
                     "email": "me@gabrielbull.com",
                     "homepage": "http://gabrielbull.com/"
+                },
+                {
+                    "name": "Franck Lefevre",
+                    "homepage": "http://blog.rootslabs.net"
                 },
                 {
                     "name": "Ivan Lanin",
@@ -847,31 +846,34 @@
             "description": "PHPWord - A pure PHP library for reading and writing word processing documents (OOXML, ODF, RTF, HTML, PDF)",
             "homepage": "http://phpoffice.github.io",
             "keywords": [
+                "HTML",
                 "ISO IEC 29500",
+                "ODF",
                 "OOXML",
                 "Office Open XML",
                 "OpenDocument",
                 "OpenXML",
-                "PhpOffice",
-                "PhpWord",
+                "PDF",
+                "PHP",
+                "PHPOffice",
+                "PHPWord",
+                "RTF",
                 "Rich Text Format",
                 "WordprocessingML",
                 "doc",
                 "docx",
-                "html",
-                "odf",
                 "odt",
                 "office",
-                "pdf",
-                "php",
                 "reader",
-                "rtf",
                 "template",
                 "template processor",
                 "word",
                 "writer"
             ],
-            "time": "2016-11-08 22:40:10"
+            "support": {
+                "source": "https://github.com/simgroep/PHPWord/tree/0.13.1"
+            },
+            "time": "2016-11-08T22:40:10+00:00"
         },
         {
             "name": "predis/predis",
@@ -3410,9 +3412,7 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {
-        "phpoffice/phpword": 20
-    },
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
