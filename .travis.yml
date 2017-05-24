@@ -1,7 +1,8 @@
 language: php
 php:
   - "5.6"
-  - "5.5"
+  - "7.0"
+  - "7.1"
 before_script:
   - composer validate --strict
   - composer install -n --dev
