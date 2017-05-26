@@ -3,3 +3,4 @@ vendor
 nohup.out
 build/
 Tests/coverage
+composer.lock
